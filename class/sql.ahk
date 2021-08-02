@@ -1,4 +1,7 @@
-﻿Global sql_le, sql_lq
+﻿Global	sql_le
+	,	sql_lq
+;end global
+
 sql( query, tipo = 1, d = "" ) {
 	;	ADOSQL modified
 	if ( instr( query, "UPDATE" ) > 0 && instr( query, "WHERE" ) = 0 )	{
@@ -114,4 +117,4 @@ sql( query, tipo = 1, d = "" ) {
 				:	o3DA.MaxIndex() =	1
 									?	o3DA[1]
 									:	o3DA
-	}
+}
