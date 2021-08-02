@@ -5,6 +5,8 @@
 #Include ..\class\array.ahk
 #Include ..\class\safedata.ahk
 #Include ..\class\gui.ahk
+#Include ..\class\windows.ahk
+#Include ..\class\string.ahk
 #SingleInstance,	Force
 #IfWinActive		Agenda - Avisos - Ocomon - Frota
 #NoTrayIcon
@@ -198,8 +200,6 @@ if ( A_UserName = "arsilva" )
 			trocou	=
 			GuiControl,	Choose,	tab,	5
 			}
-	Gosub, _carrega_relatorio_individual
-	OutputDebug % "Carregou Relatórios Individuais "  SubStr( A_Now, -1 )
 return
 
 _top_100:
@@ -980,8 +980,11 @@ OnTabSelect:
 			LV_ModifyCol(1,Sort)
 		GuiControl	Focus,	lv6
 		}
-	if ( tab = 7 )
+	if ( tab = 7 )	{
+		Gosub, _carrega_relatorio_individual
+		OutputDebug % "Carregou Relatórios Individuais "  SubStr( A_Now, -1 )
 		goto _exibe_relatorio_individual
+		}
 	if ( tab = 8 )	{
 		Gui,	ListView,	lv8
 		eventos	=
