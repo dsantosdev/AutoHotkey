@@ -4,7 +4,7 @@
 #Include ..\class\sql.ahk
 #Include ..\class\array.ahk
 #Include ..\class\safedata.ahk
-#Include ..\class\Gui.ahk
+#Include ..\class\gui.ahk
 #SingleInstance,	Force
 #IfWinActive		Agenda - Avisos - Ocomon - Frota
 #NoTrayIcon
@@ -38,7 +38,7 @@ if ( A_UserName = "arsilva" )
 			header=Agenda|Avisos|Ocomon|Frota|Registro|Vigilantes|Relatórios Monitoramento ;|Detecções de Imagem|Sinistros em Andamento
 			else
 				header=Agenda|Avisos|Ocomon|Frota|Registro
-		GuiConfig.Cores()
+		Gui.Cores()
 	;	Tab	1	-	Agenda
 		Gui,	Font,		S11	cWhite	Bold
 		Gui,	Add,		Tab3,		x5		y5		w1250			vtab		gOnTabSelect	AltSubmit						,	%	header
@@ -1077,7 +1077,7 @@ Esc::
 ExitApp
 
 GeraRelatorio:
-	GuiConfig.Cores("relatorio")
+	Gui.Cores("relatorio")
 		Gui,	relatorio:Font, cWhite Bold
 	Gui,	relatorio:Add,	Text,			x5		y0		w110	h20		0x1000								,	Operador
 	Gui,	relatorio:Add,	Text,			x5		y30		w110	h20		0x1000								,	Motivo
@@ -1542,7 +1542,7 @@ FileURL( File )	{
 
 Login:
 	#IfWinActive, Login Cotrijal
-	GuiConfig.Cores("login","9BACC0","374658")
+	Gui.Cores("login","9BACC0","374658")
 		Gui, login:Font,	Bold	S10 cWhite
 	Gui, login:Add, Text,	x10	y10		w80		h20									, Usuário
 	Gui, login:Add, Text,	x10	y30		w80		h20									, Senha

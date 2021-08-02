@@ -1,5 +1,5 @@
 ﻿
-Class	GuiConfig	{
+Class	Gui	{
 
 	Cores(id="",cor1="",cor2="")	{
 		if(StrLen(cor1)=0)
