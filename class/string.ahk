@@ -19,7 +19,6 @@ Class	String		{
 				new_name .= " " name_split[A_Index]
 			else
 				new_name .= " " SubStr( name_split[A_Index] , 1, 1 ) ". "
-		Loop, 5
 		return StrReplace( new_name, "  ", " " )
 	}
 
