@@ -1,11 +1,10 @@
 ﻿;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2Agenda.ico
 
-#Include sql.ahk
-#Include classes.ahk
-#Include array.ahk
-Global	Coded
-	,	Base_Key
-	,	Alfabeto:="abcdefghijklmnopqrstuvwxyz"
+; #Include ..\class\classes.ahk
+#Include ..\class\sql.ahk
+#Include ..\class\array.ahk
+#Include ..\class\safedata.ahk
+#Include ..\class\Gui.ahk
 #SingleInstance,	Force
 #IfWinActive		Agenda - Avisos - Ocomon - Frota
 #NoTrayIcon
