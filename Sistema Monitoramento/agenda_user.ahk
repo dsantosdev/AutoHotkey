@@ -319,6 +319,9 @@ _exibe_relatorio_individual:
 		Gui,	ListView,	lv_relatorios
 		Gui,	Submit,		NoHide
 		if ( keyboard = 0 )	{
+			LV_GetText( pkid_lv,			A_EventInfo	=	0
+														?	1
+														:	A_EventInfo, 6 )
 			LV_GetText( exibir_relatorio,	A_EventInfo	=	0
 														?	1
 														:	A_EventInfo, 3 )
@@ -327,9 +330,24 @@ _exibe_relatorio_individual:
 														:	A_EventInfo, 2 )
 			}
 			Else {
+				LV_GetText( pkid_lv,			LV_GetNext(), 6 )
 				LV_GetText( exibir_relatorio,	LV_GetNext(), 3 )
 				LV_GetText( nome_user,			LV_GetNext(), 2 )
 				}
+		if ( A_UserName = "Alberto" )	{
+			u =
+				(
+				INSERT INTO [Logs].[dbo].[Visualizado]
+					([usuario]
+					,[tipo]
+					,[data])
+				VALUES
+					(''
+					,''
+					,'')
+				)
+
+			}
 		GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio "`n`n" visto_as "`t" visto_por
 Return
 
