@@ -1,7 +1,7 @@
 ﻿
 Class	Gui	{
 
-	Cores(id="",cor1="",cor2="")	{
+	Cores( id = "", cor1 = "", cor2 = "" )	{
 		if ( StrLen( cor1 ) = 0 )
 			cor1 = dbdbdb
 		if ( StrLen( cor2 ) = 0 )
@@ -16,10 +16,13 @@ Class	Gui	{
 			}
 	}
 
-	Font(params*)					{
+	Font( params* )							{
 		Loop, % params.count()	{
-			if ( InStr( params[ A_Index ], ":") > 0 )
+			if ( InStr( params[ A_Index ], ":") > 0 )	{
+				if ( debug => 4 )
+					OutputDebug % "(Class gui.font)`n`tGui Named = " params[ A_index ]
 				named := params[ A_index ]
+				}
 				Else
 					config .= " " params[ A_index ]
 				}
