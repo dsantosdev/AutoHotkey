@@ -6,10 +6,6 @@
 Class Safe_Data	{
 
 	Encrypt( String, base )	{
-		If ( StrLen( Alfabeto ) = 0 )	{
-			MsgBox % "Para poder utilizar essa classe é necessário definir:`n(já está salvo no clipboard" clipboard:= "Global`tCoded`n`t,`tBase_Key`n`t,`tAlfabeto:=""abcdefghijklmnopqrstuvwxyz"""
-			Return
-			}
 		if ( StrLen( base ) = 0 )	{
 			MsgBox % "Você precisa passar uma key de codificação para encriptar o arquivo"
 			Return
@@ -17,7 +13,8 @@ Class Safe_Data	{
 		StringCaseSenseSetting := A_StringCaseSense 
 		StringCaseSense Off
 		Coded := Safe_Data.Crypt_Key( Base )
-		OutputDebug % Base " - " coded
+		if ( debug >= 4 )
+			OutputDebug % Base " - " coded
 		Loop, Parse, String
 			{
 			Ascii := Asc( A_LoopField )
@@ -37,10 +34,6 @@ Class Safe_Data	{
 	}
 
 	Decrypt( String, Base )	{
-		If ( StrLen( Alfabeto ) = 0 ){
-			MsgBox % "Para poder utilizar essa classe é necessário definir:`n(já está salvo no clipboard" clipboard:= "Global`tCoded`n`t,`tBase_Key`n`t,`tAlfabeto:=""abcdefghijklmnopqrstuvwxyz"""
-			Return
-			}
 		if ( StrLen( base ) = 0 )	{
 			MsgBox % "Você precisa passar uma key de decodificação para decriptar o arquivo"
 			Return

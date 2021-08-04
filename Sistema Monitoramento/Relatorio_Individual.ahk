@@ -11,6 +11,7 @@ debug = 3
 #SingleInstance Force
 #Persistent
 #Include ..\class\sql.ahk
+#Include ..\class\functions.ahk
 #Include ..\class\windows.ahk
 #Include ..\class\array.ahk
 #Include ..\class\gui.ahk
@@ -269,34 +270,51 @@ _s_relatorio:
 			OutputDebug % "Sort = " sort "`n`tOrder: "	 order
 		LV_ModifyCol( 4 , "Sort" order )
 		}
-	if (	A_GuiEvent = "Normal"
-		||	A_GuiEvent = "K" )	{
+	if (	A_GuiEvent	=	"Normal"
+		||	A_GuiEvent	=	"K" )	{
 		if ( A_EventInfo = 0 )
 			lv_GetText( @relatorio, s_row := A_EventInfo+1, 2 )
 			Else
 				lv_GetText( @relatorio, s_row := A_EventInfo, 2 )
-		if ( A_GuiEvent = "K" && ( A_EventInfo = 40 || A_EventInfo = 38 ) )	;	trata select com as arrow keys
+		if (	A_GuiEvent	=	"K"
+			&&	(	A_EventInfo = 40
+				||	A_EventInfo = 38 ) )	;	trata select com as arrow keys
 			lv_GetText( @relatorio, s_row := LV_GetNext(), 2 )
 		if (	in_edit 			=	1									;	Trata relatório editado
 			&&	edit_row			!=	s_row
 			&&	relatorio_editado	!=	relatorio_anterior )	{
+				relatorio_for_sql := "`tEditado em:`n`t" datetime()  "`n`n" relatorio_anterior	
 				gui.Cores( "editado", "9BACC0", "374658" )
 				WinHide,	Relatório Individual
 				Gui,	editado:-Caption -Border +AlwaysOnTop +OwnDialogs
 				gui.Font( "editado:", "cWhite", "Bold" )
-				Gui,	editado:Add,	Text,%		"xm									w" A_ScreenWidth-20 "	h30		0x1200	+Center	Section	",	RELATÓRIO EDITADO
+				Gui,	editado:Add,	Text,%		"xm				w" A_ScreenWidth-20 "	h30		0x1200	+Center	Section	",	RELATÓRIO EDITADO
 				gui.Font( "editado:" )
-				Gui,	editado:Add,	Button,%	"									w220					h50		geditar			 		",	Salvar Alterações`n(Só pode ser editado UMA vez)
-				Gui,	editado:Add,	Button,%	"									w220					h50		geditadoGuiClose 		",	Cancelar Alterações
+				Gui,	editado:Add,	Button,%	"				w220					h50		geditar			 		",	Salvar Alterações`n(Só pode ser editado UMA vez)
+				Gui,	editado:Add,	Button,%	"				w220					h50		geditadoGuiClose 		",	Cancelar Alterações
 				gui.Font( "editado:", "cWhite", "S10" )
-				Gui,	editado:Add,	Edit,%		"xm+230x			ym+35			w" A_ScreenWidth-250 "	h340			ReadOnly		",% "Relatório Editado:`n`n"	relatorio_editado
-				Gui,	editado:Add,	Edit,%		"									w" A_ScreenWidth-250 "	h340			ReadOnly		",%	"Relatório Anterior:`n`n"	relatorio_anterior
-				Gui,	editado:Show,				x0					y0																		,	Relatório Editado
+				Gui,	editado:Add,	Edit,%		"xm+230	ym+35	w" A_ScreenWidth-250 "	h340			ReadOnly		",% "Relatório Editado:`n`n"	relatorio_editado
+				Gui,	editado:Add,	Edit,%		"				w" A_ScreenWidth-250 "	h340			ReadOnly		",%	"Relatório Anterior:`n"		relatorio_for_sql
+				Gui,	editado:Show,				x0				y0														,	Relatório Editado
 				GuiControl, editado:Focus, foco
 			return
 
 			editar:
-				OutputDebug % "Editar"
+				OutputDebug % "Editar: "  @usuario
+				WinShow,	Relatório Individual
+				Gui,	editado:-AlwaysOnTop
+				Gui,	editado:Destroy
+				relatorio_editado := safe_data.encrypt( relatorio_editado, @usuario )
+				relatorio_anterior := safe_data.encrypt( relatorio_anterior, @usuario )
+				u	=
+					(
+						UPDATE
+							[ASM].[dbo].[_relatorios_individuais]
+						SET
+							[relatorio]				= '%relatorio_editado%',
+							[relatorio_pre_edit]	= '%relatorio_anterior%',
+							[edicoes]				= '1'
+					)
 			Return
 
 			editadoGuiClose:
