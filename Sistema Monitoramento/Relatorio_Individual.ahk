@@ -6,8 +6,8 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 	,	relatorio_anterior	;	guicontext
 	,	pkid				;	guicontext
 	,	edicoes				;	guicontext
-is_test = 1
-debug = 3
+is_test = 
+debug = 
 
 #IfWinActive, Login Cotrijal
 #SingleInstance Force
@@ -46,10 +46,9 @@ if ( A_IsCompiled )	{
 			}
 	;	Update
 	skip:
-	version = 1.0.0.5
-	changelog = Adicionado criptografia AES nos relatórios.
+	version = 1.0.0.6
+	changelog = Adicionado função de edição de relatórios.
 	}
-
 v =
 	(
 	SELECT	[version]
@@ -142,6 +141,7 @@ Interface:
 	Gui, Add, Button,%			"x" A_ScreenWidth-115 "	y20								h25						g_informacoes					",	Informações
 		Gosub, Carrega_Relatorios
 	Gui, Show,%					"x-2					y0		w" A_ScreenWidth "																",	Relatório Individual
+	OutputDebug % "Show"
 return
 
 Carrega_Relatorios:
@@ -274,6 +274,7 @@ _s_relatorio:
 			order := sort	=	1
 							?	""
 							:	"Desc"
+		if ( debug = 1 )
 			OutputDebug % "Sort = " sort "`n`tOrder: "	 order
 		LV_ModifyCol( 4 , "Sort" order )
 		}
@@ -354,7 +355,7 @@ Login:
 		Gui, login:Font, Bold S10
 	Gui, login:Add, Edit,	x90	y10		w140	h20		v@usuario
 	Gui, login:Add, Edit,	x90	y30		w140	h20		v@senha		Password
-	Gui, login:Add, Button,	x10	y55		w221	h25		vAutentica	g_Autenticar	, Ok
+	; Gui, login:Add, Button,	x10	y55		w221	h25					g_Autenticar	, Ok
 		Gui, login:Font
 	Gui, login: +AlwaysOnTop	-MinimizeBox
 	Gui, login:Show,																, Login Cotrijal
@@ -366,7 +367,7 @@ Login:
 	_Autenticar:
 		Gui,	Login:Submit,	NoHide
 		is_login := Login(@usuario,@senha)
-		if	( logou = "interface" )
+		if ( logou = "interface" )
 			Return
 		goto,	%	logou := Login(@usuario,@senha) =	0
 											?	"GuiClose"
@@ -396,7 +397,8 @@ Return
 GuiClose:
 	loginGuiCLose:
 	if ( StrLen(@usuario) != 0 and StrLen(@senha) != 0 or is_login = 0 )	{
-		OutputDebug % "Login Gui Close"
+		if ( debug = 1 )
+			OutputDebug % "Login Gui Close"
 		login_in := Login(@usuario,@senha) = 0 ? 0 : 1
 		if ( login_in = 0 )	{
 			Gui,	Login:Destroy
@@ -408,7 +410,8 @@ GuiClose:
 
 Relatorio_Temporario:
 	Gui,	Submit, NoHide
-	OutputDebug % StrLen(@n_relatorio)
+	if ( debug = 1 )
+		OutputDebug % StrLen(@n_relatorio)
 	if ( StrLen(@n_relatorio) > 0 ) {
 		; OutputDebug % "Temp Save: " @n_relatorio "`n`t" user_ad "`n_____"
 		insert=
@@ -442,9 +445,11 @@ Relatorio_Temporario:
 					[relatorio_temporario] is not NULL
 				)
 			sql( delete, 3 )
-			OutputDebug % "sai normal COM login"
+			if ( debug = 1 )
+				OutputDebug % "sai normal COM login"
 			}
-			OutputDebug % "sai normal SEM login"
+			if ( debug = 1 )
+				OutputDebug % "sai normal SEM login"
 		}
 ExitApp
 
@@ -487,7 +492,8 @@ GuiContextMenu()	{
 		LV_GetText( relatorio_anterior, A_EventInfo , 2 )
 		LV_GetText( pkid, A_EventInfo , 4 )
 		LV_GetText( edicoes, A_EventInfo , 6 )
-		OutputDebug % "edicoes: " edicoes
+		if ( debug = 1 )
+			OutputDebug % "edicoes: " edicoes
 		GuiControl, , @e_relatorios ,% relatorio_anterior
 		data_relatorio :=	SubStr( A_Now, 1, 8 )
 						-	(SubStr( data_relatorio, 7, 4 ) SubStr( data_relatorio, 4, 2 ) SubStr( data_relatorio, 1, 2 ))
@@ -541,7 +547,8 @@ editar:
 	r_editado	:=	safe_data.encrypt( "Editado em:`n`t" datetime() "`n`n" relatorio_editado, @usuario )
 	r_anterior	:=	safe_data.encrypt( relatorio_anterior, @usuario )
 	edicoes++
-	OutputDebug % "edicoes = " edicoes
+	if ( debug = 1 )
+		OutputDebug % "edicoes = " edicoes
 	u	=
 		(
 			UPDATE
@@ -561,7 +568,6 @@ Return
 editadoGuiClose:
 	WinShow,	Relatório Individual
 	Guicontrol,	+ReadOnly +cWhite,	@e_relatorios
-	Gui, editado:-AlwaysOnTop
 	if ( editado = 1 )
 		editado = 0
 	Gui,	editado:Destroy
