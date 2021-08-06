@@ -125,7 +125,7 @@ Interface:
 		gui.Font( "S12", "Bold", "cWhite" )
 		Gui, Add, Text,%		"x255					y20		w150					h25										+Center	0x1000	",	Buscar
 		gui.Font()
-	Gui, Add, ListView,%		"x255					y60		w430					h260	v@lv AltSubmit	g_s_relatorio	Grid			",	Data|Relatório|Nome|id|pre|edicoes|ip
+	Gui, Add, ListView,%		"x255					y60		w430					h260	v@lv AltSubmit	g_s_relatorio	Grid					",	Data|Relatório|Nome|id|pre|edicoes|ip
 		gui.Font( "S10", "Bold" )
 	Gui, Add, Edit,%			"x405					y20		w" A_ScreenWidth-530 "	h25		v@b_relatorios	g_busca"
 		gui.Font()
@@ -134,13 +134,13 @@ Interface:
 		gui.Font()
 		gui.Font( "S10" )
 	Gui, Add, Edit,%			"x20					y350	w" A_ScreenWidth-45 "	h260	v@n_relatorio								+WantTab"
-	Gui, Add, Button,%			"x" A_ScreenWidth-225 "	y625	w200					h30						g_i_relatorio					",	INSERIR
+	Gui, Add, Button,%			"x" A_ScreenWidth-225 "	y625	w200					h30						g_i_relatorio							",	INSERIR
 		Gui, Add, GroupBox,%	"x10					y0		w" A_ScreenWidth-25 "	h620	vb_geral"
 		Gui, Add, GroupBox,%	"x10					y330	w" A_ScreenWidth-25 "	h290	vb_inserir"
 		Gui, Add, GroupBox,%	"x" A_ScreenWidth-235 "	y612	w220					h50		vb_botoes"
-	Gui, Add, Button,%			"x" A_ScreenWidth-115 "	y20								h25						g_informacoes					",	Informações
+	Gui, Add, Button,%			"x" A_ScreenWidth-115 "	y20								h25						g_informacoes							",	Informações
 		Gosub, Carrega_Relatorios
-	Gui, Show,%					"x-2					y0		w" A_ScreenWidth "																",	Relatório Individual
+	Gui, Show,%					"x-2					y0		w" A_ScreenWidth "																		",	Relatório Individual
 	OutputDebug % "Show"
 return
 
