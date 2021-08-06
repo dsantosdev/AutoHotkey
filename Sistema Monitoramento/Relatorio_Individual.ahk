@@ -4,8 +4,10 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 	,	edit_row			;	guicontext
 	,	in_edit				;	guicontext
 	,	relatorio_anterior	;	guicontext
-is_test = 1
-debug = 3
+	,	pkid				;	guicontext
+	,	edicoes				;	guicontext
+is_test = 
+debug = 
 
 #IfWinActive, Login Cotrijal
 #SingleInstance Force
@@ -44,10 +46,9 @@ if ( A_IsCompiled )	{
 			}
 	;	Update
 	skip:
-	version = 1.0.0.5
-	changelog = Adicionado criptografia AES nos relatórios.
+	version = 1.0.0.6
+	changelog = Adicionado função de edição de relatórios.
 	}
-
 v =
 	(
 	SELECT	[version]
@@ -108,7 +109,7 @@ if (	A_IsCompiled
 	FileCopy, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\relatorio_individual.exe,% A_ScriptDir "\relatorio_individual.exe", 1
 	}
 if ( is_test = 1 )	{
-	@usuario = julitak
+	@usuario = dsantos
 	Goto interface
 	}
 	Else
@@ -140,63 +141,69 @@ Interface:
 	Gui, Add, Button,%			"x" A_ScreenWidth-115 "	y20								h25						g_informacoes					",	Informações
 		Gosub, Carrega_Relatorios
 	Gui, Show,%					"x-2					y0		w" A_ScreenWidth "																",	Relatório Individual
+	OutputDebug % "Show"
 return
 
 Carrega_Relatorios:
+	Gui,	1:Default
+	Gui,	ListView, @lv
 	relatorios:={}
-		select=
-			(
-				SELECT	[data]
-					,	[relatorio]
-					,	[nome]
-					,	[pkid]
-					,	[relatorio_pre_edit]
-					,	[edicoes]
-					,	[ip]
-					,	[relatorio_temporario]
-					,	[user_ad]
-				FROM
-					[ASM].[DBO].[_Relatorios_Individuais]
-				WHERE
-					[user_ad] = '%@Usuario%'
-				ORDER BY
-					[pkid] DESC
-			)
-			if(is_test =1)
-			; Clipboard:=select
-		relatorios_existentes := sql( select, 3 )
+	select=
+		(
+			SELECT	[data]
+				,	[relatorio]
+				,	[nome]
+				,	[pkid]
+				,	[relatorio_pre_edit]
+				,	[edicoes]
+				,	[ip]
+				,	[relatorio_temporario]
+				,	[user_ad]
+			FROM
+				[ASM].[DBO].[_Relatorios_Individuais]
+			WHERE
+				[user_ad] = '%@Usuario%'
+			ORDER BY
+				[pkid] DESC
+		)
+	if ( debug = 1 )	{
 		OutputDebug % relatorios_existentes.Count()-1
-		Loop, %	relatorios_existentes.Count()-1	{
-			if ( StrLen( relatorios_existentes[A_Index+1,8] ) > 0 )	{	;	temporario
-				GuiControl, , @n_relatorio,%	relatorios_existentes[A_Index+1,8]
-				continue
-				}
-			relat_ := Safe_Data.Decrypt( relatorios_existentes[A_Index+1,2], relatorios_existentes[A_Index+1,9] )
-			OutputDebug % relat
-			relatorios.push({	data		:	relatorios_existentes[A_Index+1,1]
-							,	relatorio	:	relat_
-							,	nome		:	relatorios_existentes[A_Index+1,3]
-							,	id			:	relatorios_existentes[A_Index+1,4]
-							,	anteriores	:	relatorios_existentes[A_Index+1,5]
-							,	edicoes		:	relatorios_existentes[A_Index+1,6]
-							,	ip			:	relatorios_existentes[A_Index+1,7]
-							,	temp		:	relatorios_existentes[A_Index+1,8]
-							,	user		:	relatorios_existentes[A_Index+1,9]	})
-			LV_Add(
-				,	relatorios_existentes[A_Index+1,1]
-				,	relat_
-				,	relatorios_existentes[A_Index+1,3]
-				,	relatorios_existentes[A_Index+1,4]
-				,	relatorios_existentes[A_Index+1,5]
-				,	relatorios_existentes[A_Index+1,6]
-				,	relatorios_existentes[A_Index+1,7])
+		Clipboard := select
+		}
+	relatorios_existentes := sql( select, 3 )
+	LV_Delete()
+	Loop, %	relatorios_existentes.Count()-1	{
+		if ( StrLen( relatorios_existentes[A_Index+1,8] ) > 0 )	{	;	temporario
+			GuiControl, , @n_relatorio,%	relatorios_existentes[A_Index+1,8]
+			continue
 			}
-			Loop,	8
-				LV_ModifyCol(A_index+2,0)
-			LV_ModifyCol( 1, 120 )
-			LV_ModifyCol( 4, "Integer" )
-			LV_ModifyCol( 2, 300 )
-		; OutputDebug % "relatorios: " relatorios.count()
+		relat_ := Safe_Data.Decrypt( relatorios_existentes[A_Index+1,2], relatorios_existentes[A_Index+1,9] )
+		relatorios.push({	data		:	relatorios_existentes[A_Index+1,1]
+						,	relatorio	:	relat_
+						,	nome		:	relatorios_existentes[A_Index+1,3]
+						,	id			:	relatorios_existentes[A_Index+1,4]
+						,	anteriores	:	relatorios_existentes[A_Index+1,5]
+						,	edicoes		:	relatorios_existentes[A_Index+1,6]
+						,	ip			:	relatorios_existentes[A_Index+1,7]
+						,	temp		:	relatorios_existentes[A_Index+1,8]
+						,	user		:	relatorios_existentes[A_Index+1,9]	})
+		LV_Add(
+			,	relatorios_existentes[A_Index+1,1]
+			,	relat_
+			,	relatorios_existentes[A_Index+1,3]
+			,	relatorios_existentes[A_Index+1,4]
+			,	relatorios_existentes[A_Index+1,5]
+			,	relatorios_existentes[A_Index+1,6]
+			,	relatorios_existentes[A_Index+1,7])
+		}
+	Loop, 8
+		LV_ModifyCol( A_index+2, 0 )
+		LV_ModifyCol( 1, 120 )
+		LV_ModifyCol( 4, "Integer" )
+		LV_ModifyCol( 2, 300 )
+	; OutputDebug % "relatorios: " relatorios.count()
+	LV_GetText( _insere_relatorio, 1, 2 )
+	GuiControl, , @e_relatorios ,% _insere_relatorio
 Return
 
 _b_data:
@@ -267,6 +274,7 @@ _s_relatorio:
 			order := sort	=	1
 							?	""
 							:	"Desc"
+		if ( debug = 1 )
 			OutputDebug % "Sort = " sort "`n`tOrder: "	 order
 		LV_ModifyCol( 4 , "Sort" order )
 		}
@@ -280,59 +288,7 @@ _s_relatorio:
 			&&	(	A_EventInfo = 40
 				||	A_EventInfo = 38 ) )	;	trata select com as arrow keys
 			lv_GetText( @relatorio, s_row := LV_GetNext(), 2 )
-		if (	in_edit 			=	1									;	Trata relatório editado
-			&&	edit_row			!=	s_row
-			&&	relatorio_editado	!=	relatorio_anterior )	{
-				relatorio_for_sql := "`tEditado em:`n`t" datetime()  "`n`n" relatorio_anterior	
-				gui.Cores( "editado", "9BACC0", "374658" )
-				WinHide,	Relatório Individual
-				Gui,	editado:-Caption -Border +AlwaysOnTop +OwnDialogs
-				gui.Font( "editado:", "cWhite", "Bold" )
-				Gui,	editado:Add,	Text,%		"xm				w" A_ScreenWidth-20 "	h30		0x1200	+Center	Section	",	RELATÓRIO EDITADO
-				gui.Font( "editado:" )
-				Gui,	editado:Add,	Button,%	"				w220					h50		geditar			 		",	Salvar Alterações`n(Só pode ser editado UMA vez)
-				Gui,	editado:Add,	Button,%	"				w220					h50		geditadoGuiClose 		",	Cancelar Alterações
-				gui.Font( "editado:", "cWhite", "S10" )
-				Gui,	editado:Add,	Edit,%		"xm+230	ym+35	w" A_ScreenWidth-250 "	h340			ReadOnly		",% "Relatório Editado:`n`n"	relatorio_editado
-				Gui,	editado:Add,	Edit,%		"				w" A_ScreenWidth-250 "	h340			ReadOnly		",%	"Relatório Anterior:`n"		relatorio_for_sql
-				Gui,	editado:Show,				x0				y0														,	Relatório Editado
-				GuiControl, editado:Focus, foco
-			return
-
-			editar:
-				OutputDebug % "Editar: "  @usuario
-				WinShow,	Relatório Individual
-				Gui,	editado:-AlwaysOnTop
-				Gui,	editado:Destroy
-				relatorio_editado := safe_data.encrypt( relatorio_editado, @usuario )
-				relatorio_anterior := safe_data.encrypt( relatorio_anterior, @usuario )
-				u	=
-					(
-						UPDATE
-							[ASM].[dbo].[_relatorios_individuais]
-						SET
-							[relatorio]				= '%relatorio_editado%',
-							[relatorio_pre_edit]	= '%relatorio_anterior%',
-							[edicoes]				= '1'
-					)
-			Return
-
-			editadoGuiClose:
-				WinShow,	Relatório Individual
-				Gui, editado:-AlwaysOnTop
-				if ( editado = 1 )
-					editado = 0
-				Gui,	editado:Destroy
-			Return
-
-			Guicontrol,	+ReadOnly +cWhite,	@e_relatorios
-			OutputDebug % "Select Row:`n`tsrow: " s_row "`trow: " edit_row
-
-			}
-			Else	{
-				in_edit = 0
-				Guicontrol,	+ReadOnly +cWhite,	@e_relatorios
-				}
+	
 		GuiControl, , @e_relatorios ,% @Relatorio
 		Return
 		}
@@ -399,7 +355,7 @@ Login:
 		Gui, login:Font, Bold S10
 	Gui, login:Add, Edit,	x90	y10		w140	h20		v@usuario
 	Gui, login:Add, Edit,	x90	y30		w140	h20		v@senha		Password
-	Gui, login:Add, Button,	x10	y55		w221	h25		vAutentica	g_Autenticar	, Ok
+	; Gui, login:Add, Button,	x10	y55		w221	h25					g_Autenticar	, Ok
 		Gui, login:Font
 	Gui, login: +AlwaysOnTop	-MinimizeBox
 	Gui, login:Show,																, Login Cotrijal
@@ -411,7 +367,7 @@ Login:
 	_Autenticar:
 		Gui,	Login:Submit,	NoHide
 		is_login := Login(@usuario,@senha)
-		if	( logou = "interface" )
+		if ( logou = "interface" )
 			Return
 		goto,	%	logou := Login(@usuario,@senha) =	0
 											?	"GuiClose"
@@ -441,7 +397,8 @@ Return
 GuiClose:
 	loginGuiCLose:
 	if ( StrLen(@usuario) != 0 and StrLen(@senha) != 0 or is_login = 0 )	{
-		OutputDebug % "Login Gui Close"
+		if ( debug = 1 )
+			OutputDebug % "Login Gui Close"
 		login_in := Login(@usuario,@senha) = 0 ? 0 : 1
 		if ( login_in = 0 )	{
 			Gui,	Login:Destroy
@@ -453,7 +410,8 @@ GuiClose:
 
 Relatorio_Temporario:
 	Gui,	Submit, NoHide
-	OutputDebug % StrLen(@n_relatorio)
+	if ( debug = 1 )
+		OutputDebug % StrLen(@n_relatorio)
 	if ( StrLen(@n_relatorio) > 0 ) {
 		; OutputDebug % "Temp Save: " @n_relatorio "`n`t" user_ad "`n_____"
 		insert=
@@ -487,18 +445,16 @@ Relatorio_Temporario:
 					[relatorio_temporario] is not NULL
 				)
 			sql( delete, 3 )
-			OutputDebug % "sai normal COM login"
+			if ( debug = 1 )
+				OutputDebug % "sai normal COM login"
 			}
-			OutputDebug % "sai normal SEM login"
+			if ( debug = 1 )
+				OutputDebug % "sai normal SEM login"
 		}
 ExitApp
 
 _informacoes:
-	infos := !infos
-	if ( infos = 0 )	{
-		Goto infoGuiClose
-		Return
-		}
+	WinHide,	Relatório Individual
 	dicas=
 		(
 		> Utilize o filtro de CALENDÁRIO para buscar um dia específico
@@ -508,7 +464,6 @@ _informacoes:
 		)
 	dicas := StrReplace( dicas, "`t" )
 	gui.Cores( "info", "9BACC0", "374658" )
-	; Gui,	+Disabled
 	Gui,	info:+AlwaysOnTop
 	Gui,	info:-Caption -Border +AlwaysOnTop +OwnDialogs
 	gui.Font( "info:", "cWhite", "Bold" )
@@ -523,9 +478,8 @@ _informacoes:
 return
 
 infoGuiClose:
-	if ( infos = 1 )
-		infos = 0
 	Gui,	Info:Destroy
+	WinShow,	Relatório Individual
 Return
 
 GuiContextMenu()	{
@@ -534,24 +488,31 @@ GuiContextMenu()	{
 		&&	A_EventInfo		> 0 )	{
 		in_edit		=	0
 		edit_row	:=	A_EventInfo
-		LV_GetText( relatorio_anterior, A_EventInfo , 2 )
 		LV_GetText( data_relatorio, A_EventInfo , 1 )
+		LV_GetText( relatorio_anterior, A_EventInfo , 2 )
+		LV_GetText( pkid, A_EventInfo , 4 )
 		LV_GetText( edicoes, A_EventInfo , 6 )
+		if ( debug = 1 )
+			OutputDebug % "edicoes: " edicoes
 		GuiControl, , @e_relatorios ,% relatorio_anterior
 		data_relatorio :=	SubStr( A_Now, 1, 8 )
 						-	(SubStr( data_relatorio, 7, 4 ) SubStr( data_relatorio, 4, 2 ) SubStr( data_relatorio, 1, 2 ))
 						>	3
 							?	"Você só pode editar relatórios de no máximo 2 dias atrás."
-							:	edicoes	>	1
-										?	"Excedido o número possível de edições para esse relatório."
+							:	edicoes	>=	1
+										?	"Não é possível editar novamente este relatório."
 										:	(SubStr( data_relatorio, 7, 4 ) SubStr( data_relatorio, 4, 2 ) SubStr( data_relatorio, 1, 2 ) )
-		OutputDebug, % "EventInfo:`n`t" A_EventInfo "`nControle:`n`t" A_GuiControl "`nData:`n`t" data_relatorio
 		If data_relatorio is not digit
 			{
-			If ( edicoes > 1 )
+			If ( edicoes > 1 )	{
+				WinHide,	Relatório Individual
 				MsgBox, 48, Quantidade de Edições Excedida, % data_relatorio
-				Else
+				}
+				Else	{
+				WinHide,	Relatório Individual
 				MsgBox, 48, Período de Edição Excedido, % data_relatorio
+				}
+			WinShow,	Relatório Individual
 			Return
 			}
 		Menu,	editar_relatorio, Add, Editar Relatório, _e_relatorio
@@ -563,7 +524,53 @@ GuiContextMenu()	{
 _e_relatorio:
 	in_edit := 1
 	Gui, Submit, NoHide
-	Guicontrol,	-ReadOnly +cBlack,	@e_relatorios
+	; Guicontrol,	-ReadOnly +cBlack,	@e_relatorios
+		gui.Cores( "editado", "9BACC0", "374658" )
+	WinHide,	Relatório Individual
+	Gui,	editado:-Caption -Border +AlwaysOnTop +OwnDialogs
+		gui.Font( "editado:", "cWhite", "Bold" )
+	Gui,	editado:Add,	Text,%		"xm				w" A_ScreenWidth-20 "	h30							0x1200	+Center	Section	",	RELATÓRIO EDITADO
+		gui.Font( "editado:" )
+	Gui,	editado:Add,	Button,%	"				w220					h50							geditar			 		",	Salvar Alterações`n(Só pode ser editado UMA vez)
+	Gui,	editado:Add,	Button,%	"				w220					h50							geditadoGuiClose 		",	Cancelar Alterações
+		gui.Font( "editado:", "cBlack", "S10" )
+	Gui,	editado:Add,	Edit,%		"xm+230	ym+35	w" A_ScreenWidth-250 "	h340	vrelatorio_editado							",% relatorio_anterior
+		gui.Font( "editado:", "cWhite", "Bold" )
+	Gui,	editado:Add,	Edit,%		"				w" A_ScreenWidth-250 "	h340								ReadOnly		",%	"Relatório Anterior:`n`tEditado em:`n`t" datetime()  "`n`n" relatorio_anterior
+	Gui,	editado:Show,%				"x0				y0																			",	Relatório Editado
+	GuiControl, editado:Focus, foco
+Return
+
+editar:
+	Gui,	editado:Submit, NoHide
+	Gui,	editado:Destroy
+	r_editado	:=	safe_data.encrypt( "Editado em:`n`t" datetime() "`n`n" relatorio_editado, @usuario )
+	r_anterior	:=	safe_data.encrypt( relatorio_anterior, @usuario )
+	edicoes++
+	if ( debug = 1 )
+		OutputDebug % "edicoes = " edicoes
+	u	=
+		(
+			UPDATE
+				[ASM].[dbo].[_relatorios_individuais]
+			SET
+				[relatorio]				= '%r_editado%',
+				[relatorio_pre_edit]	= '%r_anterior%',
+				[edicoes]				= '%edicoes%'
+			WHERE
+				[pkid]					= '%pkid%'
+		)
+	sql( u, 3 )
+	WinShow,	Relatório Individual
+	goto Carrega_Relatorios
+Return
+
+editadoGuiClose:
+	WinShow,	Relatório Individual
+	Guicontrol,	+ReadOnly +cWhite,	@e_relatorios
+	if ( editado = 1 )
+		editado = 0
+	Gui,	editado:Destroy
 Return
 
 up:
