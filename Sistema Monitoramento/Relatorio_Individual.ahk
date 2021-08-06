@@ -461,6 +461,9 @@ _informacoes:
 		> Busque relatórios com palavras específicas pelo campo BUSCAR
 		> O relatório necessita ter pelo menos 10 caracteres para poder ser inserido.
 		> Lembre-se de FECHAR o programa de Relatórios Individuais após inserir ou visualizar a informação que necessita.
+		> Você pode editar um relatório de até 2 dias atrás.
+		> Cada relatório só pode ser editado UMA vez e seu coordenador será notificado que o mesmo foi editado.
+		> Para editar um relatório, basta clicar com o botão direito no mesmo na lista de exibição e selecionar a opção "EDITAR RELATÓRIO".
 		)
 	dicas := StrReplace( dicas, "`t" )
 	gui.Cores( "info", "9BACC0", "374658" )
