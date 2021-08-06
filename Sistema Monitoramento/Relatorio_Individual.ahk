@@ -349,12 +349,12 @@ Return
 Login:
 	gui.Cores("login","9BACC0","374658")
 		Gui, login:Font,	Bold	S10 cWhite
-	Gui, login:Add, Text,	x10	y10		w80		h20									, Usuário
-	Gui, login:Add, Text,	x10	y30		w80		h20									, Senha
+	Gui, login:Add, Text,	x10	y10		w80		h25		0x1200		center			, Usuário
+	Gui, login:Add, Text,	x10	y40		w80		h25		0x1200		center			, Senha
 		Gui, login:Font
 		Gui, login:Font, Bold S10
-	Gui, login:Add, Edit,	x90	y10		w140	h20		v@usuario
-	Gui, login:Add, Edit,	x90	y30		w140	h20		v@senha		Password
+	Gui, login:Add, Edit,	x90	y10		w140	h25		v@usuario
+	Gui, login:Add, Edit,	x90	y40		w140	h25		v@senha		Password
 	; Gui, login:Add, Button,	x10	y55		w221	h25					g_Autenticar	, Ok
 		Gui, login:Font
 	Gui, login: +AlwaysOnTop	-MinimizeBox
