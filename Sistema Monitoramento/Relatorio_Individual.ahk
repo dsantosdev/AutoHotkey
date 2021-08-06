@@ -554,14 +554,16 @@ editar:
 		OutputDebug % "edicoes = " edicoes
 	u	=
 		(
-			UPDATE
-				[ASM].[dbo].[_relatorios_individuais]
-			SET
-				[relatorio]				= '%r_editado%',
-				[relatorio_pre_edit]	= '%r_anterior%',
-				[edicoes]				= '%edicoes%'
-			WHERE
-				[pkid]					= '%pkid%'
+		UPDATE
+			[ASM].[dbo].[_relatorios_individuais]
+		SET
+			[usuario]				= NULL,
+			[visualizado]			= NULL,
+			[relatorio]				= '%r_editado%',
+			[relatorio_pre_edit]	= '%r_anterior%',
+			[edicoes]				= '%edicoes%'
+		WHERE
+			[pkid]					= '%pkid%'
 		)
 	sql( u, 3 )
 	WinShow,	Relatório Individual
