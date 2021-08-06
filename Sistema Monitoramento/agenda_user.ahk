@@ -383,7 +383,7 @@ _exibe_relatorio_individual:
 															?	1
 															:	LV_GetNext(), 8 )
 				}
-		if ( A_UserName = "Dsantos" )	{
+		if ( A_UserName = "Alberto" )	{
 			hora := datetime( 1 )
 			u =
 				(
