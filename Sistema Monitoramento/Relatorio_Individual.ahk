@@ -547,7 +547,7 @@ Return
 editar:
 	Gui,	editado:Submit, NoHide
 	Gui,	editado:Destroy
-	r_editado	:=	safe_data.encrypt( "Editado em:`n`t" datetime() "`n`n" relatorio_editado, @usuario )
+	r_editado	:=	"__________________________`n" safe_data.encrypt( "Editado em:`n`t" datetime() "`n__________________________`n" relatorio_editado, @usuario )
 	r_anterior	:=	safe_data.encrypt( relatorio_anterior, @usuario )
 	edicoes++
 	if ( debug = 1 )
