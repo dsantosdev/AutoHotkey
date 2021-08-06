@@ -17,7 +17,7 @@ Menu,	Tray,	Tip,	Agenda - Avisos - Ocomon - Frota
 ;Goto, Login
 interface:
 test =
-debug =
+debug = 0
 if ( debug = 1 )
 	OutputDebug % "interface"
 Gui, Login:Destroy
@@ -294,18 +294,25 @@ _carrega_relatorio_individual:
 	Loop,	% relatorios.Count()-1	{
 		if (	A_Index = 2 	
 			&&	StrLen( relatorios[A_Index,7] ) > 0 )
-			GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" relatorios[A_Index,8] "`nvisto em:`t" datetime( 2, relatorios[A_Index,7] )
+			if ( StrLen( relatorios[A_Index,4] ) > 0 )
+				GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" relatorios[A_Index,8] "`nvisto em:`t" datetime( 2, relatorios[A_Index,7] ) "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre
+				Else
+					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" relatorios[A_Index,8] "`nvisto em:`t" datetime( 2, relatorios[A_Index,7] )
 			Else if ( A_Index = 2 )
-			GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio
+				if ( StrLen( relatorios[A_Index,4] ) > 0 )
+					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre
+					Else
+						GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio
 		
 		relatorio := Safe_Data.Decrypt( relatorios[A_Index+1,3], relatorios[A_Index+1,5] )
+		pre := Safe_Data.decrypt( relatorios[A_Index+1,4], relatorios[A_Index+1,5] )
 		if !InStr( relatorio, @busca_relatorios )
 			Continue
 		LV_Add(	""
 			,	SubStr( relatorios[A_Index+1,1] , 1, 10 )
 			,	String.Name( relatorios[A_Index+1,2] )
 			,	relatorio
-			,	relatorios[A_Index+1,4]
+			,	pre
 			,	relatorios[A_Index+1,5]
 			,	relatorios[A_Index+1,6]
 			,	relatorios[A_Index+1,7]
@@ -365,6 +372,9 @@ _exibe_relatorio_individual:
 			LV_GetText( visto_por,			A_EventInfo	=	0
 														?	1
 														:	A_EventInfo, 8 )
+			LV_GetText( pre_edit,			A_EventInfo	=	0
+														?	1
+														:	A_EventInfo, 4 )
 			}
 			Else {
 				LV_GetText( pkid_lv,			LV_GetNext()	=	0
@@ -382,6 +392,9 @@ _exibe_relatorio_individual:
 				LV_GetText( visto_por,			LV_GetNext()	=	0
 															?	1
 															:	LV_GetNext(), 8 )
+				LV_GetText( pre_edit,			LV_GetNext()	=	0
+															?	1
+															:	LV_GetNext(), 4 )
 				}
 		if ( A_UserName = "Alberto" )	{
 			hora := datetime( 1 )
@@ -406,9 +419,15 @@ _exibe_relatorio_individual:
 			sql( u, 3 )
 			}
 			if ( StrLen( visto_as ) > 0 )
-				GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" visto_por "`nvisto em:`t" datetime( 2, visto_as )
+				if ( StrLen( pre_edit ) > 0 )
+					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" visto_por "`nvisto em:`t" datetime( 2, visto_as ) "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre_edit
+					Else
+						GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" visto_por "`nvisto em:`t" datetime( 2, visto_as )
 				Else
-					GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio
+					if ( StrLen( pre_edit ) > 0 )
+						GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre_edit
+						Else
+							GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio
 Return
 
 _relatorio_individual:
