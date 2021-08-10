@@ -386,12 +386,9 @@ Login:
 						?	"1"
 						:	"0"
 	}
-
-;return
-
-~Enter::
-	~NumpadEnter::
-	Goto _Autenticar
+	~Enter::
+		~NumpadEnter::
+		Goto _Autenticar
 Return
 
 GuiClose:
