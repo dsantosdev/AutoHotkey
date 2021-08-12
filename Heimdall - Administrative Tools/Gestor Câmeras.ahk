@@ -2,6 +2,7 @@
 ;	Inicio Header Principal
 global	debug
 	,	is_test
+	,	admins
 ;local
 	is_test = 
 	debug = 
@@ -490,7 +491,12 @@ Gui, CamerasEdit:Default
 return
 
 Login:
-	gui.Cores("login","9BACC0","374658")
+	s=select usuario from [asm].dbo._colaboradores where access_level > 0
+	s	:=	sql( s, 3 )
+	Loop, % s.Count()
+		admins	.=	s[ A_Index+1, 1 ] ","
+		admins := SubStr(admins, 1, -1 )
+	gui.Cores( "login", "9BACC0", "374658" )
 		Gui, login:Font,	Bold	S10 cWhite
 	Gui, login:Add, Text,	x10	y10		w80		h25		0x1200		center			, Usuário
 	Gui, login:Add, Text,	x10	y40		w80		h25		0x1200		center			, Senha
@@ -509,25 +515,29 @@ Login:
 
 	_Autenticar:
 		Gui,	Login:Submit,	NoHide
-		is_login := Login(@usuario,@senha)
+		is_login := Login( @usuario, @senha, 1 )
 		if ( logou = "interface" )
 			Return
-		goto,	%	logou := Login(@usuario,@senha) =	0
-											?	"GuiClose"
-											:	"Interface"
+		goto,	%	logou := is_login	=	0
+										?	"GuiClose"
+										:	"Interface"
 	Return
 
-	Login(@usuario,@senha)	{
-		return DllCall(	"advapi32\LogonUser"
-					,	"str",	@usuario
-					,	"str",	"Cotrijal"
-					,	"str",	@senha
-					,	"Ptr",	3
-					,	"Ptr",	3
-					,	"UintP"
-					,	nSize	)	=	1
-						?	"1"
-						:	"0"
+	Login( @usuario, @senha, @admin = "" )	{
+		if	@admin
+			if InStr(admins, @usuario )
+				return DllCall(	"advapi32\LogonUser"
+							,	"str",	@usuario
+							,	"str",	"Cotrijal"
+							,	"str",	@senha
+							,	"Ptr",	3
+							,	"Ptr",	3
+							,	"UintP"
+							,	nSize	)	=	1
+								?	"1"
+								:	"0"
+		Else
+			Return 0
 	}
 	~Enter::
 		~NumpadEnter::
