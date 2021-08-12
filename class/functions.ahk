@@ -14,7 +14,17 @@ datetime( sql = "0", date = "" )			{
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
 }
 
-Login( @usuario, @senha, @admin = "" )		{
+http( url )							{
+	static req := ComObjCreate( "Msxml2.XMLHTTP" )
+	req.open( "GET", url, false )
+	req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )	;	login local do dguard(admin)
+	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
+	req.send()
+	return	%	req.responseText
+	}
+
+
+login( @usuario, @senha, @admin = "" )		{
 	if ( @admin != "" )	{
 		if InStr( admins, @usuario )
 			return DllCall(	"advapi32\LogonUser"
@@ -41,6 +51,52 @@ Login( @usuario, @senha, @admin = "" )		{
 					,	nSize	)	=	1
 									?	"1"
 									:	"0"
+}
+
+notificar( )							{
+	s =
+		(
+		SELECT TOP(1)	p.IdCliente
+					,	p.QuandoAvisar
+					,	p.Mensagem
+					,	p.Assunto
+					,	c.Nome
+					,	p.Idaviso
+		FROM
+			[IrisSQL].[dbo].[Agenda] p
+		LEFT JOIN
+			[IrisSQL].[dbo].[Clientes] c
+				ON p.IdCliente = c.IdUnico
+		ORDER BY
+			6 DESC
+		)
+		s := sql( s )
+	if ( StrLen( last_id ) = 0 )	{
+		last_id := s[2,6]
+		return % last_id
+		}
+	if ( last_id < s[2, 6] )		{	;executa notificação
+		subjm		:= s[2, 4]
+		iadaviso	:= s[2, 6]
+		if ( SubStr( A_IpAddress1, InStr( A_IpAddress1, ".",,,3 )+1 ) = 184 )	;	Remove errados
+			If ( InStr( subjm, "Informou" ) > 0 )		{
+				d = DELETE FROM [IrisSQL].[dbo].[Agenda] WHERE idaviso = '%iadaviso%'
+				sql( d )
+				return
+			}
+		last_id := s[2,6]
+		TrayTip, % s[2,5] "`nNovo E-Mail - " datetime(), % s[2, 3]
+		Random, easteregg, 1, 100
+		if ( easteregg < 95 )
+			som = car
+			else
+				som = yoda
+		SoundPlay, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\%som%.wav
+		}
+	if ( last_id > s[2, 6] )
+		last_id := s[2, 6]
+	GuiControl,	debug:,	debug4,% s[2,6] " - " last_id
+	return	last_id
 }
 
 send_mail( destino, assunto, corpo, at:="")	{
