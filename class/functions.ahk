@@ -1,5 +1,5 @@
 ﻿
-datetime( sql = "0", date = "" )	{
+datetime( sql = "0", date = "" )			{
 	If (	sql = 2
 		&&	StrLen( date ) = 0 )	{
 		MsgBox,0x40,ERRO, A função datetime() em modo SQL 2`, necessita que seja enviado o valor date para funcionar.
@@ -12,6 +12,35 @@ datetime( sql = "0", date = "" )	{
 		Return SubStr( date, 5, 4 ) "-"  SubStr( date, 3, 2 ) "-"  SubStr( date, 1, 2 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
 		}
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
+}
+
+Login( @usuario, @senha, @admin = "" )		{
+	if ( @admin != "" )	{
+		if InStr( admins, @usuario )
+			return DllCall(	"advapi32\LogonUser"
+						,	"str",	@usuario
+						,	"str",	"Cotrijal"
+						,	"str",	@senha
+						,	"Ptr",	3
+						,	"Ptr",	3
+						,	"UintP"
+						,	nSize	)	=	1
+									?	"1"
+									:	"0"
+		Else
+			Return 0
+	}
+	Else
+		return DllCall(	"advapi32\LogonUser"
+					,	"str",	@usuario
+					,	"str",	"Cotrijal"
+					,	"str",	@senha
+					,	"Ptr",	3
+					,	"Ptr",	3
+					,	"UintP"
+					,	nSize	)	=	1
+									?	"1"
+									:	"0"
 }
 
 send_mail( destino, assunto, corpo, at:="")	{
