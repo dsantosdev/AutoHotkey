@@ -17,17 +17,25 @@
 			if ( debug > 2 )
 				OutputDebug % "partial Zero"
 			for index, ArrayText in Array
+				{
+				if ( debug > 2 )
+					OutputDebug % ArrayText " = " SearchText
 				if ( ArrayText = SearchText )
 					Return index
+				}
 			}
 		else	{
 			list := []
 			for index, ArrayText in Array
+				{
+				if ( debug > 2 )
+					OutputDebug % ArrayText " = " SearchText "`n" InStr( ArrayText, SearchText )
 				if ( InStr( ArrayText, SearchText ) > 0 )	{
 					if ( debug > 2 )
 						OutputDebug % "Deu match no index " index
 					list.Push(index)
 					}
+				}
 			Return list.Count() = "" || list.Count() = "0" ? "0" :	list
 			}
 	}
