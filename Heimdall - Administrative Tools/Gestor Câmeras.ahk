@@ -306,7 +306,7 @@ _ok:
 		If ( StrLen( u_6 ) > 0 )
 			modificar .= "[setor] = '" _setor "',"
 		If ( StrLen( u_7 ) > 0 )
-			modificar .= "[sinistro] = '" _sinistro "',"
+			modificar .= "[em_sinistro] = '" _sinistro "',"
 		if ( InStr( modificar, "," ) > 0 )
 			modificar := modificar "[operador] = '" user "',[modificado] = CAST('" datetime( 1 ) "' as datetime)" 
 	do_up =
