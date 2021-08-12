@@ -14,15 +14,14 @@ datetime( sql = "0", date = "" )			{
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
 }
 
-http( url )							{
+http( url )									{
 	static req := ComObjCreate( "Msxml2.XMLHTTP" )
 	req.open( "GET", url, false )
 	req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )	;	login local do dguard(admin)
 	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
 	req.send()
 	return	%	req.responseText
-	}
-
+}
 
 login( @usuario, @senha, @admin = "" )		{
 	if ( @admin != "" )	{
@@ -53,7 +52,7 @@ login( @usuario, @senha, @admin = "" )		{
 									:	"0"
 }
 
-notificar( )							{
+notificar( )								{
 	s =
 		(
 		SELECT TOP(1)	p.IdCliente
