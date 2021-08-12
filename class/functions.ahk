@@ -14,6 +14,21 @@ datetime( sql = "0", date = "" )			{
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
 }
 
+executar( software, path = "" , copy = "" )	{
+	if !copy
+		copy = \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\
+	if !path
+		path = C:\Dguard Advanced\
+	try
+		Run,% path software ".exe"
+	catch	{
+		FileCopy,% busca software ".exe",% path software ".exe",	1
+		Sleep,	500
+		if ( errorlevel = 0 )
+			Run,% path software ".exe"
+		}
+}
+
 http( url )									{
 	static req := ComObjCreate( "Msxml2.XMLHTTP" )
 	req.open( "GET", url, false )
@@ -123,4 +138,12 @@ send_mail( destino, assunto, corpo, at:="")	{
 		pmsg.AddAttachment(A_LoopField)
 	pmsg.Send()
 	return
+}
+
+update( comando = "" )	{
+	q = UPDATE [ASM].[dbo].[_gestao_sistema] SET [complemento1] = '%up%' WHERE [descricao] = '%ip%'
+	sql(q, 3)
+	if ( StrLen( sql_le ) = 0 )
+		return 0
+	return sql_le
 }
