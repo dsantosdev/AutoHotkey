@@ -3,8 +3,8 @@
 global	debug
 	,	is_test
 ;local
-	is_test = 1
-	debug = 1
+	is_test = 
+	debug = 
 	delay = 500	;	No typing interval for start filtering
 	done = 0
 #IfWinActive, Login Cotrijal
@@ -27,6 +27,7 @@ if ( is_test = 1 )	{
 
 Interface:
 	Gui, Login:Destroy
+		user	:=	A_UserName = "dsantos" ? "dsantos" : @user
 		;	Fim do Header Principal
 	Gui.Cores( "CamerasEdit" )
 	Gui,	CamerasEdit:Default
@@ -53,10 +54,10 @@ Interface:
 	Gui,	CamerasEdit:Add,	Text,														,	Sinistro
 	Gui,	CamerasEdit:Add,	Text,														,	Por
 		Gui.Font( "CamerasEdit" )
-	Gui,	CamerasEdit:Add,	Edit,	ys	Section			w130	v_setor		Disabled
-	Gui,	CamerasEdit:Add,	DropDownList,				w130	v_sinistro	Disabled	,	||1|2|3|4|5
+	Gui,	CamerasEdit:Add,	Edit,	ys	Section			w127	v_setor		Disabled
+	Gui,	CamerasEdit:Add,	DropDownList,				w127	v_sinistro	Disabled	,	||1|2|3|4|5
 		Gui.Font( "CamerasEdit", "CWhite", "Bold" )
-	Gui,	CamerasEdit:Add,	Edit,						w130	v_operador	ReadOnly
+	Gui,	CamerasEdit:Add,	Edit,						w127	v_operador	ReadOnly
 	Gui,	CamerasEdit:Add,	Edit,	x80	y115			w540	v_change	ReadOnly
 		Gui.Font( "CamerasEdit" )
 	Gui,	CamerasEdit:Add,	ListView,xm	Grid	AltSubmit		vlv	w610	R15	g_s_cam	,	IP|Nome|md|mac|last_md|Setor|patrimonio|Modelo|comentario|modificado|operador|alteracoes|local|id|Sinistro
@@ -75,6 +76,7 @@ Interface:
 return
 
 _done:
+	Gui, CamerasEdit:Default
 	LV_Delete()
 	done = 1
 	ip:=nome:=local:=modificado:=mac:=model:=patrimonio:=setor:=operador:=_filter:=""
@@ -123,11 +125,12 @@ _preenche_lv:
 		ORDER BY
 			1
 		)
+	ips	:=	{}
 	cams := sql( s, 3 )
-	Loop,	%	cams.Count()-1
+	Loop,	%	cams.Count()-1	{
 		LV_Add(	""
-			,	cams[A_Index+1,1]
-			,	cams[A_Index+1,2]
+			,	ip_		:= cams[A_Index+1,1]
+			,	nome_	:= cams[A_Index+1,2]
 			,	cams[A_Index+1,3]
 			,	cams[A_Index+1,4]
 			,	cams[A_Index+1,5]
@@ -141,6 +144,9 @@ _preenche_lv:
 			,	cams[A_Index+1,13]
 			,	cams[A_Index+1,14]
 			,	cams[A_Index+1,15]		 )
+		ips.Push({	ip		:	ip_
+				,	nome	:	nome_ })
+		}
 return
 
 _s_cam:
@@ -167,7 +173,7 @@ _s_cam:
 ;return
 
 ;Controles_de_GUI
-	clear:
+clear:
 	GuiControl,	CamerasEdit:,		_ip,%		ip
 		status := StrLen( ip ) > 0 ? "Enable" : "Disable"
 		GuiControl,	CamerasEdit:%status%,		_ip
@@ -225,7 +231,7 @@ _ok:
 		}
 	user		:=	A_UserName = "dsantos" ? "dsantos" : user
 	alterado	:=	"alterado em:`t" datetime() "`nPor:`t" user "`n`n" alterado
-	modificar =
+	modificar	=
 		If ( StrLen( u_1 ) > 0 )
 			modificar := "[ip] = '" _ip "',"
 		If ( StrLen( u_2 ) > 0 )
@@ -266,46 +272,130 @@ _ok:
 	sql( do_up, 3 )
 	if ( strlen( sql_le ) > 0 )
 		MsgBox,,ERRO - INFORME AO DESENVOLVEDOR,% "O seguinte erro ocorreu:`n" sql_le
-	alterado=
+	alterado	=
 	gosub	_done
 return
 
 _new_cam:
-	ip			= 1.1.1.1
-	nome		= nome_da_camera
-	local		= local_da_camera(conforme outras da unidade)
-	mac			= mac_da_camera
-	model		= modelo_da_camera
-	setor		= operador_da_câmera(número)
-	operador	:= strlen( user ) = 0 ? A_UserName : user
-	sinistro	= 0
-	modificado = Inseriu nova câmera
+	ip			=	1.1.1.1
+	nome		=	nome_da_camera
+	local		=	local_da_camera(conforme outras da unidade)
+	mac			=	mac_da_camera
+	model		=	modelo_da_camera
+	setor		=	operador_da_câmera(número)
+	operador	:=	strlen( user ) = 0 ? user := A_UserName : user
+	sinistro	=	99
+	modificado	=	Inseriu nova câmera
 	Gosub, clear
-	GuiControl,	CamerasEdit:,	_model
-	GuiControl,	CamerasEdit:,	_ip
-	GuiControl,	CamerasEdit:,	_nome
-	GuiControl,	CamerasEdit:,	_mac
-	GuiControl,	CamerasEdit:,	_setor
-	GuiControl,	CamerasEdit:,	_local
-	GuiControl,	CamerasEdit:,	_serial
-	GuiControl, CamerasEdit:+Hidden, _new_cam
-	GuiControl, CamerasEdit:+Hidden, _ok
-	GuiControl, CamerasEdit:-Hidden, _n_ok
-	GuiControl, CamerasEdit:-Hidden, _n_cancel
-	GuiControl, CamerasEdit:+Hidden, lv
+	GuiControl,	CamerasEdit:,			_model
+	GuiControl,	CamerasEdit:,			_ip
+	GuiControl,	CamerasEdit:,			_nome
+	GuiControl,	CamerasEdit:,			_mac
+	GuiControl,	CamerasEdit:,			_setor
+	GuiControl,	CamerasEdit:,			_local
+	GuiControl,	CamerasEdit:,			_serial
+	GuiControl,	CamerasEdit:Choose,		_sinistro, 1
+	GuiControl, CamerasEdit:+Hidden,	_new_cam
+	GuiControl, CamerasEdit:+Hidden,	_filter
+	GuiControl, CamerasEdit:+Hidden,	_ok
+	GuiControl, CamerasEdit:-Hidden,	_n_ok
+	GuiControl, CamerasEdit:+Hidden,	_serial
+	GuiControl, CamerasEdit:-Hidden,	_n_cancel
+	GuiControl, CamerasEdit:+Hidden,	lv
 Return
 
 _n_ok:
-Return
+	Gui,	CamerasEdit:Submit,	NoHide
+	;if's
+		if ( StrLen( _ip ) <	7 )	{
+			MsgBox,,,Ip possuí muito poucos caracteres
+			Return
+			}
+			Else	{
+				ip_size	:=	StrSplit(_ip, "." )
+				verify	=
+				Loop, %	ip_size.Count()	{
+					if (	StrLen( ip_size[ A_Index ] ) > 3
+						||	ip_size[ A_Index ] > 255 
+						||	ip_size[ A_Index ] < 1 )	{
+							MsgBox,,,Algum dos campos de ip`, contém mais que 3 digitos ou valor maior que 255
+							Return
+							}
+						has_dot	:= A_Index = 1 ? "" : "."
+						verify	.= has_dot LTrim( ip_size[ A_Index ], 0 )
+					}
+				if ( index_ := Array.InDict( ips, verify, "ip" ) > 0 )	{
+					MsgBox,,,%	"Este IP já está cadastrado na base de dados para a câmera :`n" ips[index_].nome
+					Return
+					}
+			}
+		if ( StrLen( _nome ) = 0 )	{
+			MsgBox,,,O campo NOME não pode ser em branco.
+			Return
+			}
+			Else if ( index_ := Array.InDict( ips, _nome, "nome" ) > 0 )	{
+			MsgBox,,,%	"Este NOME já está cadastrado na base de dados para a câmera :`n" ips[index_].ip
+				Return
+				}
+		; if ( StrLen( _local ) = 0 )	{
+			;	MsgBox,,,O campo LOCAL não pode ser em branco.
+			;	Return
+			;	}
+		; if ( StrLen( _mac ) = 0 )		{
+			; MsgBox,,,O campo MAC não pode ser em branco.
+			; Return
+			; }
+		if ( StrLen( _model ) = 0 )	{
+			MsgBox,,,O campo MARCA não pode ser em branco.
+			Return
+			}
+		if ( StrLen( _setor ) = 0 )	{
+			MsgBox,,,O campo OPERADOR não pode ser em branco.`nDeve ser um valor entre 1 e 6.
+			Return
+			}
+		if ( StrLen( _sinistro ) = 0 )	{
+			MsgBox,,,O campo SINISTRO deve ser selecionado.
+			Return
+			}
+			modificado := datetime( 1 )
+	i =
+		(
+		INSERT INTO [MotionDetection].[dbo].[cameras]
+			(	[ip]
+    			,[nome]
+    			,[mac]
+    			,[setor]
+    			,[modelo]
+    			,[operador]
+    			,[alteracoes]
+    			,[local]
+    			,[em_sinistro]
+				,[modificado]	)
+		VALUES
+			(	'%_ip%'
+			,	'%_nome%'
+			,	'%_mac%'
+			,	'%_setor%'
+			,	'%_model%'
+			,	'%user%'
+			,	'Inserção de Nova Câmera'
+			,	'%_local%'
+			,	'%_sinistro%'
+			,	CAST('%modificado%' as datetime)	)
+		)
+		sql( i, 3 )
+		Gosub, _done
+;Return
 
 _n_cancel:
 	ip:=nome:=local:=modificado:=mac:=model:=patrimonio:=setor:=operador:=_filter:=""
-	sinistro := 0
+	sinistro	:=	0
 	GuiControl, CamerasEdit:-Hidden, lv
 	GuiControl, CamerasEdit:-Hidden, _new_cam
 	GuiControl, CamerasEdit:-Hidden, _ok
 	GuiControl, CamerasEdit:+Hidden, _n_ok
 	GuiControl, CamerasEdit:+Hidden, _n_cancel
+	GuiControl, CamerasEdit:-Hidden, _filter
 	Gosub, Clear
 Return
 
@@ -326,6 +416,8 @@ CamerasEditGuiContextMenu()	{
 }
 
 exclude:
+Gui, CamerasEdit:Default
+	LV_GetText(	ip,			line, 1 )
 	LV_GetText(	nome,		line, 2 )
 	LV_GetText(	md,			line, 3 )
 	LV_GetText(	mac,		line, 4 )
@@ -344,7 +436,9 @@ exclude:
 		INSERT INTO	[MotionDetection].[dbo].[cameras]
 			(	[ip]
 			,	[nome]
+			,	[md]
 			,	[mac]
+			,	[last_md]
 			,	[setor]
 			,	[patrimonio]
 			,	[modelo]
@@ -353,16 +447,18 @@ exclude:
 			,	[alteracoes]
 			,	[local]	)
 			VALUES
-			(	``%ip%``
-			,	``%nome%``
-			,	``%mac%``
-			,	``%setor%``
-			,	``%patrimonio%``
-			,	``%modelo%``
-			,	``%comentario%``
-			,	``%user%``
-			,	``Reinserido na base de dados``
-			,	``%local%``	)
+			(	''%ip%''
+			,	''%nome%''
+			,	''%md%''
+			,	''%mac%''
+			,	''%last_md%''
+			,	''%setor%''
+			,	''%patrimonio%''
+			,	''%modelo%''
+			,	''%comentario%''
+			,	''%user%''
+			,	''Reinserido na base de dados''
+			,	''%local%'' )
 		)
 	d =
 		(
@@ -370,9 +466,27 @@ exclude:
 			WHERE
 				[id] = '%id%'
 		)
-	e := sql( d, 3 )
-	i := "INSERT INTO [ASM].[dbo].[_log_sistema] ([gerado],[software],[ip],[cmp1],[cmp2],[cmp3]) VALUES ('CAST('"	datetime(1)	"' as datetime),'Editor de Câmeras','"	A_IPAddress1	"','"	reinsert "','BACKUP de Câmera','"	user	"')"
+	sql( d, 3 )
+	modificado := datetime( 1 )
+	i =
+		(
+		INSERT INTO [ASM].[dbo].[_log_sistema]
+			(	[gerado]
+			,	[software]
+			,	[ip]
+			,	[cmp1]
+			,	[cmp2]
+			,	[cmp3]	)
+		VALUES
+			(	CAST('%modificado%' as datetime)
+			,	'Editor de Câmeras'
+			,	'%A_IPAddress1%'
+			,	'%reinsert%'
+			,	'BACKUP de Câmera'
+			,	'%user%')
+		)
 	e := sql( i, 3 )
+	Gosub, _done
 return
 
 Login:
