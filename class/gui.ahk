@@ -29,4 +29,16 @@ Class	Gui	{
 		Gui,% named "Font",% config
 	}
 
+	Menu( params* )							{	;	VALIDAR
+		Loop, % params.count()	{
+			if ( debug => 4 )
+				OutputDebug % "(Class gui.menu)`n`tGui params[%A_Index%] = " params[ A_index ]
+			if ( A_index = 1 )
+				type :=	params[ A_index ] ","
+				Else
+					parametros .= params[ A_index ] ","
+			}
+			
+			Menu, % type, % SubStr( parametros, 1, -1 )
+	}
 }
