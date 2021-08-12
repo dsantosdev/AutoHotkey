@@ -30,7 +30,7 @@ Interface:
 	Gui, Login:Destroy
 		user	:=	A_UserName = "dsantos" ? "dsantos" : @user
 		;	Fim do Header Principal
-	Gui.Cores( "CamerasEdit" )
+	Gui.Cores( "CamerasEdit", "9BACC0", "374658" )
 	Gui,	CamerasEdit:Default
 	Gui,	CamerasEdit:Add,	Edit,	w610						v_filter	g_filtro	,	%	ddl_unidades
 		Gui.Font( "CamerasEdit", "CWhite", "Bold" )
@@ -236,6 +236,60 @@ _ok:
 			MsgBox	Nenhum campo alterado.
 			return
 		}
+		Else	{
+			if ( StrLen( _ip ) < 7 )		{
+				MsgBox,,,Ip possuí muito poucos caracteres
+				Return
+				}
+				Else	{
+				ip_size	:=	StrSplit(_ip, "." )
+				verify	=
+				Loop, %	ip_size.Count()	{
+					if (	StrLen( ip_size[ A_Index ] ) > 3
+						||	ip_size[ A_Index ] > 255 
+						||	ip_size[ A_Index ] < 1 )	{
+							MsgBox,,,Algum dos campos de ip`, contém mais que 3 digitos ou valor maior que 255
+							Return
+							}
+						has_dot	:= A_Index = 1 ? "" : "."
+						verify	.= has_dot LTrim( ip_size[ A_Index ], 0 )
+					}
+				if (	index_	:= Array.InDict( ips, verify, "ip" ) > 0
+					&&	ip		!= _ip )	{
+					MsgBox,,,%	"Este IP já está cadastrado na base de dados para a câmera :`n" ips[index_].nome
+					Return
+					}
+				}
+			if ( StrLen( _nome ) = 0 )		{
+				MsgBox,,,O campo NOME não pode ser em branco.
+				Return
+				}
+				Else if (	index_	:= Array.InDict( ips, _nome, "nome" ) > 0
+						&&	nome	!= _nome )	{
+				MsgBox,,,%	"Este NOME já está cadastrado na base de dados para a câmera :`n" ips[index_].ip
+					Return
+					}
+			; if ( StrLen( _local ) = 0 )	{
+				;	MsgBox,,,O campo LOCAL não pode ser em branco.
+				;	Return
+				;	}
+			; if ( StrLen( _mac ) = 0 )		{
+				; MsgBox,,,O campo MAC não pode ser em branco.
+				; Return
+				; }
+			if ( StrLen( _model ) = 0 )		{
+				MsgBox,,,O campo MARCA não pode ser em branco.
+				Return
+				}
+			if ( StrLen( _setor ) = 0 )		{
+				MsgBox,,,O campo OPERADOR não pode ser em branco.`nDeve ser um valor entre 1 e 6.
+				Return
+				}
+			if ( StrLen( _sinistro ) = 0 )	{
+				MsgBox,,,O campo SINISTRO deve ser selecionado.
+				Return
+				}
+			}
 	user		:=	A_UserName = "dsantos" ? "dsantos" : user
 	alterado	:=	"alterado em:`t" datetime() "`nPor:`t" user "`n`n" alterado
 	modificar	=
