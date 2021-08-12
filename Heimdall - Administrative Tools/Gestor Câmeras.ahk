@@ -532,22 +532,6 @@ Login:
 										:	"Interface"
 	Return
 
-	Login( @usuario, @senha, @admin = "" )	{
-		if	@admin
-			if InStr(admins, @usuario )
-				return DllCall(	"advapi32\LogonUser"
-							,	"str",	@usuario
-							,	"str",	"Cotrijal"
-							,	"str",	@senha
-							,	"Ptr",	3
-							,	"Ptr",	3
-							,	"UintP"
-							,	nSize	)	=	1
-								?	"1"
-								:	"0"
-		Else
-			Return 0
-	}
 	~Enter::
 		~NumpadEnter::
 		Goto _Autenticar
