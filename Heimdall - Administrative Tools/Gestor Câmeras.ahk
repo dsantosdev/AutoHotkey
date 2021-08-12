@@ -171,6 +171,7 @@ _s_cam:
 	LV_GetText(	local,		LV_GetNext(), 13 )
 	LV_GetText(	id,			LV_GetNext(), 14 )
 	LV_GetText(	sinistro,	LV_GetNext(), 15 )
+	mac_ = 1
 ;return
 
 ;Controles_de_GUI
@@ -186,6 +187,11 @@ clear:
 		GuiControl,	CamerasEdit:%status%,	_local
 	GuiControl,	CamerasEdit:,		_mac,%		mac
 		status := StrLen( mac ) > 0 ? "Enable" : "Disable"
+		if ( mac_ = 1 )	{
+			status = Enabled
+			mac_ = 0
+			}
+
 		GuiControl,	CamerasEdit:%status%,	_mac
 	GuiControl,	CamerasEdit:,		_model,%	model
 		status := StrLen( model ) > 0 ? "Enable" : "Disable"
@@ -196,7 +202,7 @@ clear:
 		GuiControl,	CamerasEdit:%status%,	_setor
 	GuiControl,	CamerasEdit:,		_operador,%	operador
 	GuiControl,	CamerasEdit:Choose,	_sinistro,%	sinistro+1
-		status := StrLen( sinistro ) > 1 ? "Enable" : "Disable"
+		status := sinistro > 1 ? "Enable" : "Disable"
 		GuiControl,	CamerasEdit:%status%,	_sinistro
 	GuiControl,	CamerasEdit:,		_change,%	modificado
 return
@@ -431,6 +437,7 @@ Gui, CamerasEdit:Default
 	LV_GetText(	alteracoes,	line, 12 )
 	LV_GetText(	local,		line, 13 )
 	LV_GetText(	id,			line, 14 )
+	LV_GetText(	sinistro,	line, 15 )
 	LV_Delete( line )
 	reinsert =
 		(
@@ -446,7 +453,8 @@ Gui, CamerasEdit:Default
 			,	[comentario]
 			,	[operador]
 			,	[alteracoes]
-			,	[local]	)
+			,	[local]
+			,	[em_sinistro]	)
 			VALUES
 			(	''%ip%''
 			,	''%nome%''
@@ -459,7 +467,8 @@ Gui, CamerasEdit:Default
 			,	''%comentario%''
 			,	''%user%''
 			,	''Reinserido na base de dados''
-			,	''%local%'' )
+			,	''%local%''
+			,	''%sinistro%'' )
 		)
 	d =
 		(
@@ -519,7 +528,7 @@ Login:
 		if ( logou = "interface" )
 			Return
 		goto,	%	logou := is_login	=	0
-										?	"GuiClose"
+										?	"CamerasEditGuiClose"
 										:	"Interface"
 	Return
 
