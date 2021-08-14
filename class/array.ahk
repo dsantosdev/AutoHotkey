@@ -104,4 +104,22 @@
 			Array[ Key ] := Array2[ Temp[ Index-- ] ]
 		Array2 := Temp := ""
 	}
+
+	SortDict( Array, Order = "ASC" )						{
+		for Key in Array
+			For Key2, Value in Array[Key]
+				list_index .= value "|" key "+"
+		list_index	:=	SubStr(  list_index, 1, -1 )
+		if ( Order = "desc" )
+			Sort, list_index, R N D+
+		else
+			Sort, list_index, N D+
+		Split_list := StrSplit(list_index,"+")
+		index	:=	[]
+		Loop,	% Split_list.Count()	{
+			Split_index := StrSplit( Split_list[ A_index ], "|" )
+			index.Push( Split_index[2] )
+		}
+		Return	index
+	}
 }
