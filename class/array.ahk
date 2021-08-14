@@ -1,6 +1,6 @@
 ﻿Class Array	{
 
-	InArray(Array, SearchText, Partial="0")	{
+	InArray(Array, SearchText, Partial="0")					{
 		if ( debug > 2 )
 			OutputDebug % "_____InArray`n`tSearchText: " SearchText "`n`tArray: " array.Count() "`n`tPartial: " partial "`n"
 		if ( StrLen( SearchText ) = 0 )	{
@@ -79,7 +79,7 @@
 		return list.Count()=""?0:list
 	}
 
-	QueryInDict(Array, params*) {
+	QueryInDict(Array, params*)								{
 		if ( debug > 2 )
 			OutputDebug % params.Count()
 		Loop, %  params.Count()
@@ -93,4 +93,15 @@
 				}
 	}
 
+	Reverse( Array )										{
+		;	original from jeeswg
+		Array2 := Array.Clone()
+		Temp := {}
+		for Key in Array
+			Temp.Push( Key )
+		Index := Temp.Count()
+		for Key in Array
+			Array[ Key ] := Array2[ Temp[ Index-- ] ]
+		Array2 := Temp := ""
+	}
 }
