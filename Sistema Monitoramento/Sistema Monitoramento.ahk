@@ -1,18 +1,15 @@
 ﻿;@Ahk2Exe-SetMainIcon	C:\Seventh\Backup\ico\2sm.ico
-global	iniciou
+global	iniciou	;	Verificar necessidade
 	,	server01
 	,	server02
 	,	server03
 
 ;Local
-	software	=	asm
-	salvar		=	1
-	notificacao	=	1
-	debug		=	0
-	version		=	2.8.0
-	need_admin	=	1
-	bggui		=	9BACC0
-	; bggui		=	374658
+	exe_dir	= \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\
+	salvar	= 1
+	debug	= 0
+	version	= 2.8.0
+	bggui	= 9BACC0
 ; #InstallKeybdHook
 	#Persistent
 	#SingleInstance Force
@@ -22,32 +19,38 @@ global	iniciou
 	#Include ..\class\array.ahk
 	#Include ..\class\gui.ahk
 	#Include ..\class\safedata.ahk
+	#Include ..\class\Cor.ahk
+
+;	Definições
+	Gestor.chrome_incognito()
+	Gestor.chrome_history()
 
 Menu,		Tray,	Icon
 	Menu,	Tray,	Color,	%bggui%
 	; if ( A_UserName != "dsantos" )
 		; Menu,	Tray,	NoStandard
 ;	Gui de LOADING
-	Gui		+LastFound	+AlwaysOnTop	-Caption	+ToolWindow	-DPIScale
-		Gui.Font( "s25",	"cFFFFFF")
-		Gui,	Color,	000000
-		Gui,	Add,	Text,	vLoader	Center	w%A_ScreenWidth%,	Carregando Classes
-		Gui,	Show,	x0	y0	NoActivate
-
-		FileGetTime,	_modificado,	C:\Dguard Advanced\DDguard Player.exe,	M
-		GuiControl,	,	Loader,	%	"Sistema Monitoramento - " version
-
-		Sleep	1000	; apenas para exibir
-
+	Gui.Font( "s25", "Bold", "cWhite" )
+	Gui,	-Caption	-DPIScale	+AlwaysOnTop
+	Gui,	Margin,	0,	0
+	Gui,	Add,	Pic,	w%A_ScreenWidth%	h40	hwndHPIC
+	Gui,	Add,	Text,	wp			xp	yp	hp	BackgroundTrans	vLoader	Center,%	"Sistema Monitoramento - " version
+	Cor.Gradiente( HPIC, blue,,1,1 )
+	Gui,	Show,	x0	y0	NoActivate
+		; Sleep	1000	; apenas para exibir
+	; Return	;	UTILIZADO PARA DEBUGAR A GUI INICIAL
+		; F5::
+		; Reload
+	;	Copia executável de update
 		FileCreateDir,	C:\Seventh\backup
-		FileCopy,		%smk%update.exe,	C:\Seventh\backup\update.exe,				1
+		FileCopy,		%exe_dir%update.exe,	C:\Seventh\backup\update.exe,				1
 	;	Timers
 		if ( ip != 184 ) {
 			if ( A_UserName != "Alberto" ) {
 				SetTimer,	timerms,			50		;	Define o tema do dguard ao iniciar, se houver disparo no iris gera o disparo sonoro e fecha janelas desnecessárias do dguard
 				SetTimer,	RestauroAutomático,	1000	;	Verifica se é 07:00 ou 19:00 para efetuar o restauro dos layouts das colunas
 				}
-			SetTimer,	horas_restauro,			60000	;	Verifica se é necessário o sistema monitoramento efetuar update automático ou não
+			SetTimer,		executar_restauro,	60000	;	Verifica se é necessário o sistema monitoramento efetuar update automático ou não
 		}
 
 		SetTimer, guid, -5000	;	Limpa as GUI's iniciais do Sistema Monitoramento
@@ -158,28 +161,26 @@ return
 		return
 		}
 	else if ( pass = "noite" )		{
-		FileMove,	%smk%registros\Noite\%A_IPAddress1%.reg,	%smk%Registros\Noite\older\%A_IPAddress1% - %A_DD%-%A_MM%-%A_YYYY% %A_Hour%_%A_Min%_%A_Sec%.reg
-		run,	cmd.exe /c "reg export HKCU\Software\Seventh\DGuardCenter %smk%registros\Noite\%A_IPAddress1%.reg /y", , Hide
+		FileMove,	%exe_dir%registros\Noite\%A_IPAddress1%.reg,	%exe_dir%Registros\Noite\older\%A_IPAddress1% - %A_DD%-%A_MM%-%A_YYYY% %A_Hour%_%A_Min%_%A_Sec%.reg
+		run,	cmd.exe /c "reg export HKCU\Software\Seventh\DGuardCenter %exe_dir%registros\Noite\%A_IPAddress1%.reg /y", , Hide
 		MsgBox, , , Exportado com Sucesso, 1
 		gosub	restauro_normal
 		return
 		}
 	else if ( pass = "dia" )		{
-		FileMove,	%smk%registros\Dia\%A_IPAddress1%.reg,	%smk%Registros\Dia\older\%A_IPAddress1% - %A_DD%-%A_MM%-%A_YYYY% %A_Hour%_%A_Min%_%A_Sec%.reg
-		Run,	cmd.exe /c "reg export HKCU\Software\Seventh\DGuardCenter %smk%registros\Dia\%A_IPAddress1%.reg /y", , Hide
+		FileMove,	%exe_dir%registros\Dia\%A_IPAddress1%.reg,	%exe_dir%Registros\Dia\older\%A_IPAddress1% - %A_DD%-%A_MM%-%A_YYYY% %A_Hour%_%A_Min%_%A_Sec%.reg
+		Run,	cmd.exe /c "reg export HKCU\Software\Seventh\DGuardCenter %exe_dir%registros\Dia\%A_IPAddress1%.reg /y", , Hide
 		MsgBox, , , Exportado com Sucesso, 1
 		gosub	restauro_normal
 		return
 		}
 	else if ( pass = "todas" )		{
-		FileMove,	%smk%registros\Todas\%A_IPAddress1%.reg,	%smk%Registros\Todas\older\%A_IPAddress1% - %A_DD%-%A_MM%-%A_YYYY% %A_Hour%_%A_Min%_%A_Sec%.reg
-		run,	cmd.exe /c "reg export HKCU\Software\Seventh\DGuardCenter %smk%registros\Todas\%A_IPAddress1%.reg /y", , Hide
+		FileMove,	%exe_dir%registros\Todas\%A_IPAddress1%.reg,	%exe_dir%Registros\Todas\older\%A_IPAddress1% - %A_DD%-%A_MM%-%A_YYYY% %A_Hour%_%A_Min%_%A_Sec%.reg
+		run,	cmd.exe /c "reg export HKCU\Software\Seventh\DGuardCenter %exe_dir%registros\Todas\%A_IPAddress1%.reg /y", , Hide
 		MsgBox, , , Exportado com Sucesso, 1
 		gosub	restauro_normal
 		return
 		}
-	else if ( pass = "notifica" )
-		notificacao := !notificacao
 	else if ( pass = "reload" )
 		Reload
 	else if ( pass = "rms" )		{
@@ -222,7 +223,7 @@ return
 	; update(A_IPAddress1,"1")
 	Settimer,	up,	Off
 	Settimer,	timerms,	Off
-	FileCopy,	%smk%update.exe,	C:\Seventh\backup\update.exe,	1
+	FileCopy,	%exe_dir%update.exe,	C:\Seventh\backup\update.exe,	1
 	if(ErrorLevel=1)
 		MsgBox	Cópia do "Update.exe" falhou!
 		else
@@ -394,12 +395,11 @@ return
 			_up	=	Programado
 			goto	update
 			}
-		if ( notificacao = 1 )
 			notificar( )
 	return
 
 	todas:
-		FileCopy,	%smk%registros\todas\%A_IPAddress1%.reg,	%A_MyDocuments%\%A_IPAddress1%.reg, 1
+		FileCopy,	%exe_dir%registros\todas\%A_IPAddress1%.reg,	%A_MyDocuments%\%A_IPAddress1%.reg, 1
 		Random,		soundvol,	20,	30
 			SoundSet,	%soundvol%
 		Process,	Close,	WatchdogServices.exe
@@ -420,7 +420,7 @@ return
 	return
 
 	dia:
-		FileCopy,	%smk%registros\Dia\%A_IPAddress1%.reg,	%A_MyDocuments%\%A_IPAddress1%.reg, 1
+		FileCopy,	%exe_dir%registros\Dia\%A_IPAddress1%.reg,	%A_MyDocuments%\%A_IPAddress1%.reg, 1
 		Random,		soundvol,	20,	30
 			SoundSet,	%soundvol%
 		Process,	Close,	WatchdogServices.exe
@@ -441,7 +441,7 @@ return
 	return
 
 	noite:
-		FileCopy,	%smk%registros\noite\%A_IPAddress1%.reg,	%A_MyDocuments%\%A_IPAddress1%.reg, 1
+		FileCopy,	%exe_dir%registros\noite\%A_IPAddress1%.reg,	%A_MyDocuments%\%A_IPAddress1%.reg, 1
 		Random,		soundvol,	20,	30
 			SoundSet,	%soundvol%
 		Process,	Close,	WatchdogServices.exe
@@ -469,9 +469,7 @@ return
 guid:
 	Gui,		Destroy
 	SetTimer,	guid,	off
-	horas_restauro:
-		incognito	:=Gestor.chrome_incognito()
-		history		:=Gestor.chrome_history()
+	executar_restauro:
 		GuiControl,	debug:,	debug8,	%		"Históricos: " history "\t|\tIncognito: " incognito
 		s=SELECT [complemento1], [complemento2] FROM [ASM].[ASM].[dbo].[_gestao_sistema] WHERE [funcao] = 'restauro' AND [descricao] = 'automatico'
 		q:=sql(s)
