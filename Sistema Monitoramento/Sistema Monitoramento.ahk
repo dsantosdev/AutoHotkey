@@ -239,28 +239,35 @@ Menu,		Tray,	Icon
 		Sleep	1000
 		executar("update","C:\Seventh\backup\")
 	ExitApp
+
 ;	Funções de Layouts
 	^b::
 		restauro_normal:
-		if ( ip = 184 || A_UserName = "alberto" || A_UserName = "llopes" )
+		if (	SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
+			||	A_UserName = "alberto"
+			||	A_UserName = "llopes" )
 			return
-		if ( A_Hour > 6 and A_Hour < 19 )
+		if (	A_Hour > 6
+			&&	A_Hour < 19 )
 			goto dia
 			else
 				goto noite
 
 	^Numpad1::
-		if ( ip = 184 || A_UserName = "Alberto" )
+		if (	SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
+			||	A_UserName = "Alberto" )
 			return
 		goto,	dia
 
 	^Numpad2::
-		if ( ip = 184 || A_UserName = "Alberto" )
+		if (	SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
+			||	A_UserName = "Alberto" )
 			return
 		goto,	noite
 
 	^Numpad3::
-		if ( ip = 184 || A_UserName = "Alberto" )
+		if (	SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
+			||	A_UserName = "Alberto" )
 			return
 		goto,	todas
 ;Return
@@ -330,44 +337,50 @@ Menu,		Tray,	Icon
 ;return
 
 ;	Gerenciamento
-	add_responsavel:
-		executar("RespAdd")
+	add_responsavel:	;	VERIFICAR NECESSIDADE
+		Run( "RespAdd" )
 	return
-	del_responsavel:
-		executar("RespDel")
+
+	del_responsavel:	;	VERIFICAR NECESSIDADE
+		Run( "RespDel" )
 	return
-	edi_lembrete:
-		executar("LembEdit")
+
+	edi_lembrete:		;	VERIFICAR NECESSIDADE
+		Run( "LembEdit" )
 	return
-	add_autorizado:
-		executar("AutAdd")
+
+	add_autorizado:		;	VERIFICAR NECESSIDADE
+		Run( "AutAdd" )
 	return
-	rem_autorizado:
-		executar("AutRem")
+
+	rem_autorizado:		;	VERIFICAR NECESSIDADE
+		Run( "AutRem" )
 	return
+
 	adicionar_email:
-		executar("Agenda")
+		Run( "Agenda Usuario" )
 	return
+
 ;return
 
-Unidades:
-	executar("unidades")
+Unidades:	;	BETA
+	Run( "unidades" )
 return
 
 window_handler:
-	if WinExist("Selecione o tema de sua preferência")
+	if WinExist( "Selecione o tema de sua preferência" )
 		WinClose,	Selecione o tema de sua preferência
 	ifWinExist,	DDguard Player.exe	;	Meu sistema?
 		{
 		WinActivate,	DDguard Player.exe
 		ControlGetText,	couldnot,	static1,	DDguard Player.exe
-		if ( instr(couldnot,"could") > 0 )	{
+		if ( instr( couldnot,"could" ) > 0 )	{
 			ControlClick,	Button2,	DDguard Player.exe,	,	Left
 			Send,	{tab}{Enter}
 			WinClose,	DDguard Player.exe
 			}
 		}
-	if WinExist("Mensagem")
+	if WinExist( "Mensagem" )
 		WinClose,	Mensagem
 return
 

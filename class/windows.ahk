@@ -1,5 +1,18 @@
 ﻿Class	Windows	{
 
+    Run( software )	{
+        path="C:\Dguard Advanced\"
+        copy="\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\"
+        try
+            Run,%   path software ".exe"
+            catch	{
+                FileCopy,%  copy software ".exe",% path software ".exe",   1
+                Sleep,	500
+                if ( errorlevel = 0 )
+                    Run,%   path software ".exe"
+            }
+        }
+
 	Users( where )	{
         if !where
             Return
