@@ -105,21 +105,43 @@
 		Array2 := Temp := ""
 	}
 
-	SortDict( Array, Order = "ASC" )						{
-		for Key in Array
-			For Key2, Value in Array[Key]
-				list_index .= value "|" key "+"
-		list_index	:=	SubStr(  list_index, 1, -1 )
-		if ( Order = "desc" )
-			Sort, list_index, R N D+
-		else
-			Sort, list_index, N D+
-		Split_list := StrSplit(list_index,"+")
+	Sort( Array, Order = "ASC", Is_Array = "0" )			{
 		index	:=	[]
-		Loop,	% Split_list.Count()	{
-			Split_index := StrSplit( Split_list[ A_index ], "|" )
-			index.Push( Split_index[2] )
-		}
-		Return	index
+		If ( is_array = 0 )	{	;	Retorna um array SIMPLES com a ordem do dictionary
+			for Key in Array
+				For Key2, Value in Array[Key]
+					list .= value "|" key "+"
+			list	:=	SubStr( list, 1, -1 )
+
+			if ( Order = "desc" )
+				Sort, list, R N D+
+			else
+				Sort, list, N D+
+
+			Split_list := StrSplit( list, "+" )
+			Loop,	% Split_list.Count()	{
+				Split_index := StrSplit( Split_list[ A_index ], "|" )
+				index.Push( Split_index[2] )
+			}
+
+			Return	index
+			}
+		Else	{				;	Retorna o array completo reordenado
+			For key, value in Array
+				list .= value "+"
+
+			list := SubStr( list, 1, -1 )
+
+			if ( Order = "desc" )
+				Sort, list, R N D+
+				Else
+					Sort, list, N D+
+
+			Split_list := StrSplit( list, "+" )
+			Loop,	% Split_list.Count()
+				index.Push( Split_list[ A_index ] )
+
+			Return	index
+			}
 	}
 }
