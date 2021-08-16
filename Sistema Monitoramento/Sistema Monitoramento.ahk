@@ -198,34 +198,34 @@ Menu,		Tray,	Icon
 		WinMove,	ahk_class TfmConfigLegenda,	,	400,	%MonitorTop%
 	return
 
-	^o::	;	Organiza as janelas do D-guard
-		SysGet,	MonitorCount	, MonitorCount
-		SysGet, MonitorPrimary	, MonitorPrimary
-		Positions := {}
-		Loop, % MonitorCount {
-			SysGet, MonitorName, MonitorName, %A_Index%
-			SysGet, Monitor, Monitor, %A_Index%
-			SysGet, MonitorWorkArea, MonitorWorkArea, %A_Index%
-			Positions.push({ A_Index	:	MonitorTop })
-		}
-		Ordered_Position := Array.SortDict( Positions )
-		WinGet,	Windows,	List
-		Loop, % windows	{
-			id := windows%A_Index%
-			WinGetTitle, WinTitle, ahk_id %id%
-			If ( InStr( WinTitle, "Monitor " ) > 0 )	{	;	é janela de exibição do dguard
-				display := SubStr( StrReplace( WinTitle , "Monitor " ), 1, 1 )
-				if display = 1
-					MsgBox % display "`n" WinTitle "`n" Positions[display].1
-				else if display = 2
-					MsgBox % display "`n" WinTitle "`n" Positions[display].2
-				else if display = 3
-					MsgBox % display "`n" WinTitle "`n" Positions[display].3
-				else if display = 4
-					MsgBox % display "`n" WinTitle "`n" Positions[display].4
-			}
-		}
-	Return
+	; ^o::	;	Organiza as janelas do D-guard
+		; SysGet,	MonitorCount	, MonitorCount
+		; SysGet, MonitorPrimary	, MonitorPrimary
+		; Positions := []
+		; Loop, % MonitorCount {
+			; SysGet, Monitor			, Monitor			, %A_Index%
+			; Positions.push(MonitorTop)
+		; }
+		; positions := Array.Sort( Positions, , 1 )
+		; 
+		; WinGet,	Windows,	List
+		; Loop, % windows	{
+			; id := windows%A_Index%
+			; WinGetTitle, WinTitle, ahk_id %id%
+			; If ( InStr( WinTitle, "Monitor " ) > 0 )	{	;	é janela de exibição do dguard
+				; WinActivate, ahk_id %id%
+				; display := SubStr( StrReplace( WinTitle , "Monitor " ), 1, 1 )
+				; if display = 1
+					; MsgBox % display "`n" WinTitle "`n" Positions[display].1
+				; else if display = 2
+					; MsgBox % display "`n" WinTitle "`n" Positions[display].2
+				; else if display = 3
+					; MsgBox % display "`n" WinTitle "`n" Positions[display].3
+				; else if display = 4
+					; MsgBox % display "`n" WinTitle "`n" Positions[display].4
+			; }
+		; }
+	; Return
 
 	^u::
 		update:
