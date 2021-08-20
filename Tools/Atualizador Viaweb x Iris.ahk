@@ -123,41 +123,6 @@ sql:
 	inicia = 0
 return
 
-filhos:
-	s =
-		(
-		SELECT
-			DISTINCT 	'1' + e.[valor]		AS Cliente_Iris
-			,			d.contamaster		as pai
-		FROM
-			[ASM].[vw_programação].[dbo].[INSTALACAO] i
-		LEFT JOIN
-			[ASM].[vw_programação].[dbo].[USUARIOS] u
-				ON	i.[ID_INSTALACAO]=u.[ID_INSTALACAO]
-		LEFT JOIN
-			[ASM].[vw_programação].[dbo].[PROG_EQTO] e
-				ON	i.[ID_INSTALACAO]=e.[ID_EQTO]
-		LEFT JOIN
-			[IrisSQL].[dbo].[Clientes] d
-				ON	'1' + e.[valor]=d.[Cliente]
-		WHERE
-			ISNUMERIC(u.[NOME]) = 1 and
-			e.[id_funcao] BETWEEN '66' AND '73' AND
-			e.[valor] NOT IN ('0000','9999') and
-			d.partilha = 1
-			%todos%
-		ORDER BY 1
-		)
-	
-	Loop,%	filhos := sql( s ).Count()-1	{
-			OutputDebug % "TEXT"
-		}
-		
-Return
-
-end::
-	ExitApp
-
 atualizaIris:
 	GuiControl, Disable	,	_e
 	GuiControl, Disable	,	_a
@@ -184,7 +149,7 @@ atualizaIris:
 			cliente	:= Clientes[A_index+1, 1]
 			id_unico:= Clientes[A_index+1, 2]
 			operador:= Clientes[A_Index+1, 3]
-			OutputDebug % cliente "`t" id_unico
+			; OutputDebug % cliente "`t" id_unico
 			insere_padrão =
 				(
 				INSERT INTO
@@ -223,6 +188,7 @@ atualizaIris:
 
 	; OutputDebug % "Senhas id's padrões=`t" vw.Count() "`nClientes com Partilha=`t" partilha.Count()-1
 	GuiControl, , _a,	Atualizando Usuários | Restantes:
+
 	for i in vw
 	{
 		cliente	:= vw[i].cliente
@@ -239,10 +205,10 @@ atualizaIris:
 			if ( StrLen( tel1 ) = 0 )	{	;	Verifica telefones duplicados
 				tel1 := tel2
 				tel2 =
-		}
-
-		operador:= vw[i].operador
-		id_vw	:= vw[i].id_vw
+			}
+			if ( SubStr( tel1, -7 ) = SubStr( tel2, -7 ) )
+				tel2 =
+		;
 
 		if (	StrLen( nome ) = 0 )	{	;	cria dictionary com os colaboradores demitidos para enviar email posteriormente
 			remover.Push({	user_id		:	user_id
@@ -275,14 +241,14 @@ atualizaIris:
 				INSERT INTO [IrisSQL].[dbo].[Usuarios]
 					(	[Cliente]	,[Particao]	,[Codigo_Usuario]	,[Nome_Usuario]	,[Cargo]	,[PrioridadeLigar]	,[IdCliente]	,[Fone]		,[FCelular]	)
 				VALUES
-					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'		,'%tel1%'	,'%tel2%'	)
+					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'	,'%tel1%'	,'%tel2%'	)
 			)
 		sql( sql_update )
 
 		; OutputDebug % "Inserindo informações:`nIndex = " i "`n`tid_iris= " id_iris "`n`tcliente= " cliente "`n`tnome= " nome "`n`toperador= " operador "`n`tid_vw= " id_vw
 		old_client	:= cliente
 		GuiControl, , _e,%	restantes := ( vw.Count() + partilha.Count()-1 ) - i
-	}	;	FIM DO FOR
+	}
 
 	for i in partilha
 	{
@@ -345,11 +311,15 @@ atualizaIris:
 	GuiControl, enable, _e
 	GuiControl, , _e,	Encerrar
 	GuiControl, enable, _a
-	if ( remover.Count() > 0 )	{
-		Loop % remover.count()	;	Dict com os usuarios demitidos
-			usuarios_remover.= remover[A_Index].user_id "`t" remover[A_Index].local "`t" remover[A_Index].matricula "`n"
-		mail.new("monitoramento@cotrijal.com.br","Ex Colaboradores com senha", "Os colaboradores abaixo possuem senha e não foram encontrados no cadastro de colaboradores da cotrija:`n" usuarios_remover )
-	}
+
+	;	notificar por e-mail os usuários inexistentes
+		if ( remover.Count() > 0 )	{
+			Loop % remover.count()	;	Dict com os usuarios demitidos
+				usuarios_remover.= remover[A_Index].user_id "`t" remover[A_Index].local "`t" remover[A_Index].matricula "`n"
+			mail.new(	"monitoramento@cotrijal.com.br"
+					,	"Atualização de usuários do Iris"
+					,	"Os colaboradores abaixo possuem senha e não foram encontrados no cadastro de colaboradores da cotrijal:`n" usuarios_remover )
+		}
 return
 
 GuiClose:
