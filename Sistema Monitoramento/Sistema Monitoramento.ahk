@@ -239,7 +239,6 @@ Menu,		Tray,	Icon
 	ExitApp
 ;Return
 
-
 ;	Funções de Layouts
 	^b::
 		restauro_normal:
@@ -341,7 +340,7 @@ Menu,		Tray,	Icon
 	return
 
 	adicionar_email:
-		Windows.Run( "Agenda" )
+		Windows.Run( "Gestor de E-Mails" )
 	return
 ;return
 
