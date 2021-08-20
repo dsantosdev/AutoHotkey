@@ -70,18 +70,10 @@ Menu,		Tray,	Icon
 				Menu,	Tray,	add
 			}
 		;	Menu	ADMIN
-			Menu,	Admin,	Add,	Editar/Inserir Câmeras,					_gestor_camera
-				Menu,	Admin,	Icon,	Editar/Inserir Câmeras,					C:\Seventh\Backup\ico\2LembEdit.ico
-			Menu,	Admin,	Add,	Adicionar Responsáveis,					add_responsavel
-				Menu,	Admin,	Icon,	Adicionar Responsáveis,				C:\Seventh\Backup\ico\2useradd.ico
-			Menu,	Admin,	Add,	Remover Responsáveis,					del_responsavel
-				Menu,	Admin,	Icon,	Remover Responsáveis,				C:\Seventh\Backup\ico\2userdel.ico
-			Menu,	Admin,	Add,	Adicionar Autorizado,					add_autorizado
-				Menu,	Admin,	Icon,	Adicionar Autorizado,				C:\Seventh\Backup\ico\2autadd.ico
-			Menu,	Admin,	Add,	Remover Autorizado,						rem_autorizado
-				Menu,	Admin,	Icon,	Remover Autorizado,					C:\Seventh\Backup\ico\2autdel.ico
-			Menu,	Admin,	Add,	Editar Lembretes e Dados da Unidade,	edi_lembrete
-				Menu,	Admin,	Icon,	Editar Lembretes e Dados da Unidade,	C:\Seventh\Backup\ico\2LembEdit.ico
+			Menu,	Admin,	Add,	Gestão de Câmeras,						_gestor_camera
+				Menu,	Admin,	Icon,	Gestão de Câmeras,					C:\Seventh\Backup\ico\2LembEdit.ico
+			Menu,	Admin,	Add,	Gestão de Unidades,						_gestor_unidades
+				Menu,	Admin,	Icon,	Gestão de Unidades,				C:\Seventh\Backup\ico\2useradd.ico
 			Menu,	Admin,	Color,	%	bggui
 			Menu,	Tray,	Add,	Administrar,							:Admin
 				Menu	,Tray,	Icon,	Administrar,													C:\Seventh\Backup\ico\2admin.ico
@@ -113,8 +105,8 @@ Menu,		Tray,	Icon
 		)
 	funcao_da_maquina := sql( q, 3 e)
 	if ( funcao_da_maquina[2, 1] = "operador" )	{	;	Executa agenda e detecção de movimento
-		executar("Detecções de Movimento")	;	mdkah
-		executar("Notificador")				;	mdage
+		Windows.Run( "Detecções de Movimento" )		;	mdkah
+		Windows.Run( "Notificador" )				;	mdage
 		}
 ;	Atalhos
 	F1::	;	Relatórios
@@ -125,15 +117,15 @@ Menu,		Tray,	Icon
 			|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 179
 			|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
 			|| A_UserName = "Alberto" )
-			executar("Relatórios")	;mdrelatórios
+			Windows.Run("Relatórios")	;mdrelatórios
 	return
 
 	^F10::	;	Adiciona E-mails e chamados
-		executar("Agenda")
+		Windows.Run("Agenda")
 	return
 
 	F10::	;	E-Mails, ocomon e registros
-		executar("E-Mails e Registros")	;	refazer, separar registro
+		Windows.Run("E-Mails e Registros")	;	refazer, separar registro
 	return
 
 	^ins::
@@ -237,7 +229,7 @@ Menu,		Tray,	Icon
 				ToolTip Cópia do "Update.exe" finalizado!
 		ToolTip,	Iniciando!
 		Sleep	1000
-		executar("update","C:\Seventh\backup\")
+		Windows.Run("update","C:\Seventh\backup\")
 	ExitApp
 
 ;	Funções de Layouts
@@ -314,58 +306,42 @@ Menu,		Tray,	Icon
 		recente = 0
 	return
 
-	_gestor_camera:
-		executar("Gestor Câmeras")
-	return
-
 	Responsáveis:
-		executar("MDResp")
+		Windows.Run( "Responsáveis" )
 	return
 
 	Emails:
-		executar("Agenda_user")
+		Windows.Run( "Agenda do Usário" )
 	return
 	
 	Eventos:
-		executar("MDRelatorios")
+		Windows.Run( "Relatórios" )
 	return
 	
 	Colaboradores:
-		executar("MDCol")
+		Windows.Run( "Colaboradores" )
 	return
-	
 ;return
 
 ;	Gerenciamento
-	add_responsavel:	;	VERIFICAR NECESSIDADE
-		Run( "RespAdd" )
+	_gestor_camera:
+		Windows.Run("Gestor de Câmeras")
 	return
 
-	del_responsavel:	;	VERIFICAR NECESSIDADE
-		Run( "RespDel" )
-	return
-
-	edi_lembrete:		;	VERIFICAR NECESSIDADE
-		Run( "LembEdit" )
-	return
-
-	add_autorizado:		;	VERIFICAR NECESSIDADE
-		Run( "AutAdd" )
-	return
-
-	rem_autorizado:		;	VERIFICAR NECESSIDADE
-		Run( "AutRem" )
+	_gestor_unidades:
+		Windows.Run( "Gestor de Unidades" )
 	return
 
 	adicionar_email:
-		Run( "Agenda Usuario" )
+		Windows.Run( "Agenda Usuario" )
 	return
-
 ;return
 
-Unidades:	;	BETA
-	Run( "unidades" )
-return
+;	Beta
+	Unidades:
+		Windows.Run( "unidades" )
+	return
+;return
 
 window_handler:
 	if WinExist( "Selecione o tema de sua preferência" )
@@ -416,7 +392,7 @@ return
 			}
 		ToolTip
 		FileRemoveDir,	C:\Seventh\DGuardCenter\Dados\Servidores,	1
-		executar("Dguard","C:\Seventh\DGuardCenter\")
+		Windows.Run("Dguard","C:\Seventh\DGuardCenter\")
 		FileDelete,	%A_MyDocuments%\*.reg
 		Send,		{LCtrl Up}
 	return
@@ -437,7 +413,7 @@ return
 			}
 		ToolTip
 		FileRemoveDir,	C:\Seventh\DGuardCenter\Dados\Servidores,	1
-		executar("Dguard","C:\Seventh\DGuardCenter\")
+		Windows.Run("Dguard","C:\Seventh\DGuardCenter\")
 		FileDelete,	%A_MyDocuments%\*.reg
 		Send,		{LCtrl Up}
 	return
@@ -458,7 +434,7 @@ return
 			}
 		ToolTip
 		FileRemoveDir,	C:\Seventh\DGuardCenter\Dados\Servidores,	1
-		executar("Dguard","C:\Seventh\DGuardCenter\")
+		Windows.Run("Dguard","C:\Seventh\DGuardCenter\")
 		FileDelete,%	A_MyDocuments "\*.reg"
 		Send, {LCtrl Up}
 	return
