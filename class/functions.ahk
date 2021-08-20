@@ -1,4 +1,21 @@
-﻿
+﻿chrome_history()							{	;	Bloqueia a exclusao de historico
+	RegRead,	history,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
+	if ( history != 0 )	{
+		RegWrite, REG_DWORD,	HKEY_LOCAL_MACHINE, SOFTWARE\Policies\Google\Chrome,	AllowDeletingBrowserHistory,	0
+		RegWrite, REG_DWORD,	HKLM, SOFTWARE\Policies\Google\Chrome,					AllowDeletingBrowserHistory,	0
+	}
+	return	OK
+}
+
+chrome_incognito()						{	;	Bloqueia modo anonimo
+	RegRead,	incognito,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
+	if ( incognito != 0 )	{
+		RegWrite, REG_DWORD,	HKEY_LOCAL_MACHINE, SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled,	0
+		RegWrite, REG_DWORD,	HKLM, SOFTWARE\Policies\Google\Chrome,					IncognitoEnabled,	0
+	}
+	return	OK
+}
+
 datetime( sql = "0", date = "" )			{
 	If (	sql = 2
 		&&	StrLen( date ) = 0 )	{
@@ -132,3 +149,4 @@ update( comando = "" )	{
 		return 0
 	return sql_le
 }
+
