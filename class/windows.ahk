@@ -1,8 +1,9 @@
 ﻿Class	Windows	{
 
     Run( software )	{
-        path="C:\Dguard Advanced\"
-        copy="\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\"
+        ; MsgBox % software
+        path = "C:\Dguard Advanced\"
+        copy = "\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\"
         try
             Run,%   path software ".exe"
             catch	{
