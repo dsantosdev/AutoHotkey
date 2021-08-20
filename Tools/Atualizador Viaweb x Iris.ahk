@@ -48,7 +48,7 @@ sql:
 		SELECT
 			DISTINCT 	'1' + e.[valor]																				AS Cliente_Iris
 			,			d.[IdUnico]																					AS ID_Central
-			,			u.[ID_USUARIO]																				AS Index_Central
+			,			u.[ID_USUARIO]																				AS Index_Senha
 			,			u.[NOME]																					AS Matricula
 			,			(SELECT NOME FROM [ASM].[ASM].[dbo].[_colaboradores] WHERE [matricula] = u.[nome])			AS Nome
 			,			(SELECT cargo FROM [ASM].[ASM].[dbo].[_colaboradores] WHERE [matricula] = u.[nome])			AS Cargo
@@ -77,9 +77,8 @@ sql:
 			%todos%
 		ORDER BY 1, 4
 		)
-	
+
 	q := sql( s )
-		OutputDebug % q.Count()-1
 	unidades	=
 	ids			:=	[]
 	Loop, % q.Count()-1	{							;	Monta um array associativo com os dados dos usuários para inserir no banco do iris
@@ -156,11 +155,74 @@ filhos:
 		
 Return
 
+end::
+	ExitApp
+
 atualizaIris:
-	GuiControl,			,	_e,	ATUALIZANDO
-	GuiControl, 		,	_a,	ATUALIZANDO
 	GuiControl, Disable	,	_e
 	GuiControl, Disable	,	_a
+	limpa =
+		(
+		DELETE
+		FROM	[IrisSQL].[dbo].[Usuarios]
+		)
+		sql( limpa )
+	;
+
+	Usuarios_Padrão =
+		(
+		SELECT DISTINCT [Cliente]
+			,			[idUnico]
+			,			'Operador ' + SUBSTRING([Setor]	, 4, 1)
+		FROM [IrisSQL].[dbo].[Clientes]
+		WHERE [Cliente] BETWEEN 10002 and 10999
+		)
+		Clientes := sql( Usuarios_Padrão )
+		GuiControl, , _a,	Atualizando Padrão | Restantes:
+		Loop,%	Clientes.Count()-1	{
+			GuiControl, , _e,%	( Clientes.Count()-1 ) - A_index
+			cliente	:= Clientes[A_index+1, 1]
+			id_unico:= Clientes[A_index+1, 2]
+			operador:= Clientes[A_Index+1, 3]
+			OutputDebug % cliente "`t" id_unico
+			insere_padrão =
+				(
+				INSERT INTO
+					[IrisSQL].[dbo].[Usuarios]
+						(	[Cliente]
+						,	[Particao]
+						,	[Codigo_Usuario]
+						,	[Nome_Usuario]
+						,	[Cargo]
+						,	[PrioridadeLigar]
+						,	[IdCliente]
+						,	[Fone]
+						,	[FCelular]	)
+					VALUES
+						(	'%cliente%',	'000',	'001',	'[ %operador% ]'				,	'Agente de Monitoramento'	,	'1',	'%id_unico%',	'',	''	),
+						(	'%cliente%',	'000',	'002',	'[ Facilitador ]'				,	'Facilitador'				,	'1',	'%id_unico%',	'',	''	),
+						(	'%cliente%',	'000',	'006',	'[ Manutenção ]'				,	'Assist. Infraestrutura'	,	'1',	'%id_unico%',	'',	''	),
+						(	'%cliente%',	'000',	'000',	'[ Programação Automática ]'	,	'Sistema Iris'				,	'1',	'%id_unico%',	'',	''	)
+				)
+			sql( insere_padrão )
+		}
+	;
+
+	com_partilha =
+		(
+		SELECT 
+				[IdUnico]
+			,	[cliente]
+			,	[ContaMaster]
+		FROM
+			[IrisSQL].[dbo].[Clientes]
+		WHERE
+			[Partilha] = 1
+		)
+	partilha := sql( com_partilha )
+
+	; OutputDebug % "Senhas id's padrões=`t" vw.Count() "`nClientes com Partilha=`t" partilha.Count()-1
+	GuiControl, , _a,	Atualizando Usuários | Restantes:
 	for i in vw
 	{
 		cliente	:= vw[i].cliente
@@ -171,87 +233,114 @@ atualizaIris:
 							:	vw[i].user
 		nome	:= String.Name( vw[i].nome )
 		cargo	:= String.Cargo( vw[i].cargo )
-		idc		:= vw[i].id
+		id_iris	:= vw[i].id
 		tel1	:= vw[i].fone
 		tel2	:= vw[i].cel
+			if ( StrLen( tel1 ) = 0 )	{	;	Verifica telefones duplicados
+				tel1 := tel2
+				tel2 =
+		}
 
 		operador:= vw[i].operador
 		id_vw	:= vw[i].id_vw
-		
-		; MsgBox % "idc= " idc "`ncliente= " cliente "`nnome= " nome "`noperador= " operador "`nid_vw= " id_vw "`npai= " pai
 
-		if ( StrLen( nome ) = 0 )	{	;	cria dictionary com os colaboradores demitidos para enviar email posteriormente
+		if (	StrLen( nome ) = 0 )	{	;	cria dictionary com os colaboradores demitidos para enviar email posteriormente
 			remover.Push({	user_id		:	user_id
 						,	local		:	vw[i].unidade
 						,	matricula	:	vw[i].matricula	})
 			Continue
 		}
 
-		if ( StrLen( tel1 ) = 0 )	{	;	ajusta os telefones
-			tel1 := tel2
-			tel2 =
+		sql_update =
+			(
+			IF EXISTS(
+				SELECT [Nome_Usuario]
+				FROM
+					[IrisSQL].[dbo].[Usuarios]
+					WHERE
+						[codigo_usuario]='%user_id%' and idcliente='%id_iris%') 
+				Begin
+					UPDATE [IrisSQL].[dbo].[Usuarios]
+					SET
+						[Nome_Usuario]		=	'%nome%'
+						,[Cargo]			=	'%cargo%'
+						,[IdCliente]		=	'%id_iris%'
+						,[Fone]				=	'%tel1%'
+						,[FCelular]			=	'%tel2%'
+					WHERE
+						[Cliente]			=	'%cliente%' AND
+						[Codigo_Usuario]	=	'%user_id%'
+				END
+			ELSE
+				INSERT INTO [IrisSQL].[dbo].[Usuarios]
+					(	[Cliente]	,[Particao]	,[Codigo_Usuario]	,[Nome_Usuario]	,[Cargo]	,[PrioridadeLigar]	,[IdCliente]	,[Fone]		,[FCelular]	)
+				VALUES
+					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'		,'%tel1%'	,'%tel2%'	)
+			)
+		sql( sql_update )
+
+		; OutputDebug % "Inserindo informações:`nIndex = " i "`n`tid_iris= " id_iris "`n`tcliente= " cliente "`n`tnome= " nome "`n`toperador= " operador "`n`tid_vw= " id_vw
+		old_client	:= cliente
+		GuiControl, , _e,%	restantes := ( vw.Count() + partilha.Count()-1 ) - i
+	}	;	FIM DO FOR
+
+	for i in partilha
+	{
+		nr_usuarios := Array.Indict( vw, partilha[i+1, 3], "Cliente", 1 )
+		Loop,%	nr_usuarios.Count()	{
+			cliente	:= partilha[i+1, 2]
+			user_id := StrLen(	vw[].user ) = 1
+							?	"00" vw[ nr_usuarios[A_Index] ].user
+							:	StrLen( vw[ nr_usuarios[A_Index] ].user ) = 2
+								?	"0" vw[ nr_usuarios[A_Index] ].user
+								:	vw[ nr_usuarios[A_Index] ].user
+			nome	:= String.Name( vw[ nr_usuarios[A_Index] ].nome )
+			cargo	:= String.Cargo( vw[ nr_usuarios[A_Index] ].cargo )
+			id_iris	:= partilha[i+1, 1]
+			tel1	:= vw[ nr_usuarios[A_Index] ].fone
+			tel2	:= vw[ nr_usuarios[A_Index] ].cel
+
+			if ( StrLen( tel1 ) = 0 )	{	;	Verifica telefones duplicados
+				tel1 := tel2
+				tel2 =
 			}
 
-		if (	idc != old_idc			;	Quando muda de cliente
-			||	vw.Count() = i )	{
-			if (	vw.Count() = i
-				||	old_idc ="" )	{
-				old_idc		:= idc
-				old_client	:= cliente
-				}
-			contatos_padrão =
+			; OutputDebug % "Inserindo informações:`nIndex = " i "`n`tid_iris= " id_iris "`n`tcliente= " cliente "`n`tnome= " nome "`n`toperador= " operador "`n`tid_vw= " id_vw
+			insere_usuarios =
 				(
-				IF NOT EXISTS(SELECT * FROM [IrisSQL].[dbo].[Usuarios] where codigo_usuario='%user_id%' and idcliente='%idc%') 
-					BEGIN
-						INSERT INTO
-							[IrisSQL].[dbo].[Usuarios]
-								(	[Cliente]
-								,	[Particao]
-								,	[Codigo_Usuario]
-								,	[Nome_Usuario]
-								,	[Cargo]
-								,	[PrioridadeLigar]
-								,	[IdCliente]
-								,	[Fone]
-								,	[FCelular]	)
-							VALUES
-								(	'%old_client%',	'000',	'001',	'%operador%'				,	'MONITORAMENTO',	'1',	'%old_idc%',	'',	''	),
-								(	'%old_client%',	'000',	'002',	'FACILITADOR'				,	'MONITORAMENTO',	'1',	'%old_idc%',	'',	''	),
-								(	'%old_client%',	'000',	'006',	'MANUTENÇÃO'				,	'MONITORAMENTO'	,	'1',	'%old_idc%',	'',	''	),
-								(	'%old_client%',	'000',	'000',	'Programação Automática'	,	'MONITORAMENTO'	,	'1',	'%old_idc%',	'',	''	)
-					END
+				IF EXISTS(
+				SELECT [Nome_Usuario]
+				FROM
+					[IrisSQL].[dbo].[Usuarios]
+					WHERE
+						[codigo_usuario]= '%user_id%' AND
+						[idcliente]		= '%id_iris%') 
+				Begin
+					UPDATE [IrisSQL].[dbo].[Usuarios]
+					SET
+						[Nome_Usuario]		=	'%nome%'
+						,[Cargo]			=	'%cargo%'
+						,[IdCliente]		=	'%id_iris%'
+						,[Fone]				=	'%tel1%'
+						,[FCelular]			=	'%tel2%'
+					WHERE
+						[Cliente]			=	'%cliente%' AND
+						[Codigo_Usuario]	=	'%user_id%'
+				END
+			ELSE
+				INSERT INTO [IrisSQL].[dbo].[Usuarios]
+					(	[Cliente]	,[Particao]	,[Codigo_Usuario]	,[Nome_Usuario]	,[Cargo]	,[PrioridadeLigar]	,[IdCliente]	,[Fone]		,[FCelular]	)
+				VALUES
+					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'		,'%tel1%'	,'%tel2%'	)
 				)
-				sql( contatos_padrão )
+				sql_le =
+			sql( insere_usuarios )
+			if ( StrLen(sql_le) > 0 )
+				MsgBox % sql_le "`n" Clipboard:=sql_lq
+		GuiControl, , _e,%	restantes - i
 		}
+	}
 
-		update =
-			(
-				IF EXISTS(SELECT * FROM [IrisSQL].[dbo].[Usuarios] where codigo_usuario='%user_id%' and idcliente='%idc%') 
-					Begin
-						UPDATE [IrisSQL].[dbo].[Usuarios]
-						SET
-							[Nome_Usuario]		=	'%nome%'
-							,[Cargo]			=	'%cargo%'
-							,[IdCliente]		=	'%idc%'
-							,[Fone]				=	'%tel1%'
-							,[FCelular]			=	'%tel2%'
-						WHERE
-							[Cliente]			=	'%cliente%' AND
-							[Codigo_Usuario]	=	'%user_id%'
-					END
-				ELSE
-					INSERT INTO [IrisSQL].[dbo].[Usuarios]
-						(	[Cliente]	,[Particao]	,[Codigo_Usuario]	,[Nome_Usuario]	,[Cargo]	,[PrioridadeLigar]	,[IdCliente]	,[Fone]		,[FCelular]	)
-					VALUES
-						(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%idc%'		,'%tel1%'	,'%tel2%'	)
-			)
-		sql( update )
-
-		old_idc		:= idc
-		old_client	:= cliente
-		GuiControl, , _a,	Usuários Restantes:
-		GuiControl, , _e,%	vw.Count()-i
-	}	;	FIM DO FOR
 	GuiControl, , _a,	Atualizar usuarios do Iris
 	GuiControl, enable, _e
 	GuiControl, , _e,	Encerrar
