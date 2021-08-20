@@ -21,6 +21,7 @@ global	iniciou	;	Verificar necessidade
 	#Include ..\class\safedata.ahk
 	#Include ..\class\sql.ahk
 	#Include ..\class\windows.ahk
+;
 
 ;	Definições	-	Função
 	chrome_incognito()
@@ -238,7 +239,6 @@ Menu,		Tray,	Icon
 		Windows.Run( "update", "C:\Seventh\backup\" )
 	ExitApp
 ;Return
-
 
 ;	Funções de Layouts
 	^b::
