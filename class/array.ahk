@@ -71,8 +71,8 @@
 				For key, ArrayText in Array[index]
 					if ( key = key_is )	{
 						; OutputDebug % "INARRAY:`n`t" ArrayText "`t" SearchText
-						if ( InStr(ArrayText,SearchText) > 0 )
-							list.Push(index)
+						if ( InStr( ArrayText, SearchText ) > 0 )
+							list.Push( index )
 						}
 			; OutputDebug % "Lista: " list.Count()
 			}
