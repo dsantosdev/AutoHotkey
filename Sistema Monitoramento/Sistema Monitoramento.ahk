@@ -22,13 +22,15 @@ global	iniciou	;	Verificar necessidade
 	#Include ..\class\sql.ahk
 	#Include ..\class\windows.ahk
 
-;	Definições
-	Gestor.chrome_incognito()
-	Gestor.chrome_history()
+;	Definições	-	Função
+	chrome_incognito()
+	chrome_history()
+;
+
 Menu,		Tray,	Icon
 	Menu,	Tray,	Color,	%bggui%
-	; if ( A_UserName != "dsantos" )
-		; Menu,	Tray,	NoStandard
+	if ( A_UserName != "dsantos" )
+		Menu,	Tray,	NoStandard
 ;	Gui de LOADING
 	Gui.Font( "s25", "Bold", "cWhite" )
 	Gui,	-Caption	-DPIScale	+AlwaysOnTop
@@ -46,12 +48,12 @@ Menu,		Tray,	Icon
 ;	Timers
 	if (	A_UserName != "Alberto"
 		||	SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184 ) {
-		; SetTimer,	window_handler,	50		;	Lida com as janelas existentes no dguard
-		; SetTimer,	auto_restore,	1000	;	Verifica se é 07:00 ou 19:00 para efetuar o restauro dos layouts das colunas
+		SetTimer,	window_handler,	50		;	Lida com as janelas existentes no dguard
+		SetTimer,	auto_restore,	1000	;	Verifica se é 07:00 ou 19:00 para efetuar o restauro dos layouts das colunas
 	}
 	SetTimer, end_loading, -3000	;	Limpa as GUI's iniciais do Sistema Monitoramento
-
 ;	Return
+
 ;	TrayMenu
 	if (   SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 162	;	exibido apenas os operadores
 		|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 166
@@ -88,8 +90,8 @@ Menu,		Tray,	Icon
 				Menu,	Tray,	Icon,	Colaboradores da Cotrijal,		C:\Seventh\Backup\ico\2contatos.ico
 			Menu,	Tray,	add,		E-mails - Ocomon - Registros,	Emails
 				Menu,	Tray,	Icon,	E-mails - Ocomon - Registros,	C:\Seventh\Backup\ico\2mail.ico
-			Menu,	Tray,	add,		Eventos,						Eventos
-				Menu,	Tray,	Icon,	Eventos,						C:\Seventh\Backup\ico\2LembEdit.ico
+			Menu,	Tray,	add,		Relatórios,						Relatórios
+				Menu,	Tray,	Icon,	Relatórios,						C:\Seventh\Backup\ico\2LembEdit.ico
 			Menu,	Tray,	add,		Responsáveis e Mapas,			Responsáveis	
 				Menu,	Tray,	Icon,	Responsáveis e Mapas,			C:\Seventh\Backup\ico\2resp.ico
 			Menu,	Tray,	add
@@ -105,9 +107,13 @@ Menu,		Tray,	Icon
 		)
 	funcao_da_maquina := sql( q, 3 e)
 	if ( funcao_da_maquina[2, 1] = "operador" )	{	;	Executa agenda e detecção de movimento
-		Windows.Run( "Detecções de Movimento" )		;	mdkah
-		Windows.Run( "Notificador" )				;	mdage
+		; Windows.Run( "Detecções de Movimento" )		;	mdkah
+		Windows.Run( "MDKah" )	
+		; Windows.Run( "Notificador" )				;	mdage
+		Windows.Run( "MDAge" )
 		}
+;	Tray END
+
 ;	Atalhos
 	F1::	;	Relatórios
 		if (   SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 162
@@ -117,15 +123,15 @@ Menu,		Tray,	Icon
 			|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 179
 			|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
 			|| A_UserName = "Alberto" )
-			Windows.Run("Relatórios")	;mdrelatórios
+			Windows.Run( "MDRelatorios" )	;mdrelatórios
 	return
 
 	^F10::	;	Adiciona E-mails e chamados
-		Windows.Run("Agenda")
+		Windows.Run( "Agenda" )
 	return
 
 	F10::	;	E-Mails, ocomon e registros
-		Windows.Run("E-Mails e Registros")	;	refazer, separar registro
+		Windows.Run( "Agenda_user" )	;	refazer, separar registro
 	return
 
 	^ins::
@@ -229,8 +235,10 @@ Menu,		Tray,	Icon
 				ToolTip Cópia do "Update.exe" finalizado!
 		ToolTip,	Iniciando!
 		Sleep	1000
-		Windows.Run("update","C:\Seventh\backup\")
+		Windows.Run( "update", "C:\Seventh\backup\" )
 	ExitApp
+;Return
+
 
 ;	Funções de Layouts
 	^b::
@@ -307,25 +315,25 @@ Menu,		Tray,	Icon
 	return
 
 	Responsáveis:
-		Windows.Run( "Responsáveis" )
+		Windows.Run( "MDResp" )
 	return
 
 	Emails:
-		Windows.Run( "Agenda do Usário" )
+		Windows.Run( "Agenda_user" )
 	return
 	
-	Eventos:
-		Windows.Run( "Relatórios" )
+	Relatórios:
+		Windows.Run( "MDRelatorios" )
 	return
 	
 	Colaboradores:
-		Windows.Run( "Colaboradores" )
+		Windows.Run( "MDCol" )
 	return
 ;return
 
 ;	Gerenciamento
 	_gestor_camera:
-		Windows.Run("Gestor de Câmeras")
+		Windows.Run( "Gestor de Câmeras" )
 	return
 
 	_gestor_unidades:
@@ -333,7 +341,7 @@ Menu,		Tray,	Icon
 	return
 
 	adicionar_email:
-		Windows.Run( "Agenda Usuario" )
+		Windows.Run( "Agenda" )
 	return
 ;return
 
@@ -362,13 +370,14 @@ return
 
 ;	Restauro dos layouts
 	auto_restore:
-		if (	SubStr( A_Now, 9 ) > _manha
+		if 		(	SubStr( A_Now, 9 ) > _manha
 			&&	SubStr( A_Now, 9 ) < ( _manha + 10 ) )	{	;	entre 070000 e 070010(horário padrão)
 			SetTimer,	auto_restore,	OFF
 			Gosub,	dia
 			goto	update
 			}
-		Else if ( SubStr(A_Now,9) > _tarde && SubStr(A_Now,9) < (_tarde+10) )	{
+		Else if (	SubStr( A_Now, 9 ) > _tarde
+				&&	SubStr( A_Now, 9 ) < ( _tarde + 10 ) )	{
 			SetTimer,	auto_restore,	OFF
 			Gosub,	noite
 			goto	update
