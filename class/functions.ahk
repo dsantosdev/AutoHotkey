@@ -7,7 +7,7 @@
 	return	OK
 }
 
-chrome_incognito()						{	;	Bloqueia modo anonimo
+chrome_incognito()							{	;	Bloqueia modo anonimo
 	RegRead,	incognito,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
 	if ( incognito != 0 )	{
 		RegWrite, REG_DWORD,	HKEY_LOCAL_MACHINE, SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled,	0
@@ -29,6 +29,20 @@ datetime( sql = "0", date = "" )			{
 		Return SubStr( date, 5, 4 ) "-"  SubStr( date, 3, 2 ) "-"  SubStr( date, 1, 2 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
 		}
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
+}
+
+search_delay( delay = "500", done = "0" )						{
+	if ( done = 0 )
+		Loop
+		{
+			; OutputDebug % A_TimeIdleKeyboard
+			if ( A_TimeIdleKeyboard > delay )	{
+				Return	done = 0
+				break
+			}
+		}
+	Else
+		Return	done = 0
 }
 
 http( url )									{
@@ -142,7 +156,7 @@ send_mail( destino, assunto, corpo, at:="")	{
 	return
 }
 
-update( comando = "" )	{
+update( comando = "" )						{
 	q = UPDATE [ASM].[dbo].[_gestao_sistema] SET [complemento1] = '%up%' WHERE [descricao] = '%ip%'
 	sql(q, 3)
 	if ( StrLen( sql_le ) = 0 )
