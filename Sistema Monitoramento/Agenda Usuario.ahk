@@ -1670,17 +1670,4 @@ Login:
 													:	"Interface"
 	Return
 
-	Login(@usuario,@senha)	{
-		return DllCall(	"advapi32\LogonUser"
-					,	"str",	@usuario
-					,	"str",	"Cotrijal"
-					,	"str",	@senha
-					,	"Ptr",	3
-					,	"Ptr",	3
-					,	"UintP"
-					,	nSize	)	=	1
-						?	"1"
-						:	"0"
-	}
-
-;return
+return
