@@ -374,18 +374,6 @@ Login:
 											:	"Interface"
 	Return
 
-	Login(@usuario,@senha)	{
-		return DllCall(	"advapi32\LogonUser"
-					,	"str",	@usuario
-					,	"str",	"Cotrijal"
-					,	"str",	@senha
-					,	"Ptr",	3
-					,	"Ptr",	3
-					,	"UintP"
-					,	nSize	)	=	1
-						?	"1"
-						:	"0"
-	}
 	~Enter::
 		~NumpadEnter::
 		Goto _Autenticar
@@ -574,6 +562,3 @@ editadoGuiClose:
 		editado = 0
 	Gui,	editado:Destroy
 Return
-
-up:
-	Return
