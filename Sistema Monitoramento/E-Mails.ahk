@@ -14,7 +14,8 @@
 ;
 
 ;	Local vars
-	AndOr = 1
+	Multi = 0
+	todas = 0
 	test =
 	debug = 0
 	WinGetPos,,,,taskbar, ahk_class Shell_TrayWnd
@@ -30,7 +31,7 @@ interface:
 		Gui,	-Caption -Border
 		Gui.Cores( "", "9BACC0", "374658" )
 		Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Tab3,%		"x5		w" A_ScreenWidth-10	"										h" A_ScreenHeight - ( taskbar * 1.5) "	vtab		gTab		AltSubmit	Bottom"		,%	header
+		Gui,	Add,		Tab3,%		"x5											w" A_ScreenWidth-10	"	h" A_ScreenHeight-( taskbar * 1.5) "	vtab		gTab		AltSubmit	Bottom"			,%	header
 			Gui.Font()
 	;	Tab	1	-	Agenda
 		Gui,	Add,		MonthCal,	x15									y15		w460					h163									vmcall		g_date Section
@@ -46,17 +47,17 @@ interface:
 			Gui,	Add, Checkbox,												vOp5	g_date					Checked	,	Operador 5
 				Loop, 5
 					GuiControl, +Redraw +c2BDC33, Op%A_Index%
-			Gui,	Add, Text, 				ys		w200					h15					0x1000	Center			,	Contendo(separe com vírgula)
+			Gui,	Add, Text, 				ys		w200					h15					0x1000	Center			,	Contendo( separe com ESPAÇO )
 				Gui.Font()
 			Gui,	Add, Edit, 						w200						vBusca	g_date
 				Gui.Font( "Bold", "cWhite" )
-			Gui,	Add, Checkbox,					wp						h20	vAndOr	g_words	0x1000	Hidden	Checked	,	Todas as palavras
+			Gui,	Add, Checkbox,					wp						h20	vtodas	g_agenda		Hidden			,	Destacar busca?
 				Gui.Font()
 		Gui,	Add,		ListView,%	"x15								y185	w" A_ScreenWidth-30	"	h130									vlv			g_agenda	AltSubmit	Grid"			,	Data|Mensagem|Operador|Unidade|IdAviso
 			Gui.Font( "S15", "cWhite", "Bold" )
 		Gui,	Add,		Text,%		"x15								y320	w" A_ScreenWidth-30 "	h30																			Center	0x1000"	,	Conteúdo
 			Gui.Font()
-		Gui,	Add,		Edit,%		"x15								y350	w" A_ScreenWidth-30 "	h" A_ScreenHeight-taskbar-430 "			veditbox"
+		Gui,	Add,		Edit,%		"x15								y350	w" A_ScreenWidth-30 "	h" A_ScreenHeight-taskbar-400 "			veditbox"
 			gosub	_date 
 	;	Tab	2	-	Avisos
 		Gui,	Tab,			2
@@ -64,7 +65,7 @@ interface:
 		Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
 			Gui.Font()
 		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro2
-		Gui,	Add,		Button,		x385	y36		w250	h22					gTab									,	Filtrar
+		Gui,	Add,		Button,		x385	y36		w250	h22					gTab											,	Filtrar
 		Gui,	Add,		ListView,	x10		y60		w1235			vlv2		g_avisos		AltSubmit	Grid	R7	NoSort	,	Agendado para:|Mensagem
 			Gui.Font( "S11", "cWhite", "Bold" )	
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
@@ -101,62 +102,42 @@ interface:
 			if ( debug = 1 )
 				OutputDebug % "Frota " SubStr( A_Now, -1 )
 	Gui,	Show,%	"x-2	y0		w" A_ScreenWidth+2	"	h" A_ScreenHeight-taskbar	,	E-Mails
-		Send,	{Down}
-		if ( trocou = 1 )	{
-			trocou	=
-			GuiControl,	Choose,	tab,	5
-			}
+	GuiControl, Focus, busca
 return
-
-_words:
-	Gui, Submit, NoHide
-	OutputDebug % "and or =" andor
-	modo	:=	andor = 1
-			?	"Todas as palavras"	:	"Qualquer palavra"
-	GuiControl, , AndOr,%	modo
-;	fim do words
 
 _date:
 	search_delay()
 	Gui, Submit, NoHide
+	contendo =
 	if ( StrLen( Busca ) > 0 )	{
-		GuiControl, Show, AndOr
-		if ( InStr( busca, ",") > 0 )	{
-			buscar := StrSplit( busca, "," )
-			operator := AndOr	= 1
-								? "AND"
-								: "OR"
-			contendo =
-			in =
-			Loop,%	buscar.Count()	{
-				if ( buscar[A_Index] = "" )
-					Continue
-				if ( A_Index = 1 )
-					if ( andor = 1)
-						contendo .= "AND p.Mensagem LIKE '`%" buscar[A_Index] "`%"
+		GuiControl, Show, todas
+		if ( todas = 1)
+			Guicontrol, +Redraw +c2BDC33, todas
+		Else
+			Guicontrol, +Redraw +cB8B8B8, todas
+		if ( InStr( busca, " " ) > 0 )	{
+			if ( SubStr( busca, -0 ) = " " )
+				busca := SubStr( busca, 1, StrLen( busca )-1 )
+			if ( InStr( busca, " " ) > 0 )	{
+				buscar := StrSplit( busca, " " )
+				Loop,%	buscar.Count()
+					if ( A_Index = 1 )
+						contendo .= "AND (p.[Mensagem] like '`%" buscar[A_Index] "`%'"
+					Else if ( A_Index = buscar.Count() )
+						contendo .= " OR p.[Mensagem] like '`%" buscar[A_Index] "`%')"
 					Else
-						contendo .= "AND (p.Mensagem LIKE '`%" buscar[A_Index] "`%'"
-			
-				Else if ( A_Index = buscar.Count() )
-					if ( andor = 1)
-						contendo .= " `%" buscar[A_Index] "`%'"
-					Else
-						contendo .= " or p.Mensagem LIKE '`%" buscar[A_Index] "`%')"
-				
-				Else
-					if ( andor = 1)
-						contendo .=" `%" buscar[A_Index] "`%"
-					Else
-						contendo .=" or p.Mensagem LIKE '`%" buscar[A_Index] "`%'"
+						contendo .= " OR p.[Mensagem] like '`%" buscar[A_Index] "`%'"
 			}
 		}
-		Else	{	
-			GuiControl, Hide, AndOr
+		Else
 			contendo := "AND p.Mensagem LIKE '`%" busca "`%'"
-		}
 	}
-	Else	{
-		GuiControl, Hide, AndOr
+	Else	{	;	sem busca
+		GuiControl, Hide, todas
+		if ( todas = 1 )
+			Guicontrol, +Redraw +c2BDC33, todas
+		Else
+			Guicontrol, +Redraw +cB8B8B8, todas
 		contendo =
 	}
 
@@ -180,42 +161,42 @@ _date:
 	}
 
 	operador =
-	o1 := op1 = 1 ? operador .= "'1'," : ""
-		if ( StrLen( o1 ) = 0 )
-			Guicontrol, +Redraw +cB8B8B8, Op1
-		Else
-			Guicontrol, +Redraw +c2BDC33, Op1
-	o2 := op2 = 1 ? operador .= "'2'," : ""
-		if ( StrLen( o2 ) = 0 )
-			Guicontrol, +Redraw +cB8B8B8, Op2
-		Else
-			Guicontrol, +Redraw +c2BDC33, Op2
-	o3 := op3 = 1 ? operador .= "'3'," : ""
-		if ( StrLen( o3 ) = 0 )
-			Guicontrol, +Redraw +cB8B8B8, Op3
-		Else
-			Guicontrol, +Redraw +c2BDC33, Op3
-	o4 := op4 = 1 ? operador .= "'4'," : ""
-		if ( StrLen( o4 ) = 0 )
-			Guicontrol, +Redraw +cB8B8B8, Op4
-		Else
-			Guicontrol, +Redraw +c2BDC33, Op4
-	o5 := op5 = 1 ? operador .= "'5'," : ""
-		if ( StrLen( o5 ) = 0 )
-			Guicontrol, +Redraw +cB8B8B8, Op5
-		Else
-			Guicontrol, +Redraw +c2BDC33, Op5
+		o1 := op1 = 1 ? operador .= "'1'," : ""
+			if ( StrLen( o1 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op1
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op1
+		o2 := op2 = 1 ? operador .= "'2'," : ""
+			if ( StrLen( o2 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op2
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op2
+		o3 := op3 = 1 ? operador .= "'3'," : ""
+			if ( StrLen( o3 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op3
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op3
+		o4 := op4 = 1 ? operador .= "'4'," : ""
+			if ( StrLen( o4 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op4
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op4
+		o5 := op5 = 1 ? operador .= "'5'," : ""
+			if ( StrLen( o5 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op5
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op5
 
-	if ( StrLen( o1 o2 o3 o4 o5) = 0 )	{
-	 	operador = '1','2','3','4','5'
-		 Loop, 5
-		 {
-		 	GuiControl, , op%A_Index%, 1
-			GuiControl, +Redraw +c2BDC33, Op%A_Index%
-		 }
-	}
-	Else
-		operador	:= SubStr( operador, 1, -1)
+		if ( StrLen( o1 o2 o3 o4 o5) = 0 )	{
+			operador = '1','2','3','4','5'
+			Loop, 5
+			{
+				GuiControl, , op%A_Index%, 1
+				GuiControl, +Redraw +c2BDC33, Op%A_Index%
+			}
+		}
+		Else
+			operador	:= SubStr( operador, 1, -1)
 	;
 
 	lastrow =
@@ -231,7 +212,7 @@ carrega_lv:
 		byDate	= AND CONVERT(VARCHAR(25), Quandoavisar, 126) like '%mcall%`%'
 	Gui, ListView, lv
 	LV_Delete()
-	data := SubStr(mcall,1,4)	"-"	SubStr(mcall,5,2)	"-"	SubStr(mcall,7,2)
+	data := SubStr( mcall, 1, 4)	"-"	SubStr( mcall, 5, 2 )	"-"	SubStr( mcall, 7, 2 )
 	s =
 		(
 		SELECT	p.IdCliente
@@ -253,18 +234,30 @@ carrega_lv:
 		ORDER BY
 			6 DESC
 		)
-	; Clipboard := s
-
+	Clipboard := s
 	dados := sql( s )
+	if ( todas = 1 )
+		buscar := StrSplit( busca, " " )
+
 	Loop, % dados.Count()-1	{
+		quebra =
 		hour :=	dados[A_Index+1, 2]
 		oper :=	RegExReplace( dados[A_Index+1, 3], "(^|\R)\K\s+" )
+			if (	todas = 1	;	Se for mais de uma palavra e deve conter todas as palavras na mensagem
+				&&	buscar.Count() > 1 )
+				Loop,%	buscar.Count()
+					if ( InStr( oper, buscar[A_Index] ) = 0 )
+						quebra++
+				if ( quebra > 0 )
+					continue
+			;
+
 		subj :=	dados[A_Index+1, 4]
-		unit :=	dados[A_Index+1, 5]
+		unit :=	Format("{:T}", dados[A_Index+1, 5])
 		idav :=	dados[A_Index+1, 6]
-		if ( A_Index = 1 )
-			last_id := idav
-		StringUpper, unit, unit, T
+			if ( A_Index = 1 )
+				last_id := idav
+		
 		LV_Add( ""
 			,	hour
 			,	oper
@@ -272,6 +265,7 @@ carrega_lv:
 			,	unit
 			,	idav )
 	}
+
 	LV_ModifyCol(1, 115)
 	LV_ModifyCol(1, Sort)
 	LV_ModifyCol(2, 800)
@@ -283,11 +277,22 @@ carrega_lv:
 	if ( StrLen( edb ) < 6 )
 		edb =
 	Gui.Font( "S11" )
+	if (	StrLen( busca ) > 0
+		&&	todas = 1 )
+		edb := string.Destaca_Busca( edb, busca )
 	GuiControl, Font, editbox
 	GuiControl, , editbox,% edb
 return
 
 _agenda:
+	Gui, Submit, NoHide
+	GuiControl, , todas,%	todas	=	1
+									?	"Busca em destaque"
+									:	"Destacar busca?"
+	if ( todas = 1)
+		Guicontrol, +Redraw +c2BDC33, todas
+	Else
+		Guicontrol, +Redraw +cB8B8B8, todas
 	Gui,	ListView,	lv
 	row	:=	LV_GetNext()
 	if ( row = 0 )
@@ -300,14 +305,15 @@ _agenda:
 			if ( ErrorLevel = 0)
 				break
 		}
-		Gui.Font("S11")
-		GuiControl,	Font,	editbox
-		GuiControl,	, editbox,%	edb
 		return
 	}
-	LV_GetText( edb, row, 2)
-	Gui, Font,	S11
+	Else
+		LV_GetText( edb, row, 2)
+	Gui.Font( "S11" )
 	GuiControl,	Font,	editbox
+	if (	StrLen( busca ) > 0
+		&&	todas = 1 )
+		edb := string.Destaca_Busca( edb, busca )
 	GuiControl,	,	editbox,	%	edb
 return
 
@@ -506,13 +512,6 @@ Tab:
 		GuiControl	Focus,	lv4
 		}
 return
-
-~Enter::
-	~NumpadEnter::
-	if ( tab != 1 )
-		return
-	Gui, Submit,	NoHide
-	goto _date
 
 Esc::
 	GuiClose:
