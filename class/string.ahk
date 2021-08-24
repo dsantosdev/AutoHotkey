@@ -1,7 +1,7 @@
 ﻿
 Class	String		{
 
-	Name( name )	{
+	Name( name )				{
 		if !name
 			Return
 		StringUpper, name, name, T
@@ -22,7 +22,7 @@ Class	String		{
 		return StrReplace( new_name, "  ", " " )
 	}
 
-	Cargo( cargo )									{
+	Cargo( cargo )				{
 		StringUpper,	cargo,	cargo,	T
 		cargo	:=	StrReplace(	StrReplace(	StrReplace(	cargo
 										,	" - Feira"	)
@@ -122,5 +122,22 @@ Class	String		{
 		return	%	Retorno
 	}
 
+	Case( word, type )				{
+		StringUpper, word, word ,% type
+		Return word
+	}
 
+	Destaca_Busca( phrase, word )	{
+		if ( InStr( word, " " ) > 0 )
+			wordx := StrSplit( word, " " )
+		Else
+			wordx := [word]
+		Loop,%	wordx.Count()	{
+			phrase := StrReplace( phrase, wordx[A_index], "[" Format("{:U}", wordx[A_index] ) "]" )
+			if ( InStr( phrase,  "@"  wordx[A_index] ) )
+				phrase := StrReplace( phrase, wordx[A_index], "[" Format("{:U}", wordx[A_index] ) "]" )
+		}
+		Return phrase
+	}
+		
 }
