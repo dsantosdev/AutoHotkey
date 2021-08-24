@@ -9,11 +9,11 @@ Class	Gui	{
 		if ( Strlen( id ) > 0 )	{
 			Gui,	%id%:Color,	,	%cor1%
 			Gui,	%id%:Color,		%cor2%
-			}
+		}
 		else	{
 			Gui,	Color,	,	%cor1%
 			Gui,	Color,		%cor2%
-			}
+		}
 	}
 
 	Font( params* )							{

@@ -28,10 +28,15 @@ Menu,	Tray,	Icon
 interface:
 	;	Header
 			header	=	Agenda|Importantes|Fechar ;|Ocomon|Frota
+		
+Gui, Main:New
+Gui, Margin, 0, 0
 		Gui,	-Caption -Border
-		Gui.Cores( "", "9BACC0", "374658" )
+
+		Gui.Cores( "Main", "9BACC0", "374658" )
 		Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Tab3,%		"x5											w" A_ScreenWidth-10	"	h" A_ScreenHeight-( taskbar * 1.5) "	vtab		gTab		AltSubmit	Bottom"			,%	header
+		Gui,	Add,		Tab3,%		"x5											w" A_ScreenWidth-10	"	h" A_ScreenHeight-( taskbar * 1.5) "	vtab		gTab		AltSubmit	Bottom	hwndhTab"	,%	header
+hParent := DllCall("GetWindow", "Ptr", hTab, "UInt", GW_HWNDNEXT := 2, "Ptr")
 			Gui.Font()
 	;	Tab	1	-	Agenda
 		Gui,	Add,		MonthCal,	x15									y15		w460					h163									vmcall		g_date Section
@@ -53,54 +58,60 @@ interface:
 				Gui.Font( "Bold", "cWhite" )
 			Gui,	Add, Checkbox,					wp						h20	vtodas	g_agenda		Hidden			,	Destacar busca?
 				Gui.Font()
-		Gui,	Add,		ListView,%	"x15								y185	w" A_ScreenWidth-30	"	h130									vlv			g_agenda	AltSubmit	Grid"			,	Data|Mensagem|Operador|Unidade|IdAviso
+		Gui,	Add,		ListView,%	"x15								y185	w" A_ScreenWidth-30	"	h130									vlv			g_agenda	AltSubmit	Grid"				,	Data|Mensagem|Operador|Unidade|IdAviso
 			Gui.Font( "S15", "cWhite", "Bold" )
-		Gui,	Add,		Text,%		"x15								y320	w" A_ScreenWidth-30 "	h30																			Center	0x1000"	,	Conteúdo
+		Gui,	Add,		Text,%		"x15								y320	w" A_ScreenWidth-30 "	h30																			Center	0x1000"		,	Conteúdo
 			Gui.Font()
 		Gui,	Add,		Edit,%		"x15								y350	w" A_ScreenWidth-30 "	h" A_ScreenHeight-taskbar-400 "			veditbox"
 			gosub	_date 
 	;	Tab	2	-	Avisos
 		Gui,	Tab,			2
 			Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Text,		x15		y15			w250					h25							Center		0x1000	Section		,	Filtrar avisos
+Gui, Importantes:New, +Parent%hParent% -Caption -Border
+Gui.Cores( "Importantes", "9BACC0", "374658" )
+Gui.Font("S10", "Bold", "cWhite")
+Gui, Add, Tab3, x0 y0 vSided hwndSided w500 h500, Avisos|Frota|Ocomon
+
+ 		Gui,	Add,		Text,							w250					h25							Center		0x1000	Section		,	Filtrar avisos
 			Gui.Font()
-		Gui,	Add,		Edit,							w250					h24		vbusca_avisos
-		Gui,	Add,		ListView,%	"		ys			w" A_ScreenWidth-295 "			vlv2	g_avisos	AltSubmit	Grid	R7	NoSort"	,	Agendado para:|Mensagem
-			Gui.Font( "S15", "cWhite", "Bold" )	
-		Gui,	Add,		Text,%		"x15	y160		w" A_ScreenWidth-33 "	h30							Center		0x1000"				,	Conteúdo
-			Gui.Font()
-		Gui,	Add,		Edit,%		"					w" A_ScreenWidth-33 "	h300	veditbox2"
-			if ( debug = 1 )
-				OutputDebug % "Avisos " SubStr( A_Now, -1 )
-	;	Tab	3	-	Ocomon
-		Gui,	Tab,		3
-			Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
-			Gui.Font()
-		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro3
-		Gui,	Add,		Button,		x385	y36		w250	h22					gTab									,	Filtrar
-		Gui,	Add,		ListView,	x10		y60		w1235			vlv3		g_ocomon		AltSubmit	Grid	R7	NoSort	,	Data|Mensagem
-			Gui.Font( "S11", "cWhite", "Bold" )	
-		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
-			Gui.Font()
-		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox3
-			if ( debug = 1 )
-				OutputDebug % "Ocomon " SubStr( A_Now, -1 )
-	;	Tab 4	-	Frota
-		Gui,	Tab,		4
-			Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
-			Gui.Font()
-		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro4
-		Gui,	Add,		Button,		x385	y36		w250	h22					gTab									,	Filtrar
-		Gui,	Add,		ListView,	x10		y60		w1235			vlv4		g_frota			AltSubmit	Grid	R7	NoSort	,	Data|Mensagem
-			Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
-			Gui.Font()
-		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox4
-			if ( debug = 1 )
-				OutputDebug % "Frota " SubStr( A_Now, -1 )
-	Gui,	Show,%	"x-2	y0		w" A_ScreenWidth+2	"	h" A_ScreenHeight-taskbar	,	E-Mails
+Gui,	Show, Hide  x5 y6
+; 	Gui,	Add,		Edit,							w250					h24		vbusca_avisos
+	; 	Gui,	Add,		ListView,%	"		ys			w" A_ScreenWidth-295 "			vlv2	g_avisos	AltSubmit	Grid	R7	NoSort"	,	Agendado para:|Mensagem
+	; 		Gui.Font( "S15", "cWhite", "Bold" )	
+	; 	Gui,	Add,		Text,%		"x15	y160		w" A_ScreenWidth-33 "	h30							Center		0x1000"				,	Conteúdo
+	; 		Gui.Font()
+	; 	Gui,	Add,		Edit,%		"					w" A_ScreenWidth-33 "	h300	veditbox2"
+	; 		if ( debug = 1 )
+	; 			OutputDebug % "Avisos " SubStr( A_Now, -1 )
+	; ;	Tab	3	-	Ocomon
+	; 	Gui,	Tab,		3
+	; 		Gui.Font( "S11", "cWhite", "Bold" )
+	; 	Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
+	; 		Gui.Font()
+	; 	Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro3
+	; 	Gui,	Add,		Button,		x385	y36		w250	h22					gTab									,	Filtrar
+	; 	Gui,	Add,		ListView,	x10		y60		w1235			vlv3		g_ocomon		AltSubmit	Grid	R7	NoSort	,	Data|Mensagem
+	; 		Gui.Font( "S11", "cWhite", "Bold" )	
+	; 	Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
+	; 		Gui.Font()
+	; 	Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox3
+	; 		if ( debug = 1 )
+	; 			OutputDebug % "Ocomon " SubStr( A_Now, -1 )
+	; ;	Tab 4	-	Frota
+	; 	Gui,	Tab,		4
+	; 		Gui.Font( "S11", "cWhite", "Bold" )
+	; 	Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
+	; 		Gui.Font()
+	; 	Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro4
+	; 	Gui,	Add,		Button,		x385	y36		w250	h22					gTab									,	Filtrar
+	; 	Gui,	Add,		ListView,	x10		y60		w1235			vlv4		g_frota			AltSubmit	Grid	R7	NoSort	,	Data|Mensagem
+	; 		Gui.Font( "S11", "cWhite", "Bold" )
+	; 	Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
+	; 		Gui.Font()
+	; 	Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox4
+	; 		if ( debug = 1 )
+	; 			OutputDebug % "Frota " SubStr( A_Now, -1 )
+	Gui,	Main:Show,%	"x-2	y0		w" A_ScreenWidth+2	"	h" A_ScreenHeight-taskbar	,	E-Mails
 	GuiControl, Focus, busca
 return
 
@@ -388,7 +399,10 @@ _frota:
 return
 
 Tab:
-	Gui, Submit, NoHide
+	Gui, Submit, NoHide	
+	GuiControl, % tab = 2 ? "Main:Hide" : StrLen( busca ) > 0 ? "Main:Show" : "Main:Hide", todas
+	Gui, % ( Tab = 2 ) ? "Importantes:Show" : "Importantes:Hide"
+  	; GuiControl MoveDraw, Tab
 	if ( tab = 1 )	{
 		Gui,	ListView,	lv
 		GuiControl,	,	filtro2
@@ -399,6 +413,7 @@ Tab:
 		GuiControl,	Focus,	lv
 		}
 	if ( tab = 2 )	{
+		  Return
 		GuiControl,	,	filtro3
 		GuiControl,	,	filtro4
 		GuiControl,	,	filtro6
