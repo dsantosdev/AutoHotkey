@@ -15,7 +15,8 @@
 
 ;	Local vars
 	Multi = 0
-	todas = 0
+	destaca_1 = 0
+	destaca_2 = 0
 	test =
 	debug = 0
 	WinGetPos,,,,taskbar, ahk_class Shell_TrayWnd
@@ -34,7 +35,7 @@ interface:
 		Gui,	Add,		Tab3,%		"x5											w" A_ScreenWidth-10	"	h" A_ScreenHeight-( taskbar * 1.5) "	vtab		gTab		AltSubmit	Bottom"			,%	header
 			Gui.Font()
 	;	Tab	1	-	Agenda
-		Gui,	Add,		MonthCal,	x15									y15		w460					h163									vmcall		g_date Section
+		Gui,	Add,		MonthCal,	x15									y15		w460					h163								vmcall			g_date Section
 		;	FILTROS
 			Gui.Font( "Bold", "cWhite" )
 			Gui,	Add, Text,%		"		ys		w" A_ScreenWidth-505 "	h20					0x1000	Center"			,	FILTROS
@@ -47,60 +48,39 @@ interface:
 			Gui,	Add, Checkbox,												vOp5	g_date					Checked	,	Operador 5
 				Loop, 5
 					GuiControl, +Redraw +c2BDC33, Op%A_Index%
-			Gui,	Add, Text, 				ys		w200					h15					0x1000	Center			,	Contendo( separe com ESPAÇO )
+			Gui,	Add, Text, 				ys		w200					h17					0x1000	Center			,	Contendo( separe com ESPAÇO )
 				Gui.Font()
 			Gui,	Add, Edit, 						w200						vBusca	g_date
 				Gui.Font( "Bold", "cWhite" )
-			Gui,	Add, Checkbox,					wp						h20	vtodas	g_agenda		Hidden			,	Destacar busca?
+			Gui,	Add, Checkbox,					wp						h20	vdestaca_1	g_agenda	Hidden			,	Destacar busca?
 				Gui.Font()
-		Gui,	Add,		ListView,%	"x15								y185	w" A_ScreenWidth-30	"	h130									vlv			g_agenda	AltSubmit	Grid"			,	Data|Mensagem|Operador|Unidade|IdAviso
+		Gui,	Add,		ListView,%	"x15								y185	w" A_ScreenWidth-30	"	h130								vlv				g_agenda	AltSubmit	Grid"					,	Data|Mensagem|Operador|Unidade|IdAviso
 			Gui.Font( "S15", "cWhite", "Bold" )
-		Gui,	Add,		Text,%		"x15								y320	w" A_ScreenWidth-30 "	h30																			Center	0x1000"	,	Conteúdo
+		Gui,	Add,		Text,%		"x15								y320	w" A_ScreenWidth-30 "	h30																	Center	0x1000"					,	Conteúdo
 			Gui.Font()
-		Gui,	Add,		Edit,%		"x15								y350	w" A_ScreenWidth-30 "	h" A_ScreenHeight-taskbar-400 "			veditbox"
+		Gui,	Add,		Edit,%		"x15								y350	w" A_ScreenWidth-30 "	h" A_ScreenHeight-taskbar-400 "		veditbox"
 			gosub	_date 
-	;	Tab	2	-	Avisos
+	;	Tab	2	-	Importantes
 		Gui,	Tab,			2
 			Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Text,		x15		y15			w250					h25							Center		0x1000	Section		,	Filtrar avisos
+		Gui,	Add,	Radio,	Section												w250					h20													g_avisos					0x1000	Checked		,	Avisos
+		Gui,	Add,	Radio,	xs													w250					h20													g_frota						0x1000				,	Frota
+		Gui,	Add,	Radio,	xs													w250					h20													g_ocomon					0x1000				,	Ocomon
+		Gui,	Add,	Text,	xs													w250					h15																	Center		0x1000				,	Filtrar avisos
 			Gui.Font()
-		Gui,	Add,		Edit,							w250					h24		vbusca_avisos
-		Gui,	Add,		ListView,%	"		ys			w" A_ScreenWidth-295 "			vlv2	g_avisos	AltSubmit	Grid	R7	NoSort"	,	Agendado para:|Mensagem
+		Gui,	Add,	Edit,														w250					h24									vb_importantes	gTab
+			Gui.Font( "Bold", "cB8B8B8" )
+		Gui,	Add,	Checkbox,													wp						h20									vdestaca_2		g_importantes	Hidden							,	Destacar busca?
+			Gui.Font( )
+		Gui,	Add,	ListView,%	"									ys		w" A_ScreenWidth-300 "										vImportantes	g_importantes	AltSubmit	Grid	R8	NoSort"	,	Agendado para:|Mensagem
 			Gui.Font( "S15", "cWhite", "Bold" )	
-		Gui,	Add,		Text,%		"x15	y160		w" A_ScreenWidth-33 "	h30							Center		0x1000"				,	Conteúdo
+		Gui,	Add,	Text,%		"x15								y195	w" A_ScreenWidth-33 "	h30																	Center		0x1000"				,	Conteúdo
 			Gui.Font()
-		Gui,	Add,		Edit,%		"					w" A_ScreenWidth-33 "	h300	veditbox2"
+		Gui,	Add,	Edit,%		"											w" A_ScreenWidth-33 "	h" A_ScreenHeight-taskbar-283 "		vexibe_importantes"
 			if ( debug = 1 )
-				OutputDebug % "Avisos " SubStr( A_Now, -1 )
-	;	Tab	3	-	Ocomon
-		Gui,	Tab,		3
-			Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
-			Gui.Font()
-		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro3
-		Gui,	Add,		Button,		x385	y36		w250	h22					gTab									,	Filtrar
-		Gui,	Add,		ListView,	x10		y60		w1235			vlv3		g_ocomon		AltSubmit	Grid	R7	NoSort	,	Data|Mensagem
-			Gui.Font( "S11", "cWhite", "Bold" )	
-		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
-			Gui.Font()
-		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox3
-			if ( debug = 1 )
-				OutputDebug % "Ocomon " SubStr( A_Now, -1 )
-	;	Tab 4	-	Frota
-		Gui,	Tab,		4
-			Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
-			Gui.Font()
-		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro4
-		Gui,	Add,		Button,		x385	y36		w250	h22					gTab									,	Filtrar
-		Gui,	Add,		ListView,	x10		y60		w1235			vlv4		g_frota			AltSubmit	Grid	R7	NoSort	,	Data|Mensagem
-			Gui.Font( "S11", "cWhite", "Bold" )
-		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
-			Gui.Font()
-		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox4
-			if ( debug = 1 )
-				OutputDebug % "Frota " SubStr( A_Now, -1 )
-	Gui,	Show,%	"x-2	y0		w" A_ScreenWidth+2	"	h" A_ScreenHeight-taskbar	,	E-Mails
+				OutputDebug % "Importantes " SubStr( A_Now, -1 )
+
+	Gui,	Show,%					"x-2								y0		w" A_ScreenWidth+2	"	h" A_ScreenHeight-taskbar																			,	E-Mails
 	GuiControl, Focus, busca
 return
 
@@ -110,11 +90,12 @@ return
 		Gui, Submit, NoHide
 		contendo =
 		if ( StrLen( Busca ) > 0 )	{
-			GuiControl, Show, todas
-			if ( todas = 1)
-				Guicontrol, +Redraw +c2BDC33, todas
+			GuiControl, Show, destaca_1
+			if ( destaca_1 = 1)
+				Guicontrol, +Redraw +c2BDC33, destaca_1
 			Else
-				Guicontrol, +Redraw +cB8B8B8, todas
+				Guicontrol, +Redraw +cB8B8B8, destaca_1	
+			GuiControl, % StrLen( busca ) > 0 ? "Show" : "Hide"	, destaca_1
 			if ( InStr( busca, " " ) > 0 )	{
 				if ( SubStr( busca, -0 ) = " " )
 					busca := SubStr( busca, 1, StrLen( busca )-1 )
@@ -124,20 +105,21 @@ return
 						if ( A_Index = 1 )
 							contendo .= "AND (p.[Mensagem] like '`%" buscar[A_Index] "`%'"
 						Else if ( A_Index = buscar.Count() )
-							contendo .= " OR p.[Mensagem] like '`%" buscar[A_Index] "`%')"
+							contendo .= " AND p.[Mensagem] like '`%" buscar[A_Index] "`%')"
 						Else
-							contendo .= " OR p.[Mensagem] like '`%" buscar[A_Index] "`%'"
+							contendo .= " AND p.[Mensagem] like '`%" buscar[A_Index] "`%'"
 				}
 			}
 			Else
 				contendo := "AND p.Mensagem LIKE '`%" busca "`%'"
 		}
 		Else	{	;	sem busca
-			GuiControl, Hide, todas
-			if ( todas = 1 )
-				Guicontrol, +Redraw +c2BDC33, todas
+			GuiControl, Hide, destaca_1
+			if ( destaca_1 = 1 )
+				Guicontrol, +Redraw +c2BDC33, destaca_1
 			Else
-				Guicontrol, +Redraw +cB8B8B8, todas
+				Guicontrol, +Redraw +cB8B8B8, destaca_1
+			GuiControl, % StrLen( busca ) > 0 ? "Show" : "Hide"	, destaca_1
 			contendo =
 		}
 
@@ -236,14 +218,14 @@ return
 			)
 		Clipboard := s
 		dados := sql( s )
-		if ( todas = 1 )
+		if ( destaca_1 = 1 )
 			buscar := StrSplit( busca, " " )
 
 		Loop, % dados.Count()-1	{
 			quebra =
 			hour :=	dados[A_Index+1, 2]
 			oper :=	RegExReplace( dados[A_Index+1, 3], "(^|\R)\K\s+" )
-				if (	todas = 1	;	Se for mais de uma palavra e deve conter todas as palavras na mensagem
+				if (	destaca_1 = 1	;	Se for mais de uma palavra e deve conter destaca_1 as palavras na mensagem
 					&&	buscar.Count() > 1 )
 					Loop,%	buscar.Count()
 						if ( InStr( oper, buscar[A_Index] ) = 0 )
@@ -278,7 +260,7 @@ return
 			edb =
 		Gui.Font( "S11" )
 		if (	StrLen( busca ) > 0
-			&&	todas = 1 )
+			&&	destaca_1 = 1 )
 			edb := string.Destaca_Busca( edb, busca )
 		GuiControl, Font, editbox
 		GuiControl, , editbox,% edb
@@ -286,13 +268,14 @@ return
 
 	_agenda:
 		Gui, Submit, NoHide
-		GuiControl, , todas,%	todas	=	1
+		GuiControl, , destaca_1,%	destaca_1	=	1
 										?	"Busca em destaque"
 										:	"Destacar busca?"
-		if ( todas = 1)
-			Guicontrol, +Redraw +c2BDC33, todas
+		if ( destaca_1 = 1)
+			Guicontrol, +Redraw +c2BDC33, destaca_1
 		Else
-			Guicontrol, +Redraw +cB8B8B8, todas
+			Guicontrol, +Redraw +cB8B8B8, destaca_1
+		GuiControl, % StrLen( busca ) > 0 ? "Show" : "Hide"	, destaca_1
 		Gui,	ListView,	lv
 		row	:=	LV_GetNext()
 		if ( row = 0 )
@@ -312,104 +295,139 @@ return
 		Gui.Font( "S11" )
 		GuiControl,	Font,	editbox
 		if (	StrLen( busca ) > 0
-			&&	todas = 1 )
+			&&	destaca_1 = 1 )
 			edb := string.Destaca_Busca( edb, busca )
 		GuiControl,	,	editbox,	%	edb
 	return
 ;
 
-_avisos:
-	Gui, ListView,	lv2
-	row2 := LV_GetNext()
-	if ( row2 = 0 )
-		row2			=		1
-	if ( A_GuiEvent = Normal ) {
-		LV_GetText( edb, A_EventInfo, 2)
-		Loop {
-			edb := RegExReplace(edb, "\R+\R", "`r`n ")
-			if ( ErrorLevel = 0 )
-				break
+;	-	Funções de Importantes
+	_importantes:	;	Seleciona para exibir
+		Gui, Submit, NoHide
+		Gui, ListView,	importantes
+		GuiControl, , destaca_2,%	destaca_2	=	1
+										?	"Busca em destaque"
+										:	"Destacar busca?"
+		if ( destaca_2 = 1)
+			Guicontrol, +Redraw +c2BDC33, destaca_2
+		Else
+			Guicontrol, +Redraw +cB8B8B8, destaca_2
+		GuiControl, % StrLen( b_importantes ) > 0 ? "Show" : "Hide"	, destaca_2
+		if (	A_GuiEvent = "Normal"
+		||		A_GuiEvent = "K" ) {
+			if ( A_GuiEvent = "K" )
+				LV_GetText( edb, LV_GetNext(), 2)
+			Else
+				LV_GetText( edb, A_EventInfo, 2)	
+			If( A_EventInfo = 0 )
+				LV_GetText( edb, 1, 2)
+			Loop {
+				edb := RegExReplace(edb, "\R+\R", "`r`n ")
+				if ( ErrorLevel = 0 )
+					break
 			}
-		Gui,	Font,	S11
-		GuiControl,	Font,	editbox2
-		GuiControl,	,	editbox2,	%	edb
-		return
+			Gui.Font( "S11" )
+			GuiControl,	Font,	exibe_importantes
+			if ( destaca_2 = 1)
+				edb := String.Destaca_Busca( edb, b_importantes )
+			GuiControl,		,	exibe_importantes,	%	edb
+			return
 		}
-	LV_GetText(edb, row2, 2)
-	Gui,	Font,	S11
-	GuiControl,	Font,	editbox2
-	GuiControl,	,	editbox2,	%	edb
-return
+	return
 
-_ocomon:
-	Gui, ListView,	lv3
-	row3 :=	LV_GetNext()
-	if ( row3 = 0 )
-		row3 = 1
-	if ( A_GuiEvent = Normal ) {
-		LV_GetText(edb, A_EventInfo, 2)
-		Loop {
-			edb := RegExReplace(edb, "\R+\R", "`r`n ")
-			if ErrorLevel = 0
-				break
-			}
-		Gui, Font,	S11
-		GuiControl,	Font,	editbox3
-		GuiControl,	, editbox3,%	edb
-		return
-		}
-	LV_GetText(edb, row3, 2)
-	Gui,	Font,	S11
-	GuiControl,	Font,	editbox3
-	GuiControl,	,	editbox3,	%	edb
-return
+	_avisos:
+		tipo = Avisos Monitoramento
+		GuiControl, , b_importantes
+		GuiControl, , destaca_2, 0
+		Goto, Tab
+	; return
 
-_frota:
-	Gui, ListView,	lv4
-	row4 :=	LV_GetNext()
-	if ( row4 = 0 )
-		row4			=		1
-	if ( A_GuiEvent = Normal ) {
-		LV_GetText( edb, A_EventInfo, 2)
-		Loop {
-			edb := RegExReplace(edb, "\R+\R", "`r`n ")
-			if ErrorLevel = 0
-				break
-			}
-		Gui,	Font,	S11
-		GuiControl,	Font,	editbox4
-		GuiControl,	,	editbox4,	%	edb
-		return
-		}
-	LV_GetText( edb, row4, 2)
-	Gui,	Font,	S11
-	GuiControl,	Font,	editbox4
-	GuiControl,	,	editbox4,	%	edb
-return
+	_frota:
+		tipo = Caminhoes
+		GuiControl, , b_importantes
+		GuiControl, , destaca_2, 0
+		Goto, Tab
+	; return
+
+	_ocomon:
+		tipo = Ocomon
+		GuiControl, , b_importantes
+		GuiControl, , destaca_2, 0
+		Goto, Tab
+	; return
+	;
+;
 
 Tab:
 	Gui, Submit, NoHide
 	if ( tab = 1 )	{
-		Gui,	ListView,	lv
-		GuiControl,	,	filtro2
-		GuiControl,	,	filtro3
-		GuiControl,	,	filtro4
-		GuiControl,	,	filtro6
-		GuiControl,	,	filtro7
-		GuiControl,	Focus,	lv
-		}
+		Loop, 5
+			GuiControl, , op%A_Index%, 1
+		Guicontrol, , busca
+		Guicontrol, , b_importantes
+		Guicontrol, , byDate, 0
+		Guicontrol, , mcall,% A_Now
+		Gui, Submit, NoHide
+		Gui, ListView,	lv
+		GuiControl, , destaca_1,%	destaca_1	=	1
+										?	"Busca em destaque"
+										:	"Destacar busca?"
+		if ( destaca_1 = 1)
+			Guicontrol, +Redraw +c2BDC33, destaca_1
+		Else
+			Guicontrol, +Redraw +cB8B8B8, destaca_1
+		GuiControl, % StrLen( busca ) > 0 ? "Show" : "Hide"	, destaca_1
+		o1 := op1 = 1 ? operador .= "'1'," : ""
+			if ( StrLen( o1 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op1
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op1
+		o2 := op2 = 1 ? operador .= "'2'," : ""
+			if ( StrLen( o2 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op2
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op2
+		o3 := op3 = 1 ? operador .= "'3'," : ""
+			if ( StrLen( o3 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op3
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op3
+		o4 := op4 = 1 ? operador .= "'4'," : ""
+			if ( StrLen( o4 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op4
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op4
+		o5 := op5 = 1 ? operador .= "'5'," : ""
+			if ( StrLen( o5 ) = 0 )
+				Guicontrol, +Redraw +cB8B8B8, Op5
+			Else
+				Guicontrol, +Redraw +c2BDC33, Op5
+	}
 	if ( tab = 2 )	{
-		GuiControl,	,	filtro3
-		GuiControl,	,	filtro4
-		GuiControl,	,	filtro6
-		GuiControl,	,	filtro7
-		Gui,	ListView,	lv2
-		if ( filtro2 = "" )
-			filtrar =
-			else
-			filtrar	:=	" AND p.Mensagem like '%" filtro2 "%'"
-		LV_Delete()
-		sqlv =
+		search_delay()
+		Gui, Submit, NoHide
+		Gui,	ListView,	Importantes
+		if ( tipo = "" )
+			tipo = Avisos Monitoramento
+		contendo =
+		if ( InStr( b_importantes, " " ) > 0 )	{
+			if ( SubStr( b_importantes, -0 ) = " " )
+				b_importantes := SubStr( b_importantes, 1, StrLen( b_importantes )-1 )
+			if ( InStr( b_importantes, " " ) > 0 )	{
+				buscari := StrSplit( b_importantes, " " )
+				Loop,%	buscari.Count()
+					if ( A_Index = 1 )
+						contendo .= "AND (p.[Mensagem] like '`%" buscari[A_Index] "`%'"
+					Else if ( A_Index = buscari.Count() )
+						contendo .= " AND p.[Mensagem] like '`%" buscari[A_Index] "`%')"
+					Else
+						contendo .= " AND p.[Mensagem] like '`%" buscari[A_Index] "`%'"
+			}
+		}
+		Else
+			contendo := "AND p.Mensagem LIKE '`%" b_importantes "`%'"
+		
+		s =
 			(
 			SELECT	p.IdCliente
 				,	p.QuandoAvisar
@@ -422,96 +440,26 @@ Tab:
 				[IrisSQL].[dbo].[Clientes] c ON
 					p.IdCliente = c.IdUnico
 			WHERE
-				c.[Nome]='Avisos Monitoramento'
-				%filtrar%
+				c.[Nome]='%tipo%'
+				%contendo%
 			ORDER BY
 				2 DESC
 			)
-		fill := sql( sqlv )
-		LV_ModifyCol(1,115)
-		LV_ModifyCol(2,1100)
-		Loop, % fill.Count()-1
+			; Clipboard := s
+		importantes := sql( s )
+		LV_ModifyCol( 1, 115 )
+		LV_ModifyCol( 2, A_ScreenWidth-450 )
+		LV_Delete()
+		Loop, % importantes.Count()-1
 			LV_Add(	""
-				,	fill[A_Index+1,2]
-				,	fill[A_Index+1,3]	)
-		LV_ModifyCol(1,Sort)
-		GuiControl,	Focus,	lv2
-		}
-	if ( tab = 3 )	{
-		goto GuiClose
-		Gui,	ListView,	lv3
-		GuiControl,	,	filtro2
-		GuiControl,	,	filtro4
-		GuiControl,	,	filtro6
-		GuiControl,	,	filtro7
-		if ( filtro3 = "" )
-			filtrar	=
-			else
-			filtrar := " AND p.Mensagem like '%" filtro3 "%'"
-		LV_Delete()
-		sqlv =
-			(
-			SELECT	p.IdCliente
-				,	p.QuandoAvisar
-				,	p.Mensagem
-				,	p.Assunto
-				,	c.Nome
-			FROM
-				[IrisSQL].[dbo].[Agenda] p
-			LEFT JOIN
-				[IrisSQL].[dbo].[Clientes] c ON
-					p.IdCliente = c.IdUnico
-			WHERE
-				c.[Nome]='Ocomon'
-				%filtrar%
-			ORDER BY
-				2 DESC
-			)
-		fill := sql( sqlv )
-		Loop, % fill.Count()-1
-			LV_Add("",	fill[A_Index+1,2],	fill[A_Index+1,3])
-			LV_ModifyCol(1,Sort)
-			LV_ModifyCol(1,115)
-			LV_ModifyCol(2,1100)
-		GuiControl	Focus,	lv3
-		}
-	if ( tab = 4 )	{
-		Gui,	ListView,	lv4
-		GuiControl,	,	filtro2
-		GuiControl,	,	filtro3
-		GuiControl,	,	filtro6
-		GuiControl,	,	filtro7
-		if ( filtro4 = "" )
-			filtrar	=
-			else
-			filtrar	:=	" AND p.Mensagem like '%" filtro4 "%'"
-		LV_Delete()
-		sqlv =
-			(
-			SELECT	p.IdCliente
-				,	p.QuandoAvisar
-				,	p.Mensagem
-				,	p.Assunto
-				,	c.Nome
-			FROM
-				[IrisSQL].[dbo].[Agenda] p
-			LEFT JOIN
-				[IrisSQL].[dbo].[Clientes] c ON
-					p.IdCliente = c.IdUnico
-			WHERE
-				c.[Nome]='Caminhoes'
-				%filtrar%
-			ORDER BY
-				2 DESC
-			)
-		fill := sql( sqlv )
-		Loop, % fill.Count()-1
-			LV_Add("",	fill[A_Index+1,2],	fill[A_Index+1,3])
-			LV_ModifyCol(1,Sort)
-			LV_ModifyCol(1,115)
-			LV_ModifyCol(2,1100)
-		GuiControl	Focus,	lv4
-		}
+				,	importantes[A_Index+1,2]
+				,	importantes[A_Index+1,3]	)
+		LV_ModifyCol( 1, Sort )
+		GuiControl,	Focus,	b_importantes
+		Gosub, _importantes
+	}
+	if ( tab = 3 )
+		Goto, GuiClose
 return
 
 Esc::
