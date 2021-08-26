@@ -140,6 +140,16 @@
 							,	"0xd0d1ff"
 							,	"0xc8e7ff"
 							,	"0xc0fdff"	]
+	,	system			:= [	"0x9bacc0"
+							,	"0x90a1b4"
+							,	"0x8595a9"
+							,	"0x7a8a9d"
+							,	"0x6f7f92"
+							,	"0x637386"
+							,	"0x58687b"
+							,	"0x4d5d6f"
+							,	"0x425164"
+							,	"0x374658"	]
 ;	END of GLOBALS
 
 Class	Cor	{
