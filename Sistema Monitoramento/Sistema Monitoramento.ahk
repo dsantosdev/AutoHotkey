@@ -41,7 +41,7 @@ Menu,		Tray,	Icon
 	Gui,	Margin,	0,	0
 	Gui,	Add,	Pic,%	"w" A_ScreenWidth "	h40	hwndHPIC"
 	Gui,	Add,	Text,	wp			xp	yp	hp	BackgroundTrans	vLoader	Center,%	"Sistema Monitoramento - " version
-	Cor.Gradiente( HPIC, blue,,1,1 )
+	Cor.Gradiente( HPIC, Blue,,1,1 )
 	Gui,	Show,	x0	y0	NoActivate
 ;	Return ;	UTILIZADO PARA DEBUGAR A GUI INICIAL
 	; F5::
