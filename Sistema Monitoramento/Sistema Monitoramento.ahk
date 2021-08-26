@@ -3,6 +3,7 @@ global	iniciou	;	Verificar necessidade
 	,	server01
 	,	server02
 	,	server03
+;
 
 ;Local
 	exe_dir	= \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\
@@ -10,6 +11,8 @@ global	iniciou	;	Verificar necessidade
 	debug	= 0
 	version	= 2.8.0
 	bggui	= 9BACC0
+;
+
 ; #InstallKeybdHook
 	#Persistent
 	#SingleInstance Force
@@ -36,7 +39,7 @@ Menu,		Tray,	Icon
 	Gui.Font( "s25", "Bold", "cWhite" )
 	Gui,	-Caption	-DPIScale	+AlwaysOnTop
 	Gui,	Margin,	0,	0
-	Gui,	Add,	Pic,	w%A_ScreenWidth%	h40	hwndHPIC
+	Gui,	Add,	Pic,%	"w" A_ScreenWidth "	h40	hwndHPIC"
 	Gui,	Add,	Text,	wp			xp	yp	hp	BackgroundTrans	vLoader	Center,%	"Sistema Monitoramento - " version
 	Cor.Gradiente( HPIC, blue,,1,1 )
 	Gui,	Show,	x0	y0	NoActivate
@@ -48,7 +51,7 @@ Menu,		Tray,	Icon
 	FileCopy,		%exe_dir%update.exe,	C:\Seventh\backup\update.exe,				1
 ;	Timers
 	if (	A_UserName != "Alberto"
-		||	SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184 ) {
+	||		SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184 ) {
 		SetTimer,	window_handler,	50		;	Lida com as janelas existentes no dguard
 		SetTimer,	auto_restore,	1000	;	Verifica se é 07:00 ou 19:00 para efetuar o restauro dos layouts das colunas
 	}
@@ -56,45 +59,49 @@ Menu,		Tray,	Icon
 ;	Return
 
 ;	TrayMenu
-	if (   SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 162	;	exibido apenas os operadores
-		|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 166
-		|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 169
-		|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 176
-		|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 179
-		|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
-		|| A_UserName	= "alberto"
-		|| A_UserName	= "llopes"
-		|| A_UserName	= "dsantos" ) {
-			if ( A_UserName = "dsantos" ) {	;	Menu	BETA - apenas no meu user
-				Menu,	Beta,	Add,	Unidades, Unidades
-				Menu,	Beta,	Icon,	Unidades, C:\Seventh\Backup\ico\2admin.ico
-				Menu,	Beta,	Color,	%	bggui
-				Menu,	Tray,	Add,	Em Desenvolvimento,	:Beta
-				Menu,	Tray,	add
-			}
+	if (	SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 162	;	exibido apenas os operadores
+	||		SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 166
+	||		SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 169
+	||		SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 176
+	||		SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 179
+	||		SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
+	||		A_UserName	= "alberto"
+	||		A_UserName	= "llopes"
+	||		A_UserName	= "dsantos" ) {
+		if ( A_UserName = "dsantos" ) {	;	Menu	BETA - apenas no meu user
+			Menu,	Beta,	Add,	Unidades, Unidades
+			Menu,	Beta,	Icon,	Unidades, C:\Seventh\Backup\ico\2admin.ico
+			Menu,	Beta,	Color,	%	bggui
+			Menu,	Tray,	Add,	Em Desenvolvimento,	:Beta
+			Menu,	Tray,	add
+		}
 		;	Menu	ADMIN
 			Menu,	Admin,	Add,	Gestão de Câmeras,						_gestor_camera
-				Menu,	Admin,	Icon,	Gestão de Câmeras,					C:\Seventh\Backup\ico\2LembEdit.ico
+				Menu, Admin, Icon, Gestão de Câmeras, C:\Seventh\Backup\ico\2LembEdit.ico
 			Menu,	Admin,	Add,	Gestão de Unidades,						_gestor_unidades
-				Menu,	Admin,	Icon,	Gestão de Unidades,				C:\Seventh\Backup\ico\2useradd.ico
+				Menu, Admin, Icon, Gestão de Unidades, C:\Seventh\Backup\ico\2useradd.ico
+			Menu,	Admin,	Add,	Gestão de E-Mails,						_gestor_email
+				Menu, Admin, Icon, Gestão de E-Mails, C:\Seventh\Backup\ico\2useradd.ico
 			Menu,	Admin,	Color,	%	bggui
 			Menu,	Tray,	Add,	Administrar,							:Admin
 				Menu	,Tray,	Icon,	Administrar,													C:\Seventh\Backup\ico\2admin.ico
 			Menu,	Tray,	add
 		;	Menu	PADRÃO
 			if (	SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 176	;	Reboot de câmera operador 4
-				||	A_UserName	= "dsantos" )	{
+			||		A_UserName	= "dsantos" )	{
 				Menu,	Tray,	add,	Reboot LV | Administrativo,		reboot
 				Menu,	Tray,	Icon,	Reboot LV | Administrativo,		C:\Seventh\Backup\ico\2update.ico
-				}
-			Menu,	Tray,	add,		Colaboradores da Cotrijal,		Colaboradores
-				Menu,	Tray,	Icon,	Colaboradores da Cotrijal,		C:\Seventh\Backup\ico\2contatos.ico
-			Menu,	Tray,	add,		E-mails - Ocomon - Registros,	Emails
-				Menu,	Tray,	Icon,	E-mails - Ocomon - Registros,	C:\Seventh\Backup\ico\2mail.ico
-			Menu,	Tray,	add,		Relatórios,						Relatórios
-				Menu,	Tray,	Icon,	Relatórios,						C:\Seventh\Backup\ico\2LembEdit.ico
-			Menu,	Tray,	add,		Responsáveis e Mapas,			Responsáveis	
-				Menu,	Tray,	Icon,	Responsáveis e Mapas,			C:\Seventh\Backup\ico\2resp.ico
+			}
+			Menu,	Tray,	add,		Contatos					,	Contatos
+				Menu, Tray, Icon, Contatos, C:\Seventh\Backup\ico\2contatos.ico
+			Menu,	Tray,	add,		E-mails						,	Emails
+				Menu, Tray, Icon, E-mails, C:\Seventh\Backup\ico\2mail.ico
+			Menu,	Tray,	add,		Relatórios					,	Relatórios
+				Menu, Tray, Icon, Relatórios, C:\Seventh\Backup\ico\2LembEdit.ico
+			Menu,	Tray,	add,		Unidades					,	Unidades
+				Menu, Tray, Icon, Unidades, C:\Seventh\Backup\ico\2resp.ico
+			Menu,	Tray,	add,		Operador					,	Operador
+				Menu, Tray, Icon, Operador, C:\Seventh\Backup\ico\2resp.ico
 			Menu,	Tray,	add
 	}
 	Menu,	Tray,	Tip,	%	"Sistema Monitoramento`nCompilado em: " datetime( , modificado ) "`n`nIP - " A_IPAddress1
@@ -109,9 +116,9 @@ Menu,		Tray,	Icon
 	funcao_da_maquina := sql( q, 3 e)
 	if ( funcao_da_maquina[2, 1] = "operador" )	{	;	Executa agenda e detecção de movimento
 		; Windows.Run( "Detecções de Movimento" )		;	mdkah
-		Windows.Run( "MDKah" )	
+		Windows.Run( "Detecções" )	
 		; Windows.Run( "Notificador" )				;	mdage
-		Windows.Run( "MDAge" )
+		Windows.Run( "Notificador" )
 		}
 ;	Tray END
 
@@ -124,15 +131,15 @@ Menu,		Tray,	Icon
 			|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 179
 			|| SubStr( A_IpAddress1, InStr( A_IPAddress1, ".",,, 3 )+1 ) = 184
 			|| A_UserName = "Alberto" )
-			Windows.Run( "MDRelatorios" )	;mdrelatórios
+			Windows.Run( "Relatórios" )	;mdrelatórios
 	return
 
 	^F10::	;	Adiciona E-mails e chamados
-		Windows.Run( "Agenda" )
+		Windows.Run( "Gestor de E-Mails" )
 	return
 
 	F10::	;	E-Mails, ocomon e registros
-		Windows.Run( "Agenda_user" )	;	refazer, separar registro
+		Windows.Run( "E-Mails" )
 	return
 
 	^ins::
@@ -314,20 +321,24 @@ Menu,		Tray,	Icon
 		recente = 0
 	return
 
-	Responsáveis:
-		Windows.Run( "MDResp" )
+	Unidades:
+		Windows.Run( "Unidades" )
+	return
+
+	Operador:
+		Windows.Run( "Operador" )
 	return
 
 	Emails:
-		Windows.Run( "Agenda_user" )
+		Windows.Run( "E-Mails" )
 	return
 	
 	Relatórios:
-		Windows.Run( "MDRelatorios" )
+		Windows.Run( "Relatórios" )
 	return
 	
-	Colaboradores:
-		Windows.Run( "MDCol" )
+	Contatos:
+		Windows.Run( "Contatos" )
 	return
 ;return
 
@@ -340,14 +351,14 @@ Menu,		Tray,	Icon
 		Windows.Run( "Gestor de Unidades" )
 	return
 
-	adicionar_email:
-		Windows.Run( "Agenda" )
+	_gestor_email:
+		Windows.Run( "Gestor de E-Mails" )
 	return
 ;return
 
 ;	Beta
-	Unidades:
-		Windows.Run( "unidades" )
+	Unidades_beta:
+		Windows.Run( "unidades_beta" )
 	return
 ;return
 
