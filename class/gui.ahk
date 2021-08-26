@@ -3,9 +3,9 @@ Class	Gui	{
 
 	Cores( id = "", cor1 = "", cor2 = "" )	{
 		if ( StrLen( cor1 ) = 0 )
-			cor1 = dbdbdb
+			cor1 = 9BACC0
 		if ( StrLen( cor2 ) = 0 )
-			cor2 = 425942
+			cor2 = 374658
 		if ( Strlen( id ) > 0 )	{
 			Gui,	%id%:Color,	,	%cor1%
 			Gui,	%id%:Color,		%cor2%
