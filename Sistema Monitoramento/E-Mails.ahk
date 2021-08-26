@@ -103,15 +103,15 @@ return
 					buscar := StrSplit( busca, " " )
 					Loop,%	buscar.Count()
 						if ( A_Index = 1 )
-							contendo .= "AND (p.[Mensagem] like '`%" buscar[A_Index] "`%'"
+							contendo .= "AND (p.[Mensagem] like '`%" buscar[A_Index] "`%' COLLATE Latin1_General_CI_AI"
 						Else if ( A_Index = buscar.Count() )
-							contendo .= " AND p.[Mensagem] like '`%" buscar[A_Index] "`%')"
+							contendo .= " AND p.[Mensagem] like '`%" buscar[A_Index] "`%' COLLATE Latin1_General_CI_AI)"
 						Else
-							contendo .= " AND p.[Mensagem] like '`%" buscar[A_Index] "`%'"
+							contendo .= " AND p.[Mensagem] like '`%" buscar[A_Index] "`%' COLLATE Latin1_General_CI_AI"
 				}
 			}
 			Else
-				contendo := "AND p.Mensagem LIKE '`%" busca "`%'"
+				contendo := "AND p.Mensagem LIKE '`%" busca "`%' COLLATE Latin1_General_CI_AI"
 		}
 		Else	{	;	sem busca
 			GuiControl, Hide, destaca_1
@@ -417,15 +417,15 @@ Tab:
 				buscari := StrSplit( b_importantes, " " )
 				Loop,%	buscari.Count()
 					if ( A_Index = 1 )
-						contendo .= "AND (p.[Mensagem] like '`%" buscari[A_Index] "`%'"
+						contendo .= "AND (p.[Mensagem] like '`%" buscari[A_Index] "`%' COLLATE Latin1_General_CI_AI"
 					Else if ( A_Index = buscari.Count() )
-						contendo .= " AND p.[Mensagem] like '`%" buscari[A_Index] "`%')"
+						contendo .= " AND p.[Mensagem] like '`%" buscari[A_Index] "`%' COLLATE Latin1_General_CI_AI)"
 					Else
-						contendo .= " AND p.[Mensagem] like '`%" buscari[A_Index] "`%'"
+						contendo .= " AND p.[Mensagem] like '`%" buscari[A_Index] "`%' COLLATE Latin1_General_CI_AI"
 			}
 		}
 		Else
-			contendo := "AND p.Mensagem LIKE '`%" b_importantes "`%'"
+			contendo := "AND p.Mensagem LIKE '`%" b_importantes "`%' COLLATE Latin1_General_CI_AI"
 		
 		s =
 			(

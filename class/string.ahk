@@ -134,10 +134,40 @@ Class	String		{
 			wordx := [word]
 		Loop,%	wordx.Count()	{
 			phrase := StrReplace( phrase, wordx[A_index], "[" Format("{:U}", wordx[A_index] ) "]" )
-			if ( InStr( phrase,  "@"  wordx[A_index] ) )
+			phrase := StrReplace( String.Remove_accents( phrase ), String.Remove_accents( wordx[A_Index] ), "[" Format("{:U}", wordx[A_index] ) "]" )
+			if ( InStr( phrase,  "@"  wordx[A_index] ) )	{
 				phrase := StrReplace( phrase, wordx[A_index], "[" Format("{:U}", wordx[A_index] ) "]" )
+				phrase := StrReplace( String.Remove_accents( phrase ), String.Remove_accents( wordx[A_Index] ), "[" Format("{:U}", wordx[A_index] ) "]" )
+			}
 		}
 		Return phrase
 	}
 		
+	Remove_accents( word )	{
+		chars :={	a:"[áàâǎăãảạäåāąấầẫẩậắằẵẳặǻ]"
+			,		c:"[ćĉčċç]"
+			,		d:"[ďđð]"
+			,		e:"[éèêěĕẽẻėëēęếềễểẹệ]"
+			,		g:"[ğĝġģ]"
+			,		h:"[ĥħ]"
+			,		i:"[íìĭîǐïĩįīỉị]"
+			,		j:"[ĵ]"
+			,		k:"[ķ]"
+			,		l:"[ĺľļłŀ]"
+			,		n:"[ńňñņ]"
+			,		o:"[óòŏôốồỗổǒöőõøǿōỏơớờỡởợọộ]"
+			,		p:"[ṕṗ]"
+			,		r:"[ŕřŗ]"
+			,		s:"[śŝšş]"
+			,		t:"[ťţŧ]"
+			,		u:"[úùŭûǔůüǘǜǚǖűũųūủưứừữửựụ]"
+			,		w:"[ẃẁŵẅ]"
+			,		y:"[ýỳŷÿỹỷỵ]"
+			,		z:"[źžż]"	}
+		For replace, find in chars
+			word :=	RegExReplace( word, find, replace )
+			OutputDebug % word
+		Return	word
+	}
+
 }
