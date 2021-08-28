@@ -11,8 +11,15 @@
 	#Include ..\class\sql.ahk
 	; #Include ..\class\windows.ahk
 ;
+;	Local vars
+	WinGetPos,,,,taskbar, ahk_class Shell_TrayWnd
+	primeira = 1
+	start =
+	end =
+	id_cliente =
+;
 
-; Globais
+; Global Vars
 	global	zona
 ;
 
@@ -31,45 +38,330 @@
 
 ;	INTERFACE
 	Gui.Cores()
-	Gui, Add, MonthCal,		x10		y5	w225	h393	gs_mes		vmes
-		Gui.Font( "Bold", "cFFFFFF" )
-	Gui, Add, Text,			x240	y10	w120	h20															,	Apenas Operador = 
-	Gui, Add, DropDownList,	y5							gs_mes		vOperador					AltSubmit	,	Todos||Operador 1|Operador 2|Operador 3|Operador 4|Operador 5|Facilitador
-	Gui, Add, Checkbox,		y10			w418			gs_mes		vPeriodo								,	Filtrado por dia
-	Gui, Add, Checkbox,		y10							gs_mes		v_M					%d%	%c%				,	Filtrar apenas Eventos Especiais
-	Gui, Add, Text,			y10			w60																	,	Contendo:
-		Gui.Font()
-	Gui, Add, Edit,			y5			w100						vBusca
-		Gui.Font()
-	Gui, Add, ListView,		x240	y30	w1020			gSelectLV	veventos	Grid	R20		AltSubmit	,	idStart|idEnd|Operador Inicial|Relatório|Estação|Cliente|Partição|Operador Final|CodEvento|Setor|Tipo|idCliente|Unidade
-		Gui.Font( "Bold", "cFFFFFF" )
-	Gui, Add, Text,			x10			w750	h20										0x1000	Center		,	SEQUÊNCIA DE EVENTOS
-	Gui, Add, Text,			x770	yp	w490	h20										0x1000	Center		,	RELATÓRIO
-		Gui.Font()
-	Gui, Add, ListView,		x10			w750						vocorridos	Grid	R10					,	Unidade|Data|Evento|Complemento|Descrição
-		Gui.Font( "S10" )
-	Gui, Add, Edit,			x770	yp	w490	h197				vdescritivo	+VScroll
-		Gui.Font()
-	Gosub	Preenche
-	Gui, -DPIScale
-	if	(	A_UserName	=	"dsantos"
-	||		A_UserName	=	"llopes"
-	||		A_UserName	=	"alberto"
-	||		A_UserName	=	"arsilva"
-	||		A_UserName	=	"jcsilva"
-	||		A_UserName	=	"ddiel" )
-		; Gui,	Add, Button,xm					h25		gRelatorio							Center		,	GERAR RELATÓRIO
-	Gui, Show,	y0,	Relatórios
+	Gui, -Caption -Border
+	;	Bloco 1 Esquerda
+		Gui, Add, MonthCal,		y10	w225		gs_mes		vmes
+			Gui.Font( "Bold", "c2BDC33" )
+		Gui, Add, Checkbox,						gs_mes		vPeriodo			Checked		,	Filtrar a partir do dia selecionado
+		Gui, Add, Checkbox,						gs_mes		vOp1		Section	Checked		,	Operador 1
+		Gui, Add, Checkbox,		ys				gs_mes		vOp2				Checked		,	Operador 2
+		Gui, Add, Checkbox,	xs					gs_mes		vOp3		Section	Checked		,	Operador 3
+		Gui, Add, Checkbox,		ys				gs_mes		vOp4				Checked		,	Operador 4
+		Gui, Add, Checkbox,	xs					gs_mes		vOp5		Section	Checked		,	Operador 5
+		Gui, Add, Checkbox,		ys				gs_mes		vOp6				Checked		,	Monitoramento
+			Gui.Font( "cWhite" )
+		Gui, Add, Text,		xs		w225	h17							0x1000	Center		,	Buscar contendo palavra
+			Gui.Font()
+		Gui, Add, Edit,			yp+20	w225	gs_mes		vBusca
+			Gui.Font( "Bold", "c2BDC33" )
+		Gui, Add, Checkbox,						gs_mes		vev_especial	%d%	%c%			,	Filtrar apenas Eventos Especiais
+			Gui.Font()
+	;
+
+	;	ListView de Eventos
+		Gui, Add, ListView,%	"y10	w" A_ScreenWidth-255	"	gSelectLV	veventos	Grid	R25		AltSubmit"	,	Disparo|Finalizou|Relatório|Cliente|Unidade|start|end|id_cliente|ev_final
+		LV_ModifyCol( 1, 80 )
+		LV_ModifyCol( 2, 80 )
+		LV_ModifyCol( 3, 500 )
+		LV_ModifyCol( 4, 45 )
+		LV_ModifyCol( 5, 290 )
+		LV_ModifyCol( 6, 0 )
+		LV_ModifyCol( 7, 0 )
+		LV_ModifyCol( 8, 0 )
+		LV_ModifyCol( 9, 0 )
+	;
+
+	;	Header Bloco 3 Horizontal
+			Gui.Font( "Bold", "cFFFFFF" )
+		Gui, Add, Text,%	"x10		w" (A_ScreenWidth-30)/2 "	h20	Section	0x1000	Center"	,	RELATÓRIO
+		Gui, Add, Text,%	"		ys	w" (A_ScreenWidth-30)/2 "	h20			0x1000	Center"	,	SEQUÊNCIA DE EVENTOS
+			Gui.Font()
+	;
+
+	;	ListView de Eventos Selecionados
+			Gui.Font( "S10" )
+		Gui, Add, Edit,%	"x10	w" (A_ScreenWidth-30)/2 "	h" A_ScreenHeight-taskbar-505 "	Section	vdescritivo	+VScroll"
+			Gui.Font()
+		Gui, Add, ListView,%	"ys	w" (A_ScreenWidth-30)/2 "	h" A_ScreenHeight-taskbar-505	"		vocorridos	Grid"	,	Unidade|Data|Evento|XXX|Descrição
+	;
+
+	;	Gui Show
+		Gui, -DPIScale
+		; if	(	A_UserName	=	"dsantos"
+		; ||		A_UserName	=	"llopes"
+		; ||		A_UserName	=	"alberto"
+		; ||		A_UserName	=	"arsilva"
+		; ||		A_UserName	=	"jcsilva"
+		; ||		A_UserName	=	"ddiel" 	)
+			; Gui,	Add, Button,xm					h25		gRelatorio							Center		,	GERAR RELATÓRIO
+			Gosub	s_mes
+		Gui, Show,% "x0	y0 w" A_ScreenWidth "h" A_ScreenHeight-taskbar,	Relatórios
+			Gosub	SelectLV
+			Gosub	busca_informações
+			primeira = 0
+	;
+
 	GuiControl,	Focus,	eventos
 	Send,	{Down}
 return
 
-Preenche:
+s_mes:
+	search_delay()
+	Gui, Submit, NoHide
+	if ( StrLen( Busca ) > "0" )
+		busca := "AND a.[Observacoes_conta] LIKE '`%" Busca "`%'"
+		else
+			busca =
+	if ( Periodo	= 1 )	{
+		FormatTime,	diaAntes,	%mes%	,	YDay
+		FormatTime,	mes		,	%mes%	,	yyyy-MM-dd
+		FormatTime,	Today	,	%A_Now%	,	yyyy-MM-dd
+		periodox	:=	A_YDay-diaAntes
+		GuiControl,	+c2BDC33 +Redraw, periodo
+		GuiControl,	,	Periodo,	Filtrado por dia
+		if ( periodox = 0 )
+			periodoz	:=	"AND CAST(a.[Disparo] AS DATE) >= '"	mes "'"
+		else
+			periodoz	:=	"AND (CAST(a.[Disparo] AS DATE) >= '"	mes	"' AND CAST(a.[Disparo] AS DATE) <= '" Today "')"
+		}
+		else	{
+			GuiControl,	+cB8B8B8 +Redraw, periodo
+			GuiControl,	,	Periodo,	Filtrar por dia?
+			FormatTime,	mes,	%mes%,	yyyy-MM-dd
+			periodoz	:=	"AND CAST(a.Disparo AS DATE) >= '"	mes "'"
+		}
+	;	Operadores
+		operadores := []
+		operador =
+		if (op1	= 0
+		&&	op2	= 0
+		&&	op3	= 0
+		&&	op4	= 0
+		&&	op5	= 0
+		&&	op6	= 0 )	{
+			Loop, 6
+				GuiControl, , Op%A_Index%, 1
+			Gui, Submit, NoHide
+		}
+		o := op1 = 1 ? operadores.push("0001")	: ""
+		o := op2 = 1 ? operadores.push("0002")	: ""
+		o := op3 = 1 ? operadores.push("0003")	: ""
+		o := op4 = 1 ? operadores.push("0004")	: ""
+		o := op5 = 1 ? operadores.push("0005")	: ""
+		o := op6 = 1 ? operadores.push("0998")	: ""
+		Loop,% operadores.Count()
+			if (A_index = 1
+			&&	A_Index = operadores.Count() )
+				operador := "AND (`tb.[Setor] = '" operadores[A_Index] "')`n"
+			Else if ( A_index = 1 )
+				operador := "AND (`tb.[Setor] = '" operadores[A_Index] "'`n"
+			Else if ( A_Index = operadores.Count() )
+				operador .= "`t`t`t`tOR`tb.[Setor] = '" operadores[A_Index] "')"
+			Else
+				operador .= "`t`t`t`tOR`tb.[Setor] = '" operadores[A_Index] "'`n"
+		Loop, 6
+			if ( op%A_Index% = 1)
+				GuiControl, +Redraw +c2BDC33, Op%A_Index%
+				Else
+					GuiControl, +Redraw +cB8B8B8, Op%A_Index%
+	lastrow	=
+	only_especial := ev_especial = 1 ? "AND a.[Tipo] = 'M'" : ""
+	FormatTime,	yday,	%mes%,	yyyy-MM-dd
+	s =
+		(
+		SELECT	 a.[OperadorDisparo]
+				,a.[OperadorFinalizou]
+				,a.[Observacoes_conta]
+				,a.[Cliente]
+				,b.[Nome]
+				,a.[IdSequencia]
+				,a.[IdSeqStart]
+				,a.[IdCliente]
+				,a.[CodEvtFinalizou]
+		FROM [IrisSQL].[dbo].[Procedimentos] a
+		LEFT JOIN
+			[IrisSQL].[dbo].[Clientes] b
+				ON	a.[IdCliente] = b.[IdUnico]
+		WHERE
+			a.[Observacoes_conta] IS NOT NULL AND
+			DATALENGTH(a.[Observacoes_conta]) <> 0
+			%only_especial%
+			%periodoz%
+			%operador%
+			%busca%
+		ORDER BY
+			a.[IdSequencia] DESC
+		)
+	e	:=	sql( s )
+	Gui, ListView,	eventos
+	LV_Delete()
+	Loop, % e.Count()-1
+		LV_Add(	""
+			,	StrLen( e[A_Index+1,1] ) = 0 ? Format( "{:T}", e[A_index+1,2] ) : Format( "{:T}", e[A_index+1,1] )
+			,	Format( "{:T}", e[A_index+1,2] )
+			,	e[A_index+1,3]
+			,	e[A_index+1,4]
+			,	Format( "{:T}", e[A_index+1,5] )
+			,	e[A_index+1,6]
+			,	e[A_index+1,7]
+			,	e[A_index+1,8]
+			,	e[A_index+1,9]	)
+return
+
+SelectLV:
+	Gui, Submit, NoHide
+	If ( A_GuiEvent = "S" )
+		Return
+	Gui, ListView,	eventos
+	row	:=	LV_GetNext()
+	if ( row = 0 )
+		row = 1
+	if ( lastrow = row )
+		return
+	if (	A_GuiEvent = Normal
+		||	A_GuiEvent = K	)
+		row := A_EventInfo
+	lastrow := row
+	LV_GetText(	operador_final	, row,	2)
+	LV_GetText(	relatorio		, row,	3)
+	LV_GetText(	end				, row,	6)
+	LV_GetText(	start			, row,	7)
+	LV_GetText(	id_cliente		, row,	8)
+	LV_GetText(	ev_final		, row,	9)
+	if ( primeira = 0 )
+		Gosub	busca_informações
+return
+
+busca_informações:
+	s	=
+		(
+		SELECT	c.Nome
+			,	p.Data
+			,	p.Evento
+			,	p.Zona
+			,	p.Descricao
+		FROM [IrisSQL].[dbo].[Eventos] p
+		LEFT JOIN
+			[IrisSQL].[dbo].[Clientes] c ON p.IdCliente = c.IdUnico
+		WHERE
+			p.Sequencia	between	'%start%' AND '%end%' AND
+			p.idCliente = '%id_cliente%'
+		ORDER BY
+			2 ASC
+		)
+	s	:=	sql( s )
+	Gui, ListView,	ocorridos
+	LV_Delete()
+	e130:=e570:=hora_disparo:=hora_desarme:=hora_restauro:=hora_arme:=""
+	zonas		:=[]
+	Inibidas	:=[]
+	Loop, % s.Count()-1	{
+		LV_Add(	""
+			,	SubStr(	s[A_Index+1,1], 1
+					,	InStr( s[A_Index+1,1], "|" ) > 0
+						?	InStr( s[A_Index+1,1], "|" )-1
+						:	StrLen( s[A_Index+1,1]) )
+			,	s[A_Index+1,2]
+			,	s[A_Index+1,3]
+			,	s[A_Index+1,4]
+			,	s[A_Index+1,5]	)
+		if	(	s[A_Index+1,3] = "E130" )
+			if ( A_Index+1 = 2 ) {	;	Se for a hora do primeiro disparo
+				zonas.Push( s[A_Index+1,4] . " - " . alarm.Name( s[A_Index+1,4], id_cliente ) )
+				hora_disparo := SubStr( s[A_Index+1,2], InStr(s[A_Index+1,2]," ")+1 )
+				}
+				Else				
+					zonas.Push( s[A_Index+1,4] . " - " . alarm.Name( s[A_Index+1,4], id_cliente ) )
+		if	(	s[A_Index+1,3] = "R402"
+		||		s[A_Index+1,3] = "R401" )
+				hora_arme := SubStr( s[A_Index+1,2], InStr( s[A_Index+1,2], " " )+1 )
+		if	(	s[A_Index+1,3] = "E402"
+		||		s[A_Index+1,3] = "E401" )
+				hora_desarme := SubStr( s[A_Index+1,2], InStr( s[A_Index+1,2], " " )+1 )
+		if	(	s[A_Index+1,3] = "R130" )
+				hora_restauro := SubStr( s[A_Index+1,2], InStr( s[A_Index+1,2], " " )+1 )
+		if	(	s[A_Index+1,3] = "E570"
+		||		s[A_Index+1,3] = "E571"
+		||		s[A_Index+1,3] = "E572"
+		||		s[A_Index+1,3] = "E573"
+		||		s[A_Index+1,3] = "E574"
+		||		s[A_Index+1,3] = "E575"
+		||		s[A_Index+1,3] = "E576"
+		||		s[A_Index+1,3] = "E577") {
+			e570++
+			Inibidas.Push( s[A_Index+1,4] . " - " . alarm.Name( s[A_Index+1,4], id_cliente ) )
+		}
+	}
+	sensores =
+	if( ev_final = "E130" )	{
+		descricao := StrReplace( StrReplace( relatorio, "`n", "++" ), "`r", "--" )
+		loop,	2
+			if (	SubStr( descricao, 1, 2 ) = "++"
+			||		SubStr( descricao, 1, 2 ) = "--" )
+				descricao := SubStr( descricao, 3 )
+	 	descricao := StrReplace( descricao, "--++" , "`n" )
+
+		if ( Inibidas.Count() > 1 )
+			Loop,%	Inibidas.Count()
+				if( A_index = 1 )	
+					zInibidas := "`nZonas inibidas:`n`t" Inibidas[A_Index]
+				else
+					zInibidas .= "`n`t" Inibidas[A_Index]
+		if ( Inibidas.Count() = 1 )
+			zInibidas :=	"`nZona inibida:`n`t" Inibidas[1]
+		if ( Inibidas.Count() = 0 )
+			zInibidas =
+		if ( zonas.Count() > 1 ) {
+			Loop,%	zonas.Count()
+				sensores .=	"`n`t" zonas[A_Index]
+			if ( StrLen( hora_desarme ) > 1 )
+				fim_disparo :=	"Alarme desarmado às "	hora_desarme
+			if ( StrLen( hora_arme ) > 1 )
+				fim_disparo :=	"Alarme desarmado às "	hora_desarme ".`nArmado novamente às " hora_arme	zInibidas
+			if ( StrLen( hora_restauro ) > 1 )
+				fim_disparo	:=	"Alarme restaurado às "	hora_restauro
+			encerramento	=	Disparo as %hora_disparo%, nas zonas:%sensores%`n%fim_disparo%`n`n%descricao%
+		}
+		Else	{
+			if ( StrLen( hora_desarme ) > 1 )
+				fim_disparo	:=	"Alarme desarmado às "	hora_desarme
+			if ( StrLen( hora_arme ) > 1 )
+				fim_disparo	:=	"Alarme desarmado às "	hora_desarme ".`nArmado novamente às " hora_arme	zInibidas
+			if ( StrLen( hora_restauro ) > 1 )
+				fim_disparo	:=	"Alarme restaurado às "	hora_restauro
+			sensores	:=	"`n`t"zonas[1] "`n"
+			encerramento	=	Disparo as %hora_disparo%, na zona%sensores%%fim_disparo%`n`n%descricao%
+		}
+		o := encerramento
+		encerramento:=fim_disparo:=zInibidas:=""
+	}
+	Else
+		o	:=	relatorio
+	LV_ModifyCol( 1, 200 )
+	LV_ModifyCol( 2, 120 )
+	LV_ModifyCol( 3, 50 )
+	LV_ModifyCol( 4, 40 )
+	LV_ModifyCol( 5, 295 )
+	GuiControl, , Descritivo,%	o "`n_____________`n" operador_final
+	relatorio:=operador_final:=""
+return
+
+~Enter::
+	~NumpadEnter::
+	Gui,	Submit,	NoHide
+	goto	s_mes
+;
+Esc::
+	GuiClose:
+	ExitApp
+;
+
+mes:
 	LV_Delete()
 	Gui, Submit, NoHide
 	lastrow =
 	FormatTime,	yday,	%mes%,	yyyy-MM-dd
-	is_m := _M = 1 ? "a.[tipo]='m' AND" : ""
+	only_especial := ev_especial = 1 ? "a.[tipo]='m' AND" : ""
 	e	=	
 		(
 		SELECT	a.IdSequencia,
@@ -95,7 +387,7 @@ Preenche:
 			[ASM].[Sistema_Monitoramento].[dbo].[desconformidades] d ON a.IdSequencia = d.nr_procedimento
 		WHERE
 			( a.Observacoes_conta IS NOT NULL ) AND
-			%is_m%
+			%only_especial%
 			( DATALENGTH( a.Observacoes_conta ) <> 0 ) AND
 			DATEDIFF( day,a.Disparo, '%yday%' ) = 0 AND
 			a.Cliente BETWEEN '10001' AND '10999'
@@ -130,250 +422,3 @@ Preenche:
 			,	e[A_index+1,13]	)
 	}
 return
-
-SelectLV:
-	Gui, Submit,	NoHide
-	If ( A_GuiEvent = "S" )
-		Return
-	Gui, ListView,	eventos
-	row	:=	LV_GetNext()
-	if ( lastrow = row )
-		return
-	if ( row = 0 )	{
-		row		=	1
-		lastrow	:=	row
-	}
-	lastrow := row
-	LV_GetText(	b,	row,	1)
-	LV_GetText(	a,	row,	2)
-	LV_GetText(	u,	row,	8)
-	LV_GetText(	o,	row,	4)
-	LV_GetText(	ev,	row,	9)
-	LV_GetText(	ox,	row,	14)
-	LV_GetText(	i,	row,	12)
-	LV_GetText(	l,	row,	13)
-	l	:=	StrReplace(	l,	"|",	"-"	)
-	Gosub	SQL
-	GuiControl,	,	Descritivo,	%o%`n_____________`n%u%
-	o2	:=	o
-	r:=o:=""
-return
-
-SQL:
-	s	=
-		(
-		SELECT	c.Nome
-			,	p.Data
-			,	p.Evento
-			,	p.Zona
-			,	p.Descricao
-		FROM [IrisSQL].[dbo].[Eventos] p
-		LEFT JOIN
-			[IrisSQL].[dbo].[Clientes] c ON p.IdCliente = c.IdUnico
-		WHERE
-			p.Sequencia	between	'%a%' AND '%b%'	AND
-			p.idCliente = '%i%'
-		ORDER BY
-			2 ASC
-		)
-	s	:=	sql( s )
-	Gui, ListView,	ocorridos
-	LV_Delete()
-	e130:=e570:=hora_disparo:=hora_desarme:=hora_restauro:=hora_arme:=""
-	zonas		:=[]
-	Inibidas	:=[]
-	Loop, % s.Count()-1	{
-		LV_Add(	""
-			,	s[A_Index+1,1]
-			,	s[A_Index+1,2]
-			,	s[A_Index+1,3]
-			,	s[A_Index+1,4]
-			,	s[A_Index+1,5]	)
-		if	(	s[A_Index+1,3] = "E130" )	{
-			e130++
-			if ( A_Index+1 = 2 ) {	;	Se for a hora do primeiro disparo
-				zonas.Push( s[A_Index+1,4] . " - " . alarm.Name( s[A_Index+1,4], id_cliente ) )
-				hora_disparo := SubStr( s[A_Index+1,2], InStr(s[A_Index+1,2]," ")+1 )
-			}
-			Else				
-				zonas.Push( s[A_Index+1,4] . " - " . alarm.Name( s[A_Index+1,4], id_cliente ) )
-		}
-		if	(	s[A_Index+1,3] = "R402"
-		||		s[A_Index+1,3] = "R401" )
-				hora_arme := SubStr( s[A_Index+1,2], InStr( s[A_Index+1,2], " " )+1 )
-		if	(	s[A_Index+1,3] = "E402"
-		||		s[A_Index+1,3] = "E401" )
-				hora_desarme := SubStr( s[A_Index+1,2], InStr( s[A_Index+1,2], " " )+1 )
-		if	(	s[A_Index+1,3] = "R130" )
-				hora_restauro := SubStr( s[A_Index+1,2], InStr( s[A_Index+1,2], " " )+1 )
-		if	(	s[A_Index+1,3] = "E570"
-		||		s[A_Index+1,3] = "E571"
-		||		s[A_Index+1,3] = "E572"
-		||		s[A_Index+1,3] = "E573"
-		||		s[A_Index+1,3] = "E574"
-		||		s[A_Index+1,3] = "E575"
-		||		s[A_Index+1,3] = "E576"
-		||		s[A_Index+1,3] = "E577")	{
-			e570++
-			Inibidas.Push( s[A_Index+1,4] . " - " . alarm.Name( s[A_Index+1,4], id_cliente ) )
-		}
-	}
-	sensores =
-	if( ev = "E130" )	{
-		descricao := StrReplace( StrReplace( o, "`n", "++" ), "`r", "--" )
-			loop,	2
-				if (	SubStr( descricao, 1, 2 ) = "++"
-				||		SubStr( descricao, 1, 2 ) = "--" )
-					descricao := SubStr( descricao, 3 )
-			descricao := StrReplace( descricao, "--++" , "`n" )
-
-		if ( Inibidas.Count() > 1 )
-			Loop,%	Inibidas.Count()
-				if( A_index = 1 )	
-					zInibidas := "`nZonas inibidas:`n`t" Inibidas[A_Index]
-				else
-					zInibidas .= "`n`t" Inibidas[A_Index]
-		if ( Inibidas.Count() = 1 )
-			zInibidas :=	"`nZona inibida:`n`t" Inibidas[1]
-		if ( Inibidas.Count() = 0 )
-			zInibidas =
-		if ( zonas.Count() > 1 ) {
-			Loop,%	zonas.Count()
-				sensores .=	"`n`t" zonas[A_Index]
-			if ( StrLen( hora_desarme ) > 1 )
-				fim_disparo :=	"Alarme desarmado às "	hora_desarme
-			if ( StrLen( hora_arme ) > 1 )
-				fim_disparo :=	"Alarme desarmado às "	hora_desarme ".`nArmado novamente às " hora_arme	zInibidas
-			if ( StrLen( hora_restauro ) > 1 )
-				fim_disparo	:=	"Alarme restaurado às "	hora_restauro
-			encerramento	=	Disparo as %hora_disparo%, nas zonas:%sensores%`n%fim_disparo%`n%descricao%
-		}
-		Else	{
-			if ( StrLen( hora_desarme ) > 1 )
-				fim_disparo	:=	"Alarme desarmado às "	hora_desarme
-			if ( StrLen( hora_arme ) > 1 )
-				fim_disparo	:=	"Alarme desarmado às "	hora_desarme ".`nArmado novamente às " hora_arme	zInibidas
-			if ( StrLen( hora_restauro ) > 1 )
-				fim_disparo	:=	"Alarme restaurado às "	hora_restauro
-			sensores	:=	"`n`t"zonas[1] "`n"
-			encerramento	=	Disparo as %hora_disparo%, na zona%sensores%%fim_disparo%`n%descricao%
-		}
-		o := encerramento
-		encerramento:=fim_disparo:=zInibidas:=""
-	}
-	LV_ModifyCol( 1, 200 )
-	LV_ModifyCol( 2, 120 )
-	LV_ModifyCol( 3, 50 )
-	LV_ModifyCol( 4, 80 )
-	LV_ModifyCol( 5, 295 )
-return
-
-s_mes:
-	Gui,	Submit,	NoHide
-	if ( StrLen( Busca ) > "0" )
-		b = AND a.Observacoes_conta LIKE '`%%Busca%`%'
-	else
-		b =
-	if ( periodo = 1 )	{
-		FormatTime,	diaAntes,	%mes%,	YDay
-		FormatTime,	mes,	%mes%,	yyyy-MM-dd
-		FormatTime,	Today,	%A_Now%,	yyyy-MM-dd
-		periodox := A_YDay-diaAntes
-		GuiControl,	+c2BDC33 +Redraw, periodo
-		if ( operador > 1 )
-			op := operador-1
-		if ( periodox = 0 )
-			periodo	:=	"DATEDIFF(DAY,a.Disparo,'"	mes	"') = "	periodox
-		else
-			periodo	:=	"CAST(a.Disparo AS DATE) >= '"	mes	"'	and CAST(a.Disparo AS DATE) <= '"	Today	"'"
-	}
-	else	{
-		GuiControl,	+cB8B8B8 +Redraw, periodo
-		FormatTime,	mes,	%mes%,	yyyy-MM-dd
-		periodo = DATEDIFF(DAY,a.Disparo,'%mes%') = 0
-		GuiControl,	,	Periodo,	Filtrado por dia
-	}
-	if ( operador = 1 )	{
-		operador=
-	}
-	Else if (	operador > 1
-		&&		operador < 7 ) {
-		operador := operador-1
-		operador =	AND	c.Descricao = 'OPERADOR 0%operador%'
-	}
-	Else
-		operador =	AND	c.Descricao = 'MONITORAMENTO'
-	lastrow	=
-	is_m := _M = 1 ? "a.[tipo] = 'm' AND" : ""
-	FormatTime,	yday,	%mes%,	yyyy-MM-dd
-	e =
-		(
-		SELECT	a.IdSequencia
-				,a.IdSeqStart
-				,a.OperadorDisparo
-				,a.Observacoes_conta
-				,a.EstacaoDisparo
-				,a.Cliente
-				,a.Particao
-				,a.OperadorFinalizou
-				,a.CodEvtFinalizou
-				,c.Descricao
-				,a.Tipo
-				,a.IdCliente
-				,b.Nome
-				,d.desconformidade
-		FROM [IrisSQL].[dbo].[Procedimentos] a
-		LEFT JOIN
-			[IrisSQL].[dbo].[Clientes] b ON	a.IdCliente = b.IdUnico
-		LEFT JOIN
-			[IrisSQL].[dbo].[Setores] c	ON	b.Setor = c.Setor
-		LEFT JOIN
-			[ASM].[Sistema_Monitoramento].[dbo].[desconformidades]	d ON a.IdSequencia = d.nr_procedimento
-		WHERE
-			(a.Observacoes_conta IS NOT NULL)	AND
-			(DATALENGTH(a.Observacoes_conta) <> 0)	AND
-			%is_m%
-			%periodo%
-			AND	c.Descricao	!=	'GUARITA'
-			%operador%
-			%b%
-		ORDER BY
-			a.IdSequencia DESC
-		)
-	; Clipboard:=e
-	e	:=	sql( e )
-	Gui,	ListView,	eventos
-	LV_Delete()
-	Loop, % e.Count()-1	{
-		eventos		:=	e[A_index+1,4]
-		id_cliente	:=	e[A_index+1,12]
-		if( _M = 1 )
-			if ( e[A_Index+1,11] != "M" )
-				return
-		LV_Add(	autosize
-			,	e[A_index+1,1]
-			,	e[A_index+1,2]
-			,	e[A_index+1,3]
-			,	eventos
-			,	e[A_index+1,5]
-			,	e[A_index+1,6]
-			,	e[A_index+1,7]
-			,	e[A_index+1,8]
-			,	e[A_index+1,9]
-			,	e[A_index+1,10]
-			,	e[A_index+1,11]
-			,	id_cliente
-			,	e[A_index+1,13]	)
-	}	
-	gosub	SelectLV
-return
-
-~Enter::
-	~NumpadEnter::
-	Gui,	Submit,	NoHide
-	goto	s_mes
-;
-
-GuiClose:
-	ExitApp
-;
