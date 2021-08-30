@@ -253,8 +253,8 @@ busca_informações:
 	Gui, ListView,	ocorridos
 	LV_Delete()
 	e130:=e570:=hora_disparo:=hora_desarme:=hora_restauro:=hora_arme:=""
-	zonas		:=[]
-	Inibidas	:=[]
+	zonas		:=	[]
+	Inibidas	:=	[]
 	Loop, % s.Count()-1	{
 		LV_Add(	""
 			,	SubStr(	s[A_Index+1,1], 1
@@ -304,31 +304,31 @@ busca_informações:
 		if ( Inibidas.Count() > 1 )
 			Loop,%	Inibidas.Count()
 				if( A_index = 1 )	
-					zInibidas := "`nZonas inibidas:`n`t" Inibidas[A_Index]
+					zInibidas := "`n`nZonas inibidas:`n`t" Inibidas[A_Index]
 				else
 					zInibidas .= "`n`t" Inibidas[A_Index]
 		if ( Inibidas.Count() = 1 )
-			zInibidas :=	"`nZona inibida:`n`t" Inibidas[1]
+			zInibidas :=	"`n`nZona inibida:`n`t" Inibidas[1]
 		if ( Inibidas.Count() = 0 )
 			zInibidas =
 		if ( zonas.Count() > 1 ) {
 			Loop,%	zonas.Count()
 				sensores .=	"`n`t" zonas[A_Index]
 			if ( StrLen( hora_desarme ) > 1 )
-				fim_disparo :=	"Alarme desarmado às "	hora_desarme
+				fim_disparo :=	"`t[DESARMADO]`tàs "	hora_desarme
 			if ( StrLen( hora_arme ) > 1 )
-				fim_disparo :=	"Alarme desarmado às "	hora_desarme ".`nArmado novamente às " hora_arme	zInibidas
+				fim_disparo :=	"`t[DESARMADO]`tàs "	hora_desarme ".`n`t[ATIVADO]`tàs " hora_arme	zInibidas
 			if ( StrLen( hora_restauro ) > 1 )
-				fim_disparo	:=	"Alarme restaurado às "	hora_restauro
+				fim_disparo	:=	"`t[RESTAURADO]o`tàs "	hora_restauro
 			encerramento	=	Disparo as %hora_disparo%, nas zonas:%sensores%`n%fim_disparo%`n`n%descricao%
 		}
 		Else	{
 			if ( StrLen( hora_desarme ) > 1 )
-				fim_disparo	:=	"Alarme desarmado às "	hora_desarme
+				fim_disparo	:=	"`t[DESARMADO]`tàs "	hora_desarme
 			if ( StrLen( hora_arme ) > 1 )
-				fim_disparo	:=	"Alarme desarmado às "	hora_desarme ".`nArmado novamente às " hora_arme	zInibidas
+				fim_disparo	:=	"`t[DESARMADO]`tàs "	hora_desarme ".`n`t[ATIVADO]`tàs " hora_arme	zInibidas
 			if ( StrLen( hora_restauro ) > 1 )
-				fim_disparo	:=	"Alarme restaurado às "	hora_restauro
+				fim_disparo	:=	"`t[RESTAURADO]`tàs "	hora_restauro
 			sensores	:=	"`n`t"zonas[1] "`n"
 			encerramento	=	Disparo as %hora_disparo%, na zona%sensores%%fim_disparo%`n`n%descricao%
 		}
@@ -351,6 +351,7 @@ return
 	Gui,	Submit,	NoHide
 	goto	s_mes
 ;
+
 Esc::
 	GuiClose:
 	ExitApp
