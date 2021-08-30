@@ -1,7 +1,7 @@
 ﻿
 Class	String		{
 
-	Name( name )				{
+	Name( name )					{
 		if !name
 			Return
 		StringUpper, name, name, T
@@ -22,7 +22,7 @@ Class	String		{
 		return StrReplace( new_name, "  ", " " )
 	}
 
-	Cargo( cargo )				{
+	Cargo( cargo )					{
 		StringUpper,	cargo,	cargo,	T
 		cargo	:=	StrReplace(	StrReplace(	StrReplace(	cargo
 										,	" - Feira"	)
@@ -142,8 +142,8 @@ Class	String		{
 		}
 		Return phrase
 	}
-		
-	Remove_accents( word )	{
+
+	Remove_accents( word )			{
 		chars :={	a:"[áàâǎăãảạäåāąấầẫẩậắằẵẳặǻ]"
 			,		c:"[ćĉčċç]"
 			,		d:"[ďđð]"
