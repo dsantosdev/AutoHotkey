@@ -8,141 +8,156 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 	,	edicoes				;	guicontext
 
 ;local Vars
-	is_test =1
+	is_test = 1
 	debug = 
+	gototab = 2
 	WinGetPos,,,,taskbar, ahk_class Shell_TrayWnd
 
 #IfWinActive, Login Cotrijal
-#SingleInstance Force
-#Persistent
-#Include ..\class\sql.ahk
-#Include ..\class\functions.ahk
-#Include ..\class\windows.ahk
-#Include ..\class\array.ahk
-#Include ..\class\gui.ahk
-#Include ..\class\safedata.ahk
+	#SingleInstance Force
+	#Persistent
+	#Include ..\class\sql.ahk
+	#Include ..\class\functions.ahk
+	#Include ..\class\windows.ahk
+	#Include ..\class\array.ahk
+	#Include ..\class\gui.ahk
+	#Include ..\class\safedata.ahk
 
 ; #Include classes.ahk
 
-if ( A_IsCompiled )	{
-	usuario_logado := a_args[1]
-	if ( usuario_logado = "liberar" )
-		goto skip
-	if ( usuario_logado = "" )
-		ExitApp
-		Else	{
-			nome_user := Windows.Users( usuario_logado )
-			S =
-				(
-				SELECT
-					[cargo]
-				FROM
-					[ASM].[dbo].[_colaboradores]
-				WHERE
-					[nome] = '%nome_user%'
-				)
-			s := sql( s, 3 )
-			if ( InStr(s[2,1], "Agente de monitoramento") = 0 )	{
-				MsgBox, , Finalizando,% "Seu cargo (" S[2,1] ") não tem autorização para acessar esse sistema."
-				ExitApp
+	if ( A_IsCompiled )	{
+		usuario_logado := a_args[1]
+		if ( usuario_logado = "liberar" )
+			goto skip
+		if ( usuario_logado = "" )
+			ExitApp
+			Else	{
+				nome@user := Windows.Users( usuario_logado )
+				S =
+					(
+					SELECT
+						[cargo]
+					FROM
+						[ASM].[dbo].[_colaboradores]
+					WHERE
+						[nome] = '%nome@user%'
+					)
+				s := sql( s, 3 )
+				if ( InStr(s[2,1], "Agente de monitoramento") = 0 )	{
+					MsgBox, , Finalizando,% "Seu cargo (" S[2,1] ") não tem autorização para acessar esse sistema."
+					ExitApp
+					}
 				}
-			}
-	;	Update
-	skip:
-	version = 2.0.0.1
-	changelog = Reestruturado a Interface principal e melhorado a lógica de busca.
-}
-
-v =
-	(
-	SELECT	[version]
-		,	[changelog]
-		,	[updated]
-	FROM
-		[ASM].[dbo].[_versionamento]
-	WHERE
-		[sistema] = 'RelatorioIndividual'
-	)
-c := sql( v, 3 )
-;
-
-if (A_IpAddress1 = "192.9.100.184"
-&&	c[2,1] < version )	{
-		if ( StrLen(Changelog) > 0 and instr( c[2,2], changelog ) = 0 )	{
-			changelog := "> "Date.Now() ":`t" changelog "`n" c[2,2]
-			v=
-				(
-				IF NOT EXISTS (SELECT [version] FROM [ASM].[dbo].[_versionamento] WHERE [sistema]='RelatorioIndividual')
-					INSERT INTO
-						[ASM].[dbo].[_versionamento]
-							(version,sistema,updated,changelog)
-						VALUES
-							('%version%','RelatorioIndividual',GETDATE(),'%changelog%')
-				ELSE
-					UPDATE
-						[ASM].[dbo].[_versionamento]
-					SET
-						[version]='%version%',
-						[updated]=GETDATE(),
-						[Changelog]='%changelog%'
-					WHERE
-						[sistema]='RelatorioIndividual'
-				)
-			}
-		Else
-			v=
-				(
-				IF NOT EXISTS (SELECT [version] FROM [ASM].[dbo].[_versionamento] WHERE [sistema]='RelatorioIndividual')
-					INSERT INTO
-						[ASM].[dbo].[_versionamento]
-							(version,sistema,updated)
-						VALUES
-							('%version%','RelatorioIndividual',GETDATE())
-				ELSE
-					UPDATE
-						[ASM].[dbo].[_versionamento]
-					SET
-						[version]='%version%',
-						[updated]=GETDATE()
-					WHERE
-						[sistema]='RelatorioIndividual'
-				)
-		sql(v,3)
+		;	Update
+		skip:
+		version = 2.0.0.1
+		changelog = Reestruturado a Interface principal e melhorado a lógica de busca.
 	}
-	if (A_IsCompiled
+
+	v =
+		(
+		SELECT	[version]
+			,	[changelog]
+			,	[updated]
+		FROM
+			[ASM].[dbo].[_versionamento]
+		WHERE
+			[sistema] = 'RelatorioIndividual'
+		)
+	c := sql( v, 3 )
+	;
+
+	if (A_IpAddress1 = "192.9.100.184"
 	&&	c[2,1] < version )	{
-		FileDelete, % A_ScriptFullPath
-		FileCopy, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\Operador.exe,% A_ScriptDir "\Operador.exe", 1
-	}
-	if ( is_test = 1 )	{
-		@usuario = dsantos
-		Goto interface
-	}
-	Else
-		Goto, Login
-;	Return
+			if ( StrLen(Changelog) > 0 and instr( c[2,2], changelog ) = 0 )	{
+				changelog := "> "Date.Now() ":`t" changelog "`n" c[2,2]
+				v=
+					(
+					IF NOT EXISTS (SELECT [version] FROM [ASM].[dbo].[_versionamento] WHERE [sistema]='RelatorioIndividual')
+						INSERT INTO
+							[ASM].[dbo].[_versionamento]
+								(version,sistema,updated,changelog)
+							VALUES
+								('%version%','RelatorioIndividual',GETDATE(),'%changelog%')
+					ELSE
+						UPDATE
+							[ASM].[dbo].[_versionamento]
+						SET
+							[version]='%version%',
+							[updated]=GETDATE(),
+							[Changelog]='%changelog%'
+						WHERE
+							[sistema]='RelatorioIndividual'
+					)
+				}
+			Else
+				v=
+					(
+					IF NOT EXISTS (SELECT [version] FROM [ASM].[dbo].[_versionamento] WHERE [sistema]='RelatorioIndividual')
+						INSERT INTO
+							[ASM].[dbo].[_versionamento]
+								(version,sistema,updated)
+							VALUES
+								('%version%','RelatorioIndividual',GETDATE())
+					ELSE
+						UPDATE
+							[ASM].[dbo].[_versionamento]
+						SET
+							[version]='%version%',
+							[updated]=GETDATE()
+						WHERE
+							[sistema]='RelatorioIndividual'
+					)
+			sql(v,3)
+		}
+		if (A_IsCompiled
+		&&	c[2,1] < version )	{
+			FileDelete, % A_ScriptFullPath
+			FileCopy, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\Operador.exe,% A_ScriptDir "\Operador.exe", 1
+		}
+		if ( is_test = 1 )	{
+			@usuario = dsantos
+			Goto interface
+		}
+		Else
+			Goto, Login
+	;	Return
+;
 
 Interface:
 	nm_usuario_ad := Windows.Users( @usuario )
 		Gui, Login:Destroy
-		gui.Cores( "individual", "9BACC0", "374658" )
+	gui.Cores( "individual", "9BACC0", "374658" )
 		gui.Font( "individual:", "S11", "Bold", "cWhite" )
-	Gui, individual:-Caption -Border
-	Gui, individual:Add,	Button,%	"x" A_ScreenWidth-100 "	y1										h25													g_informacoes"								,	Informações
-	Gui, individual:Add,	Tab3,%		"x5						y5		w" A_ScreenWidth-5 	"											v@tab				g_tab"										,	Relatório Individual|Registros|Fechar
-	Gui, individual:Add,	MonthCal,%	"								w230							h465							v@data				g_busca_data					Section"
-	Gui, individual:Add,	Text,%		"						ys		w" A_ScreenWidth-275 "			h25																			+Center	0x1000"		,	Buscar
-		gui.Font( "individual:" )
-	Gui, individual:Add,	Edit,%		"								w" A_ScreenWidth-275 "			h25								v@busca				g_busca"
-	Gui, individual:Add,	ListView,%	"								w" (A_ScreenWidth-275)/2-5 "	R22								v@list_view 		g_select_lv	Grid	AltSubmit	Section"	,	Data|Relatório|Nome|id|pre|edicoes|ip
-		gui.Font( "individual:", "S11", "Bold", "cWhite" )
-	Gui, individual:Add,	Edit,%		"						ys		w" (A_ScreenWidth-275)/2-7 "	h403							v@exibe_relatorio	g_exibe_relatorio	+ReadOnly	+WantTab"
-		gui.Font( "individual:" )
-		gui.Font( "individual:", "S12", "Bold" )
-	Gui, individual:Add,	Edit,%		"xs-240							w" A_ScreenWidth-35 "			h" A_ScreenHeight-taskbar-570 "	v@novo_relatorio									+WantTab"
-	Gui, individual:Add,	Button,%	"xs-240							w200							h30													g_insere_novo_relatorio"					,	Inserir Novo Relatório
-		Gosub, Carrega_Relatorios
-	Gui, individual:Show,%				"x-2					y0		w" A_ScreenWidth+2	"			h"	A_ScreenHeight-taskbar																		,	Relatório Individual
+		Gui, individual:-Caption -Border
+		Gui, individual:Add,	Button,%	"x" A_ScreenWidth-100 "	y1										h25													g_informacoes"								,	Informações
+	Gui, individual:Add, Tab3,%		"x5						y5		w" A_ScreenWidth-5 	"											v@tab				g_tab"										,	Relatório Individual|Registros|Fechar
+		Gui, individual:Add,	MonthCal,%	"								w230							h465							v@data				g_busca_data					Section"
+		Gui, individual:Add,	Text,%		"						ys		w" A_ScreenWidth-275 "			h25																			+Center	0x1000"		,	Buscar
+			gui.Font( "individual:" )
+		Gui, individual:Add,	Edit,%		"								w" A_ScreenWidth-275 "			h25								v@busca				g_busca"
+		Gui, individual:Add,	ListView,%	"								w" (A_ScreenWidth-275)/2-5 "	R22								v@list_view 		g_select_lv	Grid	AltSubmit	Section"	,	Data|Relatório|Nome|id|pre|edicoes|ip
+			gui.Font( "individual:", "S11", "Bold", "cWhite" )
+		Gui, individual:Add,	Edit,%		"						ys		w" (A_ScreenWidth-275)/2-7 "	h403							v@exibe_relatorio	g_exibe_relatorio	+ReadOnly	+WantTab"
+			gui.Font( "individual:" )
+			gui.Font( "individual:", "S12", "Bold" )
+		Gui, individual:Add,	Edit,%		"xs-240							w" A_ScreenWidth-35 "			h" A_ScreenHeight-taskbar-570 "	v@novo_relatorio									+WantTab"
+		Gui, individual:Add,	Button,%	"xs-240															h30													g_insere_novo_relatorio"					,	Salvar Novo Relatório
+	Gui, Individual:Tab, Registros
+			Gui.Font( "individual:", "S12", "cWhite", "Bold" )
+		Gui, individual:Add,	Text,%		"			w" A_ScreenWidth-32			"		v@user						Center	0x1200"						,%	nm_usuario_ad
+			Gui.Font( "individual:", "S10" )
+		Gui, individual:Add,	Button,%	"			w"(A_ScreenWidth-20)/2		"		v@intervalo									Section	gintervalo"	,	Registrar Saída Para Intervalo
+		Gui, individual:Add,	Button,%	"		ys	w"(A_ScreenWidth-20)/2-25	"		v@banheiro											gbanheiro"	,	Registrar Saída Para Banheiro
+		Gui, individual:Add,	Text,%		"xs			w"A_ScreenWidth-32			"	h40	v@marcador					Center	0x1000	Section"
+			Gui.Font( "individual:", "S11", "cWhite", "Bold" )
+		Gui, individual:Add,	ListView,%	"xs			w"A_ScreenWidth-32			"	h"A_ScreenHeight-taskbar-165 "	Center	0x1000"						,	Motivo|Saída|Retorno|Duração
+			Gui.Font( "individual:" )
+			Gosub, Carrega_Relatorios
+
+	Gui, individual:Show,%	"x-2	y0	w" A_ScreenWidth+2	"	h"A_ScreenHeight-taskbar,	Operador
+	if ( gototab <> 0 )
+		GuiControl, individual:Choose, @Tab,% gototab
 return
 
 ;	Relatório Individual
@@ -574,5 +589,220 @@ return
 ;
 
 ;	Registros
+	intervalo:
+		Gui, individual:Submit, NoHide
+		if (SubStr( A_Now, 9 ) > "070000"
+		||	SubStr( A_Now, 9 ) < "200000" )
+			turno	=	07:00:00
+		else
+			turno	=	20:00:00
+		
+		s	=	;	Verifica se alguém do TURNO ATUAL está com o intervalo marcado
+			(
+			SELECT TOP 1 *
+			FROM [ASM].[dbo].[_registro_saidas]
+			WHERE
+				[saida] BETWEEN '%data% %turno%' AND GETDATE()
+				AND	[retorno] is null
+				AND	[nome] <> '%nm_usuario_ad%'
+			ORDER BY
+				[SAIDA] DESC
+			)
+			em_uso := sql( s, 3 )
+			if ( (em_uso.Count()-1) > 0 )	{
+				uso_user	:=	em_uso[2,2]
+				saida_user	:=	SubStr( em_uso[2,3], 12 )
+				MsgBox,	0x40030,%	em_uso[2,6] = "Banheiro"
+												? "Banheiro em Uso"
+												: "Intervalo em Andamento" ,%	em_uso[2,6]	= "Banheiro"
+																							? "Aguarde o colaborador`n`t" uso_user "`nretornar do banheiro.`n`n`nEm uso desde as:`n`t" saida_user
+																							: "Aguarde o colaborador`n`t" uso_user "`nretornar do Intervalo.`n`n`nEm Intervalo desde as:`n`t " saida_user
+				return
+			}
+		;
+		
+		if ( intervalo := !intervalo = 1 ) {
+			GuiControl, individual:Disable	, @intervalo
+			GuiControl, individual:			, @intervalo,	Registrar Retorno do Intervalo
+			GuiControl, individual:Disable	, @banheiro
+			saiu =
+			GuiControl, individual:	, @marcador,%	saiu := "Saiu para o intervalo às " SubStr( A_Now, 9, 2 ) ":" SubStr( A_Now, 11, 2 ) ":" SubStr( A_Now, 13, 2 )
+			Sleep, 1500
+			GuiControl, individual:Enable	, @intervalo
+			s =
+				(
+				INSERT INTO
+				[ASM].[dbo].[_registro_saidas]
+					([nome]				,[motivo])
+				VALUES
+					('%nm_usuario_ad%'	,'Intervalo')
+				)
+			sql( s, 3 )
+		}
+		Else	{
+			s =
+				(
+				UPDATE
+					[ASM].[dbo].[_registro_saidas]
+				SET
+					[retorno] = GetDate(),
+					[duracao] = DATEDIFF( SECOND, [saida], GetDate())
+				WHERE
+					pkid = ( SELECT TOP 1
+								[pkid]
+							FROM
+								[ASM].[dbo].[_registro_saidas]
+							WHERE
+								[retorno] IS NULL AND
+								[nome] = '%nm_usuario_ad%' AND
+								[motivo] = 'Intervalo' )
+				)
+			sql( s, 3 )
+			GuiControl, individual:Enable	, @intervalo
+			GuiControl, individual:			, @intervalo,	Registrar Saída Para Intervalo
+			GuiControl, individual:Enable	, @banheiro
+			GuiControl, individual:	, @marcador,%	saiu "`nRetornou do intervalo às " SubStr( A_Now, 9, 2 ) ":" SubStr( A_Now, 11, 2 ) ":" SubStr( A_Now, 13, 2 )
+			Sleep, 1500
+		}
+	Return
 
+	banheiro:	
+		Gui, individual:Submit, NoHide
+		if (SubStr( A_Now, 9 ) > "070000"
+		||	SubStr( A_Now, 9 ) < "200000" )
+			turno	=	07:00:00
+		else
+			turno	=	20:00:00
+		
+		s	=	;	Verifica se alguém do TURNO ATUAL está com o intervalo marcado
+			(
+			SELECT TOP 1 *
+			FROM [ASM].[dbo].[_registro_saidas]
+			WHERE
+				[saida] BETWEEN '%data% %turno%' AND GETDATE()
+				AND	[retorno] is null
+				AND	[nome] <> '%nm_usuario_ad%'
+			ORDER BY
+				[SAIDA] DESC
+			)
+			em_uso := sql( s, 3 )
+			if ( (em_uso.Count()-1) > 0 )	{
+				uso_user	:=	em_uso[2,2]
+				saida_user	:=	SubStr( em_uso[2,3], 12 )
+				MsgBox,	0x40030,%	em_uso[2,6] = "Banheiro"
+												? "Banheiro em Uso"
+												: "Intervalo em Andamento" ,%	em_uso[2,6]	= "Banheiro"
+																							? "Aguarde o colaborador`n`t" uso_user "`nretornar do banheiro.`n`n`nEm uso desde as:`n`t" saida_user
+																							: "Aguarde o colaborador`n`t" uso_user "`nretornar do Intervalo.`n`n`nEm Intervalo desde as:`n`t " saida_user
+				return
+			}
+		;
+		
+		if ( intervalo := !intervalo = 1 ) {
+			GuiControl, individual:Disable	, @banheiro
+			GuiControl, individual:			, @banheiro,	Registrar Retorno do Banheiro
+			GuiControl, individual:Disable	, @intervalo
+			saiu =
+			GuiControl, individual:	, @marcador,%	saiu := "Saiu para o banheiro às " SubStr( A_Now, 9, 2 ) ":" SubStr( A_Now, 11, 2 ) ":" SubStr( A_Now, 13, 2 )
+			Sleep, 1500
+			GuiControl, individual:Enable	, @banheiro
+			s =
+				(
+				INSERT INTO
+				[ASM].[dbo].[_registro_saidas]
+					([nome]				,[motivo])
+				VALUES
+					('%nm_usuario_ad%'	,'Banheiro')
+				)
+			sql( s, 3 )
+		}
+		Else	{
+			s =
+				(
+				UPDATE
+					[ASM].[dbo].[_registro_saidas]
+				SET
+					[retorno] = GetDate(),
+					[duracao] = DATEDIFF( SECOND, [saida], GetDate())
+				WHERE
+					pkid = ( SELECT TOP 1
+								[pkid]
+							FROM
+								[ASM].[dbo].[_registro_saidas]
+							WHERE
+								[retorno] IS NULL AND
+								[nome] = '%nm_usuario_ad%' AND
+								[motivo] = 'Banheiro' )
+				)
+			sql( s, 3 )
+			GuiControl, individual:Enable	, @banheiro
+			GuiControl, individual:			, @banheiro,	Registrar Saída Para banheiro
+			GuiControl, individual:Enable	, @intervalo
+			GuiControl, individual:	, @marcador,%	saiu "`nRetornou do banheiro às " SubStr( A_Now, 9, 2 ) ":" SubStr( A_Now, 11, 2 ) ":" SubStr( A_Now, 13, 2 )
+			Sleep, 1500
+		}
+	Return
+
+	individual:
+		Gui, Submit,	NoHide
+		Gui, ListView,	lv5
+		LV_Delete()
+			LV_ModifyCol(2,115)
+			LV_ModifyCol(3,115)
+			LV_ModifyCol(4,60)
+			LV_ModifyCol(5,90)
+			Loop, 5
+				LV_ModifyCol(A_Index,"Center")
+		if ( d1 != "" )	{	;	Contém filtro por nome
+			reg	 =	SELECT [login],[login2] FROM [Sistema_Monitoramento].[dbo].[Operadores]	WHERE nome = '%d1%'
+			reg	 :=	sql(reg,3)
+			res1 :=	StrReplace(reg[2,1],"`r`n")
+			res2 :=	StrReplace(reg[2,2],"`r`n")
+			if ( StrLen(res2 ) = 0 )
+				if ( StrLen(d2) > 0 )	; Filtro por nome e tipo, com apenas 1 user
+					isd = WHERE	nome	=	'%res1%'	AND	motivo	=	'%d2%'	AND	motivo	!=	'TESTE'
+					else
+					isd = WHERE	nome	=	'%res1%'	AND	motivo	!=	'TESTE'
+				else
+					if ( StrLen(d2) > 0 )	; Filtro por nome e tipo, com 2 user
+						isd = WHERE (nome='%res1%' OR nome='%res2%') AND motivo='%d2%' AND motivo!='TESTE'
+						else
+						isd = WHERE (nome='%res1%' OR nome='%res2%') AND motivo!='TESTE'
+			}
+			else
+				if ( StrLen(d2) > 0 )	;	Filtro por tipo apenas
+					isd	= WHERE motivo='%d2%' AND motivo!='TESTE'
+					else
+					isd	=
+		mc := SubStr(mcal,1,4)	"-"	SubStr(mcal,5,2)	"-"	SubStr(mcal,7,2)
+		if ( StrLen(isd) = 0 )
+			isd = WHERE	CONVERT(VARCHAR(25), saida, 126) like '%mc%`%'	AND	motivo	!=	'TESTE'
+			else
+			isd .= " and CONVERT(VARCHAR(25), saida, 126) like '" mc "`%'	AND	motivo	!=	'TESTE'"
+		r =	
+			(
+			SELECT	[nome]
+				,	[saida]
+				,	[retorno]
+				,	[duracao]
+				,	[motivo]
+			FROM
+				[ASM].[dbo].[_registro_saidas]
+				%isd%
+			)
+		
+		r :=	sql(r,3)
+		Loop,	%	r.Count()-1
+			LV_Add(	""
+				,	r[A_Index+1,1]
+				,	r[A_Index+1,2]
+				,	r[A_Index+1,3]
+				,	r[A_Index+1,4]
+				; ,	InStr(_saida:=FormatSeconds(r[A_Index+1,4]),"|")>0
+						; ?	StrReplace(_saida,"|"," dias ")
+						; :	_saida
+				,	r[A_Index+1,5]	)
+			LV_ModifyCol(4,100)
+			LV_ModifyCol(1,100)
+	return
 ;
