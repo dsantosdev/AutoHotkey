@@ -1,4 +1,39 @@
-﻿chrome_history()							{	;	Bloqueia a exclusao de historico
+﻿
+Base64Dec( ByRef B64, ByRef Bin )			{  ; By SKAN / 18-Aug-2017
+	Local Rqd := 0, BLen := StrLen(B64)                 ; CRYPT_STRING_BASE64 := 0x1
+	DllCall( "Crypt32.dll\CryptStringToBinary", "Str",B64, "UInt",BLen, "UInt",0x1
+			, "UInt",0, "UIntP",Rqd, "Int",0, "Int",0 )
+	VarSetCapacity( Bin, 128 ), VarSetCapacity( Bin, 0 ),  VarSetCapacity( Bin, Rqd, 0 )
+	DllCall( "Crypt32.dll\CryptStringToBinary", "Str",B64, "UInt",BLen, "UInt",0x1
+			, "Ptr",&Bin, "UIntP",Rqd, "Int",0, "Int",0 )
+	Return Rqd
+}
+
+Base64Enc( ByRef Bin, nBytes, LineLength := 64, LeadingSpaces := 0 ) { ; By SKAN / 18-Aug-2017
+	Local Rqd := 0, B64, B := "", N := 0 - LineLength + 1  ; CRYPT_STRING_BASE64 := 0x1
+	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin ,"UInt",nBytes, "UInt",0x1, "Ptr",0,   "UIntP",Rqd )
+	VarSetCapacity( B64, Rqd * ( A_Isunicode ? 2 : 1 ), 0 )
+	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin, "UInt",nBytes, "UInt",0x1, "Str",B64, "UIntP",Rqd )
+	If ( LineLength = 64 and ! LeadingSpaces )
+		Return B64
+	B64 := StrReplace( B64, "`r`n" )        
+	Loop % Ceil( StrLen(B64) / LineLength )
+		B .= Format("{1:" LeadingSpaces "s}","" ) . SubStr( B64, N += LineLength, LineLength ) . "`n" 
+	Return RTrim( B,"`n" )    
+}
+
+b64_file_enc(FileName)						{
+	FileGetSize, nBytes, %FileName%
+	FileRead, Bin, *c %FileName%
+	return Base64Enc(Bin, nBytes)
+}
+
+b64_file_dec(ByRef B64, FileName)			{
+	nBytes := Base64Dec(B64, Bin)
+	FileOpen(FileName, "w").RawWrite(Bin, nBytes)
+}
+
+chrome_history()							{	;	Bloqueia a exclusao de historico
 	RegRead,	history,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
 	if ( history != 0 )	{
 		RegWrite, REG_DWORD,	HKEY_LOCAL_MACHINE, SOFTWARE\Policies\Google\Chrome,	AllowDeletingBrowserHistory,	0
@@ -31,7 +66,7 @@ datetime( sql = "0", date = "" )			{
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
 }
 
-search_delay( delay = "500", done = "0" )						{
+search_delay( delay = "500", done = "0" )	{
 	if ( done = 0 )
 		Loop
 		{
