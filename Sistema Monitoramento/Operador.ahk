@@ -1,5 +1,21 @@
 ﻿;@Ahk2Exe-SetMainIcon \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\ico\rel.ico
-
+user_pre := [	{user:"Adriana"		,login:"abmachado"}
+			,	{user:"alisson"		,login:"akaipers"}
+			,	{user:"anilton"		,login:"alima"}
+			,	{user:"dieisson"	,login:"dsantos"}
+			,	{user:"djeison"		,login:"ddiel"}
+			,	{user:"elopes"		,login:"elsilva"}
+			,	{user:"ezequiel"	,login:"epereira"}
+			,	{user:"joao"		,login:"jcsilva"}
+			,	{user:"julita"		,login:"julitak"}
+			,	{user:"leonise"		,login:"lmoura"}
+			,	{user:"luiz"		,login:"luizs"}
+			,	{user:"msaniele"	,login:"marias"}
+			,	{user:"mwasem"		,login:"kwasem"}
+			,	{user:"paloma"		,login:"pmoraes"}
+			,	{user:"sabrina"		,login:"srosa"}
+			,	{user:"simone"		,login:"ssalvaterra"}
+			,	{user:"taiana"		,login:"tcosta"}	]
 global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core e classes = 5, funções e classes = 6, tudo = 7
 	,	edit_row			;	guicontext
 	,	in_edit				;	guicontext
@@ -8,9 +24,9 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 	,	edicoes				;	guicontext
 
 ;local Vars
-	is_test = 1
+	is_test =
 	debug = 
-	gototab = 2
+	gototab = 
 	WinGetPos,,,,taskbar, ahk_class Shell_TrayWnd
 
 #IfWinActive, Login Cotrijal
@@ -23,7 +39,7 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 	#Include ..\class\gui.ahk
 	#Include ..\class\safedata.ahk
 
-; #Include classes.ahk
+;
 
 	if ( A_IsCompiled )	{
 		usuario_logado := a_args[1]
@@ -116,7 +132,7 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 			FileCopy, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\Operador.exe,% A_ScriptDir "\Operador.exe", 1
 		}
 		if ( is_test = 1 )	{
-			@usuario = dsantos
+			@usuario = jwecker
 			Goto interface
 		}
 		Else
@@ -125,48 +141,174 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 ;
 
 Interface:
+	inicio_mes	:=	SubStr( A_Now, 1, 8 )  - (A_MDay-1)
 	nm_usuario_ad := Windows.Users( @usuario )
 		Gui, Login:Destroy
 	gui.Cores( "individual", "9BACC0", "374658" )
 		gui.Font( "individual:", "S11", "Bold", "cWhite" )
 		Gui, individual:-Caption -Border
 		Gui, individual:Add,	Button,%	"x" A_ScreenWidth-100 "	y1										h25													g_informacoes"								,	Informações
-	Gui, individual:Add, Tab3,%		"x5						y5		w" A_ScreenWidth-5 	"											v@tab				g_tab"										,	Relatório Individual|Registros|Fechar
+	Gui, individual:Add, Tab3,%		"x5		y5	w" A_ScreenWidth-5 	"							v@tab	g_tab"	,	Relatório Individual|Registros|Fechar
 		Gui, individual:Add,	MonthCal,%	"								w230							h465							v@data				g_busca_data					Section"
 		Gui, individual:Add,	Text,%		"						ys		w" A_ScreenWidth-275 "			h25																			+Center	0x1000"		,	Buscar
 			gui.Font( "individual:" )
 		Gui, individual:Add,	Edit,%		"								w" A_ScreenWidth-275 "			h25								v@busca				g_busca"
-		Gui, individual:Add,	ListView,%	"								w" (A_ScreenWidth-275)/2-5 "	R22								v@list_view 		g_select_lv	Grid	AltSubmit	Section"	,	Data|Relatório|Nome|id|pre|edicoes|ip
-			gui.Font( "individual:", "S11", "Bold", "cWhite" )
-		Gui, individual:Add,	Edit,%		"						ys		w" (A_ScreenWidth-275)/2-7 "	h403							v@exibe_relatorio	g_exibe_relatorio	+ReadOnly	+WantTab"
+			gui.Font( "individual:", "S11" )
+		Gui, individual:Add,	ListView,%	"								w" (A_ScreenWidth-275)/2-5 "	h400							v@list_view 		g_select_lv	Grid	AltSubmit	Section"	,	Data|Relatório|Nome|id|pre|edicoes|ip
+			gui.Font( "individual:", "Bold", "cWhite" )
+		Gui, individual:Add,	Edit,%		"						ys		w" (A_ScreenWidth-275)/2-7 "	h400							v@exibe_relatorio	g_exibe_relatorio	+ReadOnly	+WantTab"
 			gui.Font( "individual:" )
 			gui.Font( "individual:", "S12", "Bold" )
 		Gui, individual:Add,	Edit,%		"xs-240							w" A_ScreenWidth-35 "			h" A_ScreenHeight-taskbar-570 "	v@novo_relatorio									+WantTab"
 		Gui, individual:Add,	Button,%	"xs-240															h30													g_insere_novo_relatorio"					,	Salvar Novo Relatório
 	Gui, Individual:Tab, Registros
 			Gui.Font( "individual:", "S12", "cWhite", "Bold" )
-		Gui, individual:Add,	Text,%		"			w" A_ScreenWidth-32			"		v@user						Center	0x1200"						,%	nm_usuario_ad
+		Gui, individual:Add,	Text,%		"x20		w" A_ScreenWidth-32			"									v@user			Center	0x1200"						,%	nm_usuario_ad
 			Gui.Font( "individual:", "S10" )
-		Gui, individual:Add,	Button,%	"			w"(A_ScreenWidth-20)/2		"		v@intervalo									Section	gintervalo"	,	Registrar Saída Para Intervalo
-		Gui, individual:Add,	Button,%	"		ys	w"(A_ScreenWidth-20)/2-25	"		v@banheiro											gbanheiro"	,	Registrar Saída Para Banheiro
-		Gui, individual:Add,	Text,%		"xs			w"A_ScreenWidth-32			"	h40	v@marcador					Center	0x1000	Section"
-			Gui.Font( "individual:", "S11", "cWhite", "Bold" )
-		Gui, individual:Add,	ListView,%	"xs			w"A_ScreenWidth-32			"	h"A_ScreenHeight-taskbar-165 "	Center	0x1000"						,	Motivo|Saída|Retorno|Duração
-			Gui.Font( "individual:" )
+		Gui, individual:Add,	Button,%	"			w"(A_ScreenWidth-20)/2		"									v@intervalo						Section	gintervalo"	,	Registrar Saída Para Intervalo
+		Gui, individual:Add,	Button,%	"		ys	w"(A_ScreenWidth-20)/2-25	"									v@banheiro								gbanheiro"	,	Registrar Saída Para Banheiro
+		Gui, individual:Add,	Text,%		"xs			w"A_ScreenWidth-32			"	h40								v@marcador		Center	0x1000	Section"
+		Gui, individual:Add,	Text,					w80								h25														0x1000	Section				,	A partir dê
+			Gui, individual:Add, DateTime,			ys																	vc_data			g_tab	1		Choose%inicio_mes%
+				Gui.Font( "individual:", "c2BDC33" )
+			Gui, individual:Add, Checkbox,			ys+5																vc_banheiro		g_tab			Checked				,	Banheiro
+			Gui, individual:Add, Checkbox,			ys+5																vc_intervalo	g_tab			Checked				,	Intervalos
+				Gui.Font( "individual:" )
+				Gui.Font( "individual:", "S10", "cWhite" )
+			Gui, individual:Add, Text,		xs											h50								vc_media		Center		0x1000
+				Gui.Font( "individual:" )
+		Gui, individual:Add,	ListView,%	"xs			w"A_ScreenWidth-32			"	h"A_ScreenHeight-taskbar-260 "	vlv_registros			Grid	AltSubmit"			,	Motivo|Saída|Retorno|Duração|For_filter
 			Gosub, Carrega_Relatorios
-
-	Gui, individual:Show,%	"x-2	y0	w" A_ScreenWidth+2	"	h"A_ScreenHeight-taskbar,	Operador
+	Gui, individual:Show,%			"x-2	y0	w" A_ScreenWidth+2	"	h"A_ScreenHeight-taskbar				,	Operador
 	if ( gototab <> 0 )
 		GuiControl, individual:Choose, @Tab,% gototab
 return
 
-;	Relatório Individual
-	_tab:
-		Gui, individual:Submit, NoHide
-		if ( @tab = "Fechar" )
-			Goto, individualGuiClose
-	Return
+_tab:
+	Gui, individual:Submit, NoHide
+	if ( @tab = "Fechar" )
+		Goto, individualGuiClose
+	if ( @tab = "Registros" )	{
 
+		;	Filtros	-	Registros
+			if (c_intervalo = 1
+			&&	c_banheiro	= 1 )	{
+				Guicontrol, +Redraw +c2BDC33, c_intervalo
+				Guicontrol, +Redraw +c2BDC33, c_banheiro
+			}
+			if (c_intervalo = 0
+			&&	c_banheiro	= 0 )	{
+				Guicontrol, +Redraw +c2BDC33, c_intervalo
+				Guicontrol, +Redraw +c2BDC33, c_banheiro
+				GuiControl, , c_intervalo, 1
+				GuiControl, , c_banheiro, 1
+				Gui, individual:Submit, NoHide
+			}
+			if (c_intervalo = 0
+			&&	c_banheiro	= 1 )
+				Guicontrol, +Redraw +cB8B8B8, c_intervalo
+			if (c_banheiro = 0
+			&&	c_intervalo= 1 )
+				Guicontrol, +Redraw +cB8B8B8, c_banheiro
+		;
+		if ( is_test = 1 )
+			nm_usuario_ad = jwecker
+		GuiControlGet, c_media, pos
+		GuiControl,	Individual:MoveDraw, c_media,% "x" c_mediax-7 " w"A_ScreenWidth - c_mediax - 13
+		; MsgBox % c_mediax
+		Gui, individual:Default
+		Gui, individual:ListView, lv_registros
+		a_partir_de	:=	SubStr( c_data, 1, 8 )	!=	SubStr( A_Now, 1, 8 )
+												?	"AND [saida] >= '" SubStr( c_data, 1, 4 ) "-" SubStr( c_data, 5, 2 ) "-" SubStr( c_data, 7, 2 ) "'"
+												:	""
+		banheiro	:=	c_banheiro	= 1
+									? "AND [motivo] = 'banheiro'"
+									: ""
+		intervalo	:=	c_intervalo	= 1
+									? "AND [motivo] = 'intervalo'"
+									: ""
+		media_almoco := almoco_conta := media_intervalo	:= media_banheiro := banheiro_conta := intervalo_conta := ""
+		if (c_banheiro = 1
+		&&	c_intervalo= 1	)
+			banheiro := intervalo := ""
+		if ( StrLen( c_data ) = 0 )
+			a_partir_de := ""
+		LV_Delete()
+		nomes := (id := array.InDict(user_pre,@usuario,login))	!=	0
+																?	"([nome] = '" nm_usuario_ad "' or [nome] = '" user_pre[id].user "' or [nome] = '" @usuario "')"
+																:	"[nome] = '" nm_usuario_ad "'"
+		; OutputDebug % nomes
+		s =
+			(
+			SELECT	[motivo]
+					,DATEADD(ms, -DATEPART(ms,[saida]), [saida])
+					,DATEADD(ms, -DATEPART(ms,[retorno]), [retorno])
+					,CONVERT(varchar, DATEADD(ms, [duracao] * 1000, 0), 108)
+					,[duracao]
+			FROM	[ASM].[dbo].[_registro_saidas]
+			WHERE
+				%nomes%
+				%banheiro%
+				%intervalo%
+				%a_partir_de%
+			ORDER BY
+				[pkid]
+			DESC
+			)
+		registros := sql( s, 3 )
+		Loop,%	registros.Count()-1	{
+			if ( A_Index = 1 )
+				if ( registros[A_index+1, 3] = "" )	{
+					esse := registros[A_index+1, 1]	= "Intervalo"
+													? "Intervalo"
+													: "Banheiro"
+					aquele := esse	= "Banheiro"
+									? "Intervalo"
+									: "Banheiro"
+					GuiControl, individual:,% "@" esse,% "Registrar Retorno do " esse
+					GuiControl, individual:Disable,% "@" aquele
+					GuiControl, individual:,% "@marcador",%	saiu := "Saiu para o " esse " às " SubStr( registros[A_Index+1, 2], 12, 8 )
+					%esse% := 1
+				}
+			LV_Add(	""
+				,	registros[A_Index+1, 1]
+				,	registros[A_Index+1, 2]
+				,	registros[A_Index+1, 3]
+				,	registros[A_Index+1, 4]
+				,	registros[A_Index+1, 5]	)
+			
+			if (c_banheiro = 1
+			&&	registros[A_Index+1, 1]	= "banheiro" )	{
+				banheiro_conta++
+				media_banheiro += registros[A_Index+1, 5]
+			}
+			else if ( c_intervalo = 1
+			&&	registros[A_Index+1, 1]	= "intervalo"
+			&&	(SubStr( registros[A_Index+1, 2], 12, 2 ) >= "15"
+			&&	SubStr( registros[A_Index+1, 2], 12, 2 ) <= "17") )	{
+				intervalo_conta++
+				media_intervalo += registros[A_Index+1, 5]
+			}
+			else if ( c_intervalo = 1
+			&&	registros[A_Index+1, 1]	= "intervalo"
+			&&	(SubStr( registros[A_Index+1, 2], 12, 2 ) >= "11"
+			&&	SubStr( registros[A_Index+1, 2], 12, 2 ) <= "14") )	{
+				almoco_conta++
+				media_almoco += registros[A_Index+1, 5]
+			}
+			; OutputDebug % SubStr( registros[A_Index+1, 2], 12, 2 )
+		}
+		GuiControl, individual:, c_media,%	"Media de tempo no Banheiro : " FormatSeconds(Floor(media_Banheiro/Banheiro_conta)) "`nMédia de tempo no almoço: " FormatSeconds(Floor(media_almoco/almoco_conta)) "`nMédia de tempo no intervalo: " FormatSeconds(Floor(media_intervalo/intervalo_conta))
+			LV_ModifyCol( 1, "Center "	100 )
+			LV_ModifyCol( 2, "Center "	150 )
+			LV_ModifyCol( 3, "Center "	150 )
+			LV_ModifyCol( 4, "Right "	100 )
+			LV_ModifyCol( 5, 0 )
+	}
+
+Return
+
+;	Relatório Individual
 	Carrega_Relatorios:
 		Gui,	individual:Default
 		Gui,	individual:ListView, @list_view
@@ -221,9 +363,9 @@ return
 		}
 		Loop, 8
 			LV_ModifyCol( A_index+2, 0 )
-			LV_ModifyCol( 1, 120 )
+			LV_ModifyCol( 1, 150 )
 			LV_ModifyCol( 4, "Integer" )
-			LV_ModifyCol( 2, 300 )
+			LV_ModifyCol( 2, 330 )
 		LV_GetText( _insere_relatorio, 1, 2 )
 		GuiControl, , @exibe_relatorio ,% _insere_relatorio
 	Return
@@ -459,40 +601,6 @@ return
 			}
 	ExitApp
 
-	;	Informações
-		_informacoes:
-			dicas=
-				(
-				> Utilize o filtro de CALENDÁRIO para buscar um dia específico
-				> Busque relatórios com palavras específicas pelo campo BUSCAR
-				> O relatório necessita ter pelo menos 10 caracteres para poder ser inserido.
-				> Lembre-se de FECHAR o programa de Relatórios Individuais após inserir ou visualizar a informação que necessita.
-				> Você pode editar um relatório de até 2 dias atrás.
-				> Cada relatório só pode ser editado UMA vez e seu coordenador será notificado que o mesmo foi editado.
-				> Para editar um relatório, basta clicar com o botão direito no mesmo na lista de exibição e selecionar a opção "EDITAR RELATÓRIO".
-				)
-			dicas := StrReplace( dicas, "`t" )
-				gui.Cores( "info", "9BACC0", "374658" )
-			Gui,	info:+AlwaysOnTop
-			Gui,	info:-Caption -Border +AlwaysOnTop +OwnDialogs
-				gui.Font( "info:", "cWhite", "Bold" )
-			Gui,	info:Add,	Text,%		"x10						y10		w" A_ScreenWidth-250 "	h20		0x1000"			,	Versão:	%version%
-			Gui,	info:Add,	Text,%		"x10						y40		w" A_ScreenWidth-250 "	h20		0x1000"			,%	"Atualizado em " c[2,3]
-			Gui,	info:Add,	Text,%		"x10						y250	w" A_ScreenWidth-20  "	h130	0x1000"			,%	dicas
-			Gui,	info:Add,	Text,%		"xm							y390	w" A_ScreenWidth-20  "	h60		Right"			,	`nDieisson S. Santos`ndsantos@cotrijal.com.br`n( 54 ) 3332 2524`t( 549 ) 9202 8091
-			Gui,	info:Add,	Edit,%		"x10						y70		w" A_ScreenWidth-20  "	h170	ReadOnly"		,%	c[2,2]
-			Gui,	info:Add,	Button,%	"x"	A_ScreenWidth-230	"	y10		w220					h50	ginfoGuiClose vfoco",	Fechar
-			Gui,	info:Show,				x0							y0														,	Informações
-			WinHide,	Relatório Individual
-			GuiControl, info:Focus, foco
-		return
-
-		infoGuiClose:
-			WinShow,	Relatório Individual
-			Gui,		Info:Destroy
-		Return
-	;
-
 	_editar_relatorio:
 		Gui, individual:Submit, NoHide
 		if (A_GuiControl	= "@list_view"
@@ -620,7 +728,7 @@ return
 				return
 			}
 		;
-		
+		; MsgBox % "intervalo = " intervalo
 		if ( intervalo := !intervalo = 1 ) {
 			GuiControl, individual:Disable	, @intervalo
 			GuiControl, individual:			, @intervalo,	Registrar Retorno do Intervalo
@@ -638,6 +746,10 @@ return
 					('%nm_usuario_ad%'	,'Intervalo')
 				)
 			sql( s, 3 )
+			LV_Insert(	1
+				,	""
+				,	"Intervalo"
+				,	A_MDay "/" A_MM "/" A_Year " " A_Hour ":" A_Min ":" A_Sec )
 		}
 		Else	{
 			s =
@@ -662,6 +774,7 @@ return
 			GuiControl, individual:			, @intervalo,	Registrar Saída Para Intervalo
 			GuiControl, individual:Enable	, @banheiro
 			GuiControl, individual:	, @marcador,%	saiu "`nRetornou do intervalo às " SubStr( A_Now, 9, 2 ) ":" SubStr( A_Now, 11, 2 ) ":" SubStr( A_Now, 13, 2 )
+			Goto, _tab
 			Sleep, 1500
 		}
 	Return
@@ -697,8 +810,8 @@ return
 				return
 			}
 		;
-		
-		if ( intervalo := !intervalo = 1 ) {
+		; MsgBox % "banheiro = " banheiro
+		if ( banheiro := !banheiro = 1 ) {
 			GuiControl, individual:Disable	, @banheiro
 			GuiControl, individual:			, @banheiro,	Registrar Retorno do Banheiro
 			GuiControl, individual:Disable	, @intervalo
@@ -715,6 +828,10 @@ return
 					('%nm_usuario_ad%'	,'Banheiro')
 				)
 			sql( s, 3 )
+			LV_Insert(	1
+				,	""
+				,	"Banheiro"
+				,	A_MDay "/" A_MM "/" A_Year " " A_Hour ":" A_Min ":" A_Sec )
 		}
 		Else	{
 			s =
@@ -739,70 +856,42 @@ return
 			GuiControl, individual:			, @banheiro,	Registrar Saída Para banheiro
 			GuiControl, individual:Enable	, @intervalo
 			GuiControl, individual:	, @marcador,%	saiu "`nRetornou do banheiro às " SubStr( A_Now, 9, 2 ) ":" SubStr( A_Now, 11, 2 ) ":" SubStr( A_Now, 13, 2 )
+			Goto, _tab
 			Sleep, 1500
 		}
 	Return
+;
 
-	individual:
-		Gui, Submit,	NoHide
-		Gui, ListView,	lv5
-		LV_Delete()
-			LV_ModifyCol(2,115)
-			LV_ModifyCol(3,115)
-			LV_ModifyCol(4,60)
-			LV_ModifyCol(5,90)
-			Loop, 5
-				LV_ModifyCol(A_Index,"Center")
-		if ( d1 != "" )	{	;	Contém filtro por nome
-			reg	 =	SELECT [login],[login2] FROM [Sistema_Monitoramento].[dbo].[Operadores]	WHERE nome = '%d1%'
-			reg	 :=	sql(reg,3)
-			res1 :=	StrReplace(reg[2,1],"`r`n")
-			res2 :=	StrReplace(reg[2,2],"`r`n")
-			if ( StrLen(res2 ) = 0 )
-				if ( StrLen(d2) > 0 )	; Filtro por nome e tipo, com apenas 1 user
-					isd = WHERE	nome	=	'%res1%'	AND	motivo	=	'%d2%'	AND	motivo	!=	'TESTE'
-					else
-					isd = WHERE	nome	=	'%res1%'	AND	motivo	!=	'TESTE'
-				else
-					if ( StrLen(d2) > 0 )	; Filtro por nome e tipo, com 2 user
-						isd = WHERE (nome='%res1%' OR nome='%res2%') AND motivo='%d2%' AND motivo!='TESTE'
-						else
-						isd = WHERE (nome='%res1%' OR nome='%res2%') AND motivo!='TESTE'
-			}
-			else
-				if ( StrLen(d2) > 0 )	;	Filtro por tipo apenas
-					isd	= WHERE motivo='%d2%' AND motivo!='TESTE'
-					else
-					isd	=
-		mc := SubStr(mcal,1,4)	"-"	SubStr(mcal,5,2)	"-"	SubStr(mcal,7,2)
-		if ( StrLen(isd) = 0 )
-			isd = WHERE	CONVERT(VARCHAR(25), saida, 126) like '%mc%`%'	AND	motivo	!=	'TESTE'
-			else
-			isd .= " and CONVERT(VARCHAR(25), saida, 126) like '" mc "`%'	AND	motivo	!=	'TESTE'"
-		r =	
+;	Informações
+	_informacoes:
+		dicas=
 			(
-			SELECT	[nome]
-				,	[saida]
-				,	[retorno]
-				,	[duracao]
-				,	[motivo]
-			FROM
-				[ASM].[dbo].[_registro_saidas]
-				%isd%
+			> Utilize o filtro de CALENDÁRIO para buscar um dia específico
+			> Busque relatórios com palavras específicas pelo campo BUSCAR
+			> O relatório necessita ter pelo menos 10 caracteres para poder ser inserido.
+			> Lembre-se de FECHAR o programa de Relatórios Individuais após inserir ou visualizar a informação que necessita.
+			> Você pode editar um relatório de até 2 dias atrás.
+			> Cada relatório só pode ser editado UMA vez e seu coordenador será notificado que o mesmo foi editado.
+			> Para editar um relatório, basta clicar com o botão direito no mesmo na lista de exibição e selecionar a opção "EDITAR RELATÓRIO".
 			)
-		
-		r :=	sql(r,3)
-		Loop,	%	r.Count()-1
-			LV_Add(	""
-				,	r[A_Index+1,1]
-				,	r[A_Index+1,2]
-				,	r[A_Index+1,3]
-				,	r[A_Index+1,4]
-				; ,	InStr(_saida:=FormatSeconds(r[A_Index+1,4]),"|")>0
-						; ?	StrReplace(_saida,"|"," dias ")
-						; :	_saida
-				,	r[A_Index+1,5]	)
-			LV_ModifyCol(4,100)
-			LV_ModifyCol(1,100)
+		dicas := StrReplace( dicas, "`t" )
+			gui.Cores( "info", "9BACC0", "374658" )
+		Gui,	info:+AlwaysOnTop
+		Gui,	info:-Caption -Border +AlwaysOnTop +OwnDialogs
+			gui.Font( "info:", "cWhite", "Bold" )
+		Gui,	info:Add,	Text,%		"x10						y10		w" A_ScreenWidth-250 "	h20		0x1000"			,	Versão:	%version%
+		Gui,	info:Add,	Text,%		"x10						y40		w" A_ScreenWidth-250 "	h20		0x1000"			,%	"Atualizado em " c[2,3]
+		Gui,	info:Add,	Text,%		"x10						y250	w" A_ScreenWidth-20  "	h130	0x1000"			,%	dicas
+		Gui,	info:Add,	Text,%		"xm							y390	w" A_ScreenWidth-20  "	h60		Right"			,	`nDieisson S. Santos`ndsantos@cotrijal.com.br`n( 54 ) 3332 2524`t( 549 ) 9202 8091
+		Gui,	info:Add,	Edit,%		"x10						y70		w" A_ScreenWidth-20  "	h170	ReadOnly"		,%	c[2,2]
+		Gui,	info:Add,	Button,%	"x"	A_ScreenWidth-230	"	y10		w220					h50	ginfoGuiClose vfoco",	Fechar
+		Gui,	info:Show,				x0							y0														,	Informações
+		WinHide,	Operador
+		GuiControl, info:Focus, foco
 	return
+
+	infoGuiClose:
+		WinShow,	Operador
+		Gui,		Info:Destroy
+	Return
 ;
