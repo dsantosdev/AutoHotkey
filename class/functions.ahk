@@ -66,6 +66,13 @@ datetime( sql = "0", date = "" )			{
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
 }
 
+FormatSeconds( Seconds )					{
+	time := 19990101
+	time += Seconds, seconds
+	FormatTime, mmss, %time%, mm:ss
+	return Seconds//3600 ":" mmss
+}
+
 search_delay( delay = "500", done = "0" )	{
 	if ( done = 0 )
 		Loop
