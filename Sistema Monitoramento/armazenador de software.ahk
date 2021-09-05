@@ -4,10 +4,6 @@
 	#Persistent
 	#Include ..\class\sql.ahk
 	#Include ..\class\functions.ahk
-	; #Include ..\class\windows.ahk
-	; #Include ..\class\array.ahk
-	; #Include ..\class\gui.ahk
-	; #Include ..\class\safedata.ahk
 
 b64 := b64_file_enc( "C:\Dguard Advanced\ddguard player.exe" )
 version = 2.7.3
@@ -24,7 +20,7 @@ i	=
 	)
 sql( i, 3 )
 ; MsgBox % Clipboard:=b64
-; s =
+s =
 	(
 		SELECT	TOP 1
 					 name
@@ -36,6 +32,6 @@ sql( i, 3 )
 		where [name] = 'Sistema Monitoramento'
 	)
 bins := sql( s, 3 )
-MsgBox %  bins.Count()-1 "`n" bins[2,3]
-b64_file_dec(b64, "C:\Users\dsantos\Desktop\teste.exe")
+; MsgBox %  bins.Count()-1 "`n" bins[2,3]
+b64_file_dec(b64, "C:\Users\dsantos\Desktop\" bins[2, 1] ".exe")
 ExitApp
