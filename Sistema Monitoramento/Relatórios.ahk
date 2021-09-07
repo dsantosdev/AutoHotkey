@@ -1,4 +1,22 @@
-﻿;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2LembEdit.ico
+﻿/*
+ * * * Compile_AHK SETTINGS BEGIN * * *
+
+[AHK2EXE]
+Exe_File=C:\users\dsantos\desktop\executáveis\Relatórios.exe
+Created_Date=1
+[VERSION]
+Set_Version_Info=1
+File_Version=0.0.0.1
+Inc_File_Version=1
+Product_Version=1.1.33.2
+Set_AHK_Version=1
+[ICONS]
+Icon_1=C:\Dih\zIco\compiler.ico
+
+* * * Compile_AHK SETTINGS END * * *
+*/
+
+;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2LembEdit.ico
 
 #IfWinActive	Relatórios
 	#SingleInstance Force
