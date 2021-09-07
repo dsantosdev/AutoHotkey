@@ -189,6 +189,9 @@ atualizaIris:
 	; OutputDebug % "Senhas id's padrões=`t" vw.Count() "`nClientes com Partilha=`t" partilha.Count()-1
 	GuiControl, , _a,	Atualizando Usuários | Restantes:
 
+	; for i in vw
+		; saida .= vw[i].cliente "`n"
+		; MsgBox % vw.Count() "`n" Clipboard := saida
 	for i in vw
 	{
 		cliente	:= vw[i].cliente
@@ -243,6 +246,9 @@ atualizaIris:
 				VALUES
 					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'	,'%tel1%'	,'%tel2%'	)
 			)
+		if (cliente < 10002
+		||	cliente > 10999 )
+			MsgBox % Clipboard:=sql_update
 		sql( sql_update )
 
 		; OutputDebug % "Inserindo informações:`nIndex = " i "`n`tid_iris= " id_iris "`n`tcliente= " cliente "`n`tnome= " nome "`n`toperador= " operador "`n`tid_vw= " id_vw
@@ -320,6 +326,20 @@ atualizaIris:
 					,	"Atualização de usuários do Iris"
 					,	"Os colaboradores abaixo possuem senha e não foram encontrados no cadastro de colaboradores da cotrijal:`n" usuarios_remover )
 		}
+	update =
+		(
+		UPDATE
+			[IrisSQL].[dbo].[Usuarios]
+		SET
+			Cliente = b.Cliente
+		FROM
+			[IrisSQL].[dbo].[Usuarios]  a
+			INNER JOIN [IrisSQL].[dbo].[Clientes]  b
+			ON a.IdCliente = b.IdUnico
+		WHERE
+			b.IdUnico = a.IdCliente
+		)
+		sql( update )
 return
 
 GuiClose:
