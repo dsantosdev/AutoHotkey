@@ -4,9 +4,10 @@
 [AHK2EXE]
 Exe_File=C:\users\dsantos\desktop\executáveis\Relatórios.exe
 Created_Date=1
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "Relatórios" "0.0.0.4" """
 [VERSION]
 Set_Version_Info=1
-File_Version=0.0.0.1
+File_Version=0.0.0.3
 Inc_File_Version=1
 Product_Version=1.1.33.2
 Set_AHK_Version=1
