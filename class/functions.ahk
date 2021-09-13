@@ -1,5 +1,5 @@
 ﻿
-Base64Dec( ByRef B64, ByRef Bin )			{  ; By SKAN / 18-Aug-2017
+Base64Dec( ByRef B64, ByRef Bin ) {  ; By SKAN / 18-Aug-2017
 	Local Rqd := 0, BLen := StrLen(B64)                 ; CRYPT_STRING_BASE64 := 0x1
 	DllCall( "Crypt32.dll\CryptStringToBinary", "Str",B64, "UInt",BLen, "UInt",0x1
 			, "UInt",0, "UIntP",Rqd, "Int",0, "Int",0 )
@@ -9,31 +9,31 @@ Base64Dec( ByRef B64, ByRef Bin )			{  ; By SKAN / 18-Aug-2017
 	Return Rqd
 }
 
-Base64Enc( ByRef Bin, nBytes, LineLength := 64, LeadingSpaces := 0 ) { ; By SKAN / 18-Aug-2017
-	Local Rqd := 0, B64, B := "", N := 0 - LineLength + 1  ; CRYPT_STRING_BASE64 := 0x1
-	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin ,"UInt",nBytes, "UInt",0x1, "Ptr",0,   "UIntP",Rqd )
+Base64Enc( ByRef Bin, bytes, lenght := 64, l_spaces := 0 ) { ; By SKAN / 18-Aug-2017
+	Local Rqd := 0, B64, B := "", N := 0 - lenght + 1  ; CRYPT_STRING_BASE64 := 0x1
+	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin ,"UInt",bytes, "UInt",0x1, "Ptr",0,   "UIntP",Rqd )
 	VarSetCapacity( B64, Rqd * ( A_Isunicode ? 2 : 1 ), 0 )
-	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin, "UInt",nBytes, "UInt",0x1, "Str",B64, "UIntP",Rqd )
-	If ( LineLength = 64 and ! LeadingSpaces )
+	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin, "UInt",bytes, "UInt",0x1, "Str",B64, "UIntP",Rqd )
+	If ( lenght = 64 and ! l_spaces )
 		Return B64
 	B64 := StrReplace( B64, "`r`n" )        
-	Loop % Ceil( StrLen(B64) / LineLength )
-		B .= Format("{1:" LeadingSpaces "s}","" ) . SubStr( B64, N += LineLength, LineLength ) . "`n" 
+	Loop % Ceil( StrLen(B64) / lenght )
+		B .= Format("{1:" l_spaces "s}","" ) . SubStr( B64, N += lenght, lenght ) . "`n" 
 	Return RTrim( B,"`n" )    
 }
 
-b64_file_enc(FileName)						{
+b64_file_enc(FileName) {
 	FileGetSize, nBytes, %FileName%
 	FileRead, Bin, *c %FileName%
 	return Base64Enc(Bin, nBytes)
 }
 
-b64_file_dec(ByRef B64, FileName)			{
+b64_file_dec(ByRef B64, FileName) {
 	nBytes := Base64Dec(B64, Bin)
 	FileOpen(FileName, "w").RawWrite(Bin, nBytes)
 }
 
-chrome_history()							{	;	Bloqueia a exclusao de historico
+chrome_history() {	;	Bloqueia a exclusao de historico
 	RegRead,	history,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
 	if ( history != 0 )	{
 		RegWrite, REG_DWORD,	HKEY_LOCAL_MACHINE, SOFTWARE\Policies\Google\Chrome,	AllowDeletingBrowserHistory,	0
@@ -42,7 +42,7 @@ chrome_history()							{	;	Bloqueia a exclusao de historico
 	return	OK
 }
 
-chrome_incognito()							{	;	Bloqueia modo anonimo
+chrome_incognito() {	;	Bloqueia modo anonimo
 	RegRead,	incognito,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
 	if ( incognito != 0 )	{
 		RegWrite, REG_DWORD,	HKEY_LOCAL_MACHINE, SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled,	0
@@ -51,7 +51,7 @@ chrome_incognito()							{	;	Bloqueia modo anonimo
 	return	OK
 }
 
-datetime( sql = "0", date = "" )			{
+datetime( sql = "0", date = "" ) {
 	If (	sql = 2
 		&&	StrLen( date ) = 0 )	{
 		MsgBox,0x40,ERRO, A função datetime() em modo SQL 2`, necessita que seja enviado o valor date para funcionar.
@@ -66,14 +66,134 @@ datetime( sql = "0", date = "" )			{
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
 }
 
-FormatSeconds( Seconds )					{
+formatseconds( Seconds ) {
 	time := 19990101
 	time += Seconds, seconds
 	FormatTime, mmss, %time%, mm:ss
 	return Seconds//3600 ":" mmss
 }
 
-search_delay( delay = "500", done = "0" )	{
+json(ByRef src, args*) {
+	static q := Chr(34)
+	
+	key := "", is_key := false
+	stack := [ tree := [] ]
+	is_arr := Object(tree, 1) ; ahk v1                    ; orig -> is_arr := { (tree): 1 }
+	next := q "{[01234567890-tfn"
+	pos := 0
+	
+	while ( (ch := SubStr(src, ++pos, 1)) != "" ) {
+		if InStr(" `t`n`r", ch)
+			continue
+		if !InStr(next, ch, true) {
+			testArr := StrSplit(SubStr(src, 1, pos), "`n")
+			ln := testArr.Length()
+			
+			col := pos - InStr(src, "`n",, -(StrLen(src)-pos+1))
+
+			msg := Format("{}: line {} col {} (char {})"
+			,   (next == "")      ? ["Extra data", ch := SubStr(src, pos)][1]
+			  : (next == "'")     ? "Unterminated string starting at"
+			  : (next == "\")     ? "Invalid \escape"
+			  : (next == ":")     ? "Expecting ':' delimiter"
+			  : (next == q)       ? "Expecting object key enclosed in double quotes"
+			  : (next == q . "}") ? "Expecting object key enclosed in double quotes or object closing '}'"
+			  : (next == ",}")    ? "Expecting ',' delimiter or object closing '}'"
+			  : (next == ",]")    ? "Expecting ',' delimiter or array closing ']'"
+			  : [ "Expecting JSON value(string, number, [true, false, null], object or array)"
+			    , ch := SubStr(src, pos, (SubStr(src, pos)~="[\]\},\s]|$")-1) ][1]
+			, ln, col, pos)
+
+			throw Exception(msg, -1, ch)
+		}
+		
+		is_array := is_arr[obj := stack[1]] 
+		
+		if i := InStr("{[", ch) { ; start new object / map?
+			val := (i = 1) ? Object() : Array()	; ahk v1
+			
+			is_array ? obj.Push(val) : obj[key] := val
+			stack.InsertAt(1,val)
+			
+			is_arr[val] := !(is_key := ch == "{")
+			next := q (is_key ? "}" : "{[]0123456789-tfn")
+		}
+		else if InStr("}]", ch) {
+			stack.RemoveAt(1)
+			next := stack[1]==tree ? "" : is_arr[stack[1]] ? ",]" : ",}"
+		}
+		else if InStr(",:", ch) {
+			is_key := (!is_array && ch == ",")
+			next := is_key ? q : q "{[0123456789-tfn"
+		}
+		else { ; string | number | true | false | null
+			if (ch == q) { ; string
+				i := pos
+				while i := InStr(src, q,, i+1) {
+					val := StrReplace(SubStr(src, pos+1, i-pos-1), "\\", "\u005C")
+					if (SubStr(val, 0) != "\")
+						break
+				}
+				if !i ? (pos--, next := "'") : 0
+					continue
+
+				pos := i ; update pos
+
+				val := StrReplace(val,    "\/",  "/")
+				 val := StrReplace(val, "\" . q,    q)
+				,val := StrReplace(val,    "\b", "`b")
+				,val := StrReplace(val,    "\f", "`f")
+				,val := StrReplace(val,    "\n", "`n")
+				,val := StrReplace(val,    "\r", "`r")
+				,val := StrReplace(val,    "\t", "`t")
+
+				i := 0
+				while i := InStr(val, "\",, i+1) {
+					if (SubStr(val, i+1, 1) != "u") ? (pos -= StrLen(SubStr(val, i)), next := "\") : 0
+						continue 2
+
+					xxxx := Abs("0x" . SubStr(val, i+2, 4)) ; \uXXXX - JSON unicode escape sequence
+					if (A_IsUnicode || xxxx < 0x100)
+						val := SubStr(val, 1, i-1) . Chr(xxxx) . SubStr(val, i+6)
+				}
+				
+				if is_key {
+					key := val, next := ":"
+					continue
+				}
+			}
+			else { ; number | true | false | null
+				val := SubStr(src, pos, i := RegExMatch(src, "[\]\},\s]|$",, pos)-pos)
+				
+				static number := "number", integer := "integer", float := "float"
+				if val is %number%
+				{
+					if val is %integer%
+						val += 0
+					if val is %float%
+						val += 0
+					else if (val == "true" || val == "false")
+						val := %val% + 0
+					else if (val == "null")
+						val := ""
+					else if is_key {					; else if (pos--, next := "#")
+						pos--, next := "#"					; continue
+						continue
+					}
+				}
+				
+				pos += i-1
+			}
+			
+			is_array ? obj.Push(val) : obj[key] := val
+			next := obj == tree ? "" : is_array ? ",]" : ",}"
+		}
+	}
+	
+	return tree[1]
+}
+
+search_delay( delay = "500", done = "0" ) {
 	if ( done = 0 )
 		Loop
 		{
@@ -87,7 +207,7 @@ search_delay( delay = "500", done = "0" )	{
 		Return	done = 0
 }
 
-http( url )									{
+http( url ) {
 	static req := ComObjCreate( "Msxml2.XMLHTTP" )
 	req.open( "GET", url, false )
 	req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )	;	login local do dguard(admin)
@@ -96,7 +216,7 @@ http( url )									{
 	return	%	req.responseText
 }
 
-login( @usuario, @senha, @admin = "" )		{
+login( @usuario, @senha, @admin = "" ) {
 	if ( @admin != "" )	{
 		if InStr( admins, @usuario )
 			return DllCall(	"advapi32\LogonUser"
@@ -125,7 +245,7 @@ login( @usuario, @senha, @admin = "" )		{
 									:	"0"
 }
 
-notificar( )								{
+notificar( ) {
 	s =
 		(
 		SELECT TOP(1)	p.IdCliente
@@ -171,7 +291,7 @@ notificar( )								{
 	return	last_id
 }
 
-send_mail( destino, assunto, corpo, at:="")	{
+send_mail( destino, assunto, corpo, at:="") {
 	pmsg := ComObjCreate("CDO.Message")
 	pmsg.From := """Sistema Monitoramento"" <CapitaoCaverna@cotrijal.com.br>"
 	pmsg.To := destino
@@ -198,7 +318,7 @@ send_mail( destino, assunto, corpo, at:="")	{
 	return
 }
 
-update( comando = "" )						{
+update( comando = "" ) {
 	q = UPDATE [ASM].[dbo].[_gestao_sistema] SET [complemento1] = '%up%' WHERE [descricao] = '%ip%'
 	sql(q, 3)
 	if ( StrLen( sql_le ) = 0 )

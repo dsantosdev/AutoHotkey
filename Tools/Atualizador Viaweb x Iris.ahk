@@ -8,8 +8,9 @@ Created_Date=1
 Set_Version_Info=1
 Company_Name=Heimdall
 File_Description=Atualizador de usuários do Painel de Monitoramento do Iris
-File_Version=1.0.0.1
+File_Version=1.0.0.3
 Inc_File_Version=1
+Original_Filename=Atualizador Viaweb x Iris.ahk
 Product_Version=1.1.33.2
 Set_AHK_Version=1
 [ICONS]
@@ -95,7 +96,7 @@ sql:
 			e.[valor] NOT IN ('0000','9999') and
 			d.partilha = 0
 			%todos%
-		ORDER BY 1, 4
+		ORDER BY 1, 3
 		)
 
 	q := sql( s )

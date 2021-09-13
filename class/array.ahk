@@ -38,6 +38,7 @@
 				}
 			Return list.Count() = "" || list.Count() = "0" ? "0" :	list
 			}
+		Return 0
 	}
 
 	InDict(Array,SearchText,key_is="",partial="0",fill="")	{
