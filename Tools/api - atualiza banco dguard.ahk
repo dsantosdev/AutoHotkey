@@ -18,9 +18,6 @@ Icon_1=C:\Dih\zIco\fun\cor.ico
 * * * Compile_AHK SETTINGS END * * *
 */
 
-
-;	http://vdm02:8081/api/servers/%7BC7AF107B-F8EF-4BC8-B7C9-F33F08993D41%7D/contact-id
-
 ;@Ahk2Exe-SetMainIcon	C:\Dih\zIco\fun\cor.ico
 	#Persistent
 	#SingleInstance Force
@@ -34,17 +31,6 @@ Icon_1=C:\Dih\zIco\fun\cor.ico
 	#Include ..\class\string.ahk
 	#Include ..\class\sql.ahk
 	; #Include ..\class\windows.ahk
-;
-
-
-;	Teste local
-	; MsgBox % string.Remove_accents( "ÁÀ" )
-	; token := Dguard.token( , "admin" , "admin" )
-	; loop, 150	{
-	; 	comando	= "http://SERVIDOR:8081/api/contact-id/receivers" -H "accept: application/json" -H "Authorization: bearer %token%" -H "Content-Type: application/json" -d "{ \"name\": \"id-%A_Index%\", \"code\": %A_Index%, \"protocol\": 0, \"enabled\": false}"
-	; 	OutputDebug % Dguard.curl( comando , "localhost" , "POST"  )
-	; }
-	; 	MsgBox
 ;
 
 ;	Definições
@@ -214,45 +200,45 @@ Icon_1=C:\Dih\zIco\fun\cor.ico
 ;
 
 ;	Popula a tabela sql com as informações
-d =
-	(
-		DELETE FROM
-			[Dguard].[dbo].[cameras]
+	d =
+		(
+			DELETE FROM
+				[Dguard].[dbo].[cameras]
 
-	)
-	sql( d , 3 )
-i =
-	(
-	INSERT INTO
-		[Dguard].[dbo].[cameras]
-			([name]
-			,[guid]
-			,[active]
-			,[connected]
-			,[ip]
-			,[port]
-			,[vendormodel]
-			,[contactId]
-			,[offlineSince]
-			,[operador]
-			,[sinistro]
-			,[url]
-			,[server]
-			,[api_get]
-			,[receiver]
-			,[partition]
-			,[id]	)
-		VALUES
-			%output%
-	)
-;
-sql( i , 3 )
-if ( StrLen( sql_le ) > 2 )	{
-	Clipboard:=sql_lq
-	MsgBox % sql_le
-}
-Else
-	MsgBox % "Dados Atualizados."
+		)
+		sql( d , 3 )
+	i =
+		(
+		INSERT INTO
+			[Dguard].[dbo].[cameras]
+				([name]
+				,[guid]
+				,[active]
+				,[connected]
+				,[ip]
+				,[port]
+				,[vendormodel]
+				,[contactId]
+				,[offlineSince]
+				,[operador]
+				,[sinistro]
+				,[url]
+				,[server]
+				,[api_get]
+				,[receiver]
+				,[partition]
+				,[id]	)
+			VALUES
+				%output%
+		)
+	;
+	sql( i , 3 )
+	if ( StrLen( sql_le ) > 2 )	{
+		Clipboard:=sql_lq
+		MsgBox % sql_le
+	}
+	Else
+		MsgBox,,,% "Dados Atualizados.", 1
 ExitApp
 
 
