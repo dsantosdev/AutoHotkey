@@ -145,6 +145,7 @@ Class	String		{
 
 	Remove_accents( word )			{
 		chars :={	a:"[áàâǎăãảạäåāąấầẫẩậắằẵẳặǻ]"
+			,		A:"[áàâǎăãảạäåāąấầẫẩậắằẵẳặǻ]"
 			,		c:"[ćĉčċç]"
 			,		d:"[ďđð]"
 			,		e:"[éèêěĕẽẻėëēęếềễểẹệ]"
@@ -165,8 +166,8 @@ Class	String		{
 			,		y:"[ýỳŷÿỹỷỵ]"
 			,		z:"[źžż]"	}
 		For replace, find in chars
-			word :=	RegExReplace( word, find, replace )
-			OutputDebug % word
+			word :=	RegExReplace( word, "i)" find, replace )	;	i) para ignorar case sensitive
+			; word :=	RegExReplace( word, find, replace )	;	i) para ignorar case sensitive
 		Return	word
 	}
 
