@@ -1,17 +1,24 @@
 ﻿Class	dguard {
 
 	curl( comando , server = "" , tipo = "" )	{
+		comando	:=	StrReplace( comando , "`n" )
 		DetectHiddenWindows On
 		Run %ComSpec%,, Hide, pid
 		WinWait ahk_pid %pid%
 		DllCall( "AttachConsole" , "UInt" , pid )
 		WshShell := ComObjCreate( "Wscript.Shell" )
-		if ( StrLen( tipo ) > 0 )
-			exec := WshShell.Exec( "cmd /c curl -X " StrReplace( tipo , "TIPO" , tipo )	" "	StrReplace( comando , "servidor" , server ) )
-		else if ( server = "" )
+		if ( StrLen( tipo ) > 0 && StrLen( server ) > 0 )	{												;	Tem servidor e tipo
+			; clipboard := "curl -X " tipo " " StrReplace( comando , "servidor" , server ) 
+			exec := WshShell.Exec( "cmd /c curl -X " tipo " " StrReplace( comando , "servidor" , server ) )
+			}
+		else if ( StrLen( tipo ) > 0 && StrLen( server ) = 0 )												;	Não tem servidor e tem tipo
+			exec := WshShell.Exec( "cmd /c curl -X " tipo " " comando )
+		else if ( StrLen( tipo ) = 0 && StrLen( server ) > 0 )												;	Tem servidor e não tem tipo
+			exec := WshShell.Exec( "cmd /c curl -X " StrReplace( comando , "servidor" , server ) )
+		else if ( ( StrLen( TIPO ) = 0 && StrLen( SERVER ) = 0 ) && InSTr( COMANDO , "GET" ) = 0 )			;	Não tem servidor e não tem tipo, mas não é do tipo GET
+			exec := WshShell.Exec( "cmd /c curl -X " comando )
+		else																								;	Tipo GET
 			exec := WshShell.Exec( "cmd /c curl -X GET " comando " -d" )
-		else
-			exec := WshShell.Exec( "cmd /c curl -X GET " StrReplace( StrReplace( comando , "servidor" , server ) , " -d" ) )
 		DllCall( "FreeConsole" )
 		Process Close,%	pid
 		return exec.StdOut.ReadAll()
