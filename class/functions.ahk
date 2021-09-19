@@ -207,10 +207,13 @@ search_delay( delay = "500", done = "0" ) {
 		Return	done = 0
 }
 
-http( url ) {
+http( url , token = "") {
 	static req := ComObjCreate( "Msxml2.XMLHTTP" )
 	req.open( "GET", url, false )
-	req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )	;	login local do dguard(admin)
+	if	( token = "" )
+		req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )	;	login local do dguard(admin)
+	Else
+		req.SetRequestHeader( "Authorization", token )	;	bearer custom
 	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
 	req.send()
 	return	%	req.responseText
@@ -290,6 +293,22 @@ notificar( ) {
 	GuiControl,	debug:,	debug4,% s[2,6] " - " last_id
 	return	last_id
 }
+
+ping( address )	{
+	rVal := []
+	Loop, Parse, address, % A_Space
+		addr	.=	addr
+				?	A_Space "or Address = '" A_LoopField "'"
+				:	 A_LoopField "'"
+	colPings := ComObjGet( "winmgmts:" ).ExecQuery( "Select * From Win32_PingStatus where Address = '" addr )._NewEnum
+	While colPings[ objStatus ]
+		rVal.Push( [ ( ( oS := ( objStatus.StatusCode = "" or objStatus.StatusCode <> 0 ) ) ? "0" : "1" ) , objStatus.Address ] )
+	if ( InStr( Address , A_Space ) > 0 )	;	Multi Addresses or not
+		Return rVal
+	Else
+		Return ( ( oS := ( objStatus.StatusCode = "" or objStatus.StatusCode <> 0 ) ) ? "0" : "1" )
+}
+
 
 send_mail( destino, assunto, corpo, at:="") {
 	pmsg := ComObjCreate("CDO.Message")
