@@ -24,7 +24,7 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 	,	edicoes				;	guicontext
 
 ;local Vars
-	is_test =
+	is_test = 
 	debug = 
 	gototab = 
 	WinGetPos,,,,taskbar, ahk_class Shell_TrayWnd
@@ -132,7 +132,7 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 			FileCopy, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\Operador.exe,% A_ScriptDir "\Operador.exe", 1
 		}
 		if ( is_test = 1 )	{
-			@usuario = jwecker
+			@usuario = dsantos
 			Goto interface
 		}
 		Else
@@ -147,8 +147,8 @@ Interface:
 	gui.Cores( "individual", "9BACC0", "374658" )
 		gui.Font( "individual:", "S11", "Bold", "cWhite" )
 		Gui, individual:-Caption -Border
-		Gui, individual:Add,	Button,%	"x" A_ScreenWidth-100 "	y1										h25													g_informacoes"								,	Informações
-	Gui, individual:Add, Tab3,%		"x5		y5	w" A_ScreenWidth-5 	"							v@tab	g_tab"	,	Relatório Individual|Registros|Fechar
+		Gui, individual:Add,	Button,%	"x" A_ScreenWidth-100 "	y" A_ScreenHeight-taskbar-27 "			h25	g_informacoes"												,	Informações
+	Gui, individual:Add, Tab3,%		"x5		y5	w" A_ScreenWidth-5 	"	 h" A_ScreenHeight-taskbar-10 "	v@tab	g_tab Bottom"												,	Relatório Individual|Registros|Fechar
 		Gui, individual:Add,	MonthCal,%	"								w230							h465							v@data				g_busca_data					Section"
 		Gui, individual:Add,	Text,%		"						ys		w" A_ScreenWidth-275 "			h25																			+Center	0x1000"		,	Buscar
 			gui.Font( "individual:" )
@@ -163,7 +163,7 @@ Interface:
 		Gui, individual:Add,	Button,%	"xs-240															h30													g_insere_novo_relatorio"					,	Salvar Novo Relatório
 	Gui, Individual:Tab, Registros
 			Gui.Font( "individual:", "S12", "cWhite", "Bold" )
-		Gui, individual:Add,	Text,%		"x20		w" A_ScreenWidth-32			"									v@user			Center	0x1200"						,%	nm_usuario_ad
+		Gui, individual:Add,	Text,%		"x20	y20	w" A_ScreenWidth-32			"									v@user			Center	0x1200"						,%	nm_usuario_ad
 			Gui.Font( "individual:", "S10" )
 		Gui, individual:Add,	Button,%	"			w"(A_ScreenWidth-20)/2		"									v@intervalo						Section	gintervalo"	,	Registrar Saída Para Intervalo
 		Gui, individual:Add,	Button,%	"		ys	w"(A_ScreenWidth-20)/2-25	"									v@banheiro								gbanheiro"	,	Registrar Saída Para Banheiro
@@ -177,7 +177,7 @@ Interface:
 				Gui.Font( "individual:", "S10", "cWhite" )
 			Gui, individual:Add, Text,		xs											h50								vc_media		Center		0x1000
 				Gui.Font( "individual:" )
-		Gui, individual:Add,	ListView,%	"xs			w"A_ScreenWidth-32			"	h"A_ScreenHeight-taskbar-260 "	vlv_registros			Grid	AltSubmit"			,	Motivo|Saída|Retorno|Duração|For_filter
+		Gui, individual:Add,	ListView,%	"xs			w"A_ScreenWidth-32			"	h"A_ScreenHeight-taskbar-270 "	vlv_registros			Grid	AltSubmit"			,	Motivo|Saída|Retorno|Duração|For_filter
 			Gosub, Carrega_Relatorios
 	Gui, individual:Show,%			"x-2	y0	w" A_ScreenWidth+2	"	h"A_ScreenHeight-taskbar				,	Operador
 	if ( gototab <> 0 )
@@ -212,7 +212,7 @@ _tab:
 				Guicontrol, +Redraw +cB8B8B8, c_banheiro
 		;
 		if ( is_test = 1 )
-			nm_usuario_ad = jwecker
+			nm_usuario_ad = dsantos
 		GuiControlGet, c_media, pos
 		GuiControl,	Individual:MoveDraw, c_media,% "x" c_mediax-7 " w"A_ScreenWidth - c_mediax - 13
 		; MsgBox % c_mediax
@@ -234,7 +234,7 @@ _tab:
 		if ( StrLen( c_data ) = 0 )
 			a_partir_de := ""
 		LV_Delete()
-		nomes := (id := array.InDict(user_pre,@usuario,login))	!=	0
+		nomes := (id := array.InDict( user_pre , @usuario , "login" ) )	!=	0
 																?	"([nome] = '" nm_usuario_ad "' or [nome] = '" user_pre[id].user "' or [nome] = '" @usuario "')"
 																:	"[nome] = '" nm_usuario_ad "'"
 		; OutputDebug % nomes
@@ -255,6 +255,7 @@ _tab:
 				[pkid]
 			DESC
 			)
+			; Clipboard := s
 		registros := sql( s, 3 )
 		Loop,%	registros.Count()-1	{
 			if ( A_Index = 1 )
