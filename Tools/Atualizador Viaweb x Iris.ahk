@@ -8,13 +8,13 @@ Created_Date=1
 Set_Version_Info=1
 Company_Name=Heimdall
 File_Description=Atualizador de usuários do Painel de Monitoramento do Iris
-File_Version=1.0.0.3
+File_Version=1.0.0.5
 Inc_File_Version=1
 Original_Filename=Atualizador Viaweb x Iris.ahk
 Product_Version=1.1.33.2
 Set_AHK_Version=1
 [ICONS]
-Icon_1=C:\Dih\zIco\fun\cor.ico
+Icon_1=C:\Dih\zIco\fun\cap.ico
 
 * * * Compile_AHK SETTINGS END * * *
 */
@@ -32,11 +32,34 @@ Icon_1=C:\Dih\zIco\fun\cor.ico
 	#Include ..\class\sql.ahk
 	#Include ..\class\windows.ahk
 
+if ( A_UserName = "monitoramento" )	{
+	MsgBox,,, O usuário MONITORAMENTO não tem permissão para executar esse sistema.
+	ExitApp
+}
+	
+
 ;	Dictionaries and arrays
 	remover	:=	{}
 	vw		:=	{}
 	update	:=	{}
 	tem_pai	:=	[]
+;
+
+;	limpa usuários em branco
+	d	=
+		(
+		DELETE
+		FROM	[vw_programação].[dbo].[USUARIOS]
+		WHERE
+			(	LEN( [NOME] )	= 0
+			OR	[NOME]			IS NULL ) 
+				AND
+			(	LEN( [CODIGO] )	= 0
+			OR	[CODIGO]		IS NULL )
+				AND
+			( [CODIGO_REMOTO]	LIKE 'FFFF`%' )
+		)
+	sql( d , 3 )
 ;
 
 ;	Vars
@@ -324,12 +347,12 @@ atualizaIris:
 				INSERT INTO [IrisSQL].[dbo].[Usuarios]
 					(	[Cliente]	,[Particao]	,[Codigo_Usuario]	,[Nome_Usuario]	,[Cargo]	,[PrioridadeLigar]	,[IdCliente]	,[Fone]		,[FCelular]	)
 				VALUES
-					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'		,'%tel1%'	,'%tel2%'	)
+					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'	,'%tel1%'	,'%tel2%'	)
 				)
 				sql_le =
 			sql( insere_usuarios )
 			if ( StrLen(sql_le) > 0 )
-				MsgBox % sql_le "`n" Clipboard:=sql_lq
+				MsgBox % sql_le "`n" Clipboard := sql_lq
 		GuiControl, , _e,%	restantes - i
 		}
 	}
@@ -342,23 +365,24 @@ atualizaIris:
 	;	notificar por e-mail os usuários inexistentes
 		if ( remover.Count() > 0 )	{
 			Loop % remover.count()	;	Dict com os usuarios demitidos
-				usuarios_remover.= remover[A_Index].user_id "`t" remover[A_Index].local "`t" remover[A_Index].matricula "`n"
+				usuarios_remover .= remover[A_Index].local "`n`tMatrícula:`t  " remover[A_Index].matricula "`n`tID da Senha:`t" remover[A_Index].user_id "`n`n"
 			mail.new(	"monitoramento@cotrijal.com.br"
 					,	"Atualização de usuários do Iris"
-					,	"Os colaboradores abaixo possuem senha e não foram encontrados no cadastro de colaboradores da cotrijal:`n" usuarios_remover )
+					,	"Os colaboradores abaixo possuem senha e não foram encontrados no cadastro de colaboradores da cotrijal:`n" usuarios_remover
+					,	"monitoramento@cotrijal.com.br"	)
 		}
 	update =
 		(
 		UPDATE
 			[IrisSQL].[dbo].[Usuarios]
 		SET
-			Cliente = b.Cliente
+			Cliente = b.[Cliente]
 		FROM
 			[IrisSQL].[dbo].[Usuarios]  a
 			INNER JOIN [IrisSQL].[dbo].[Clientes]  b
-			ON a.IdCliente = b.IdUnico
+			ON a.[IdCliente] = b.[IdUnico]
 		WHERE
-			b.IdUnico = a.IdCliente
+			b.[IdUnico] = a.[IdCliente]
 		)
 		sql( update )
 return
