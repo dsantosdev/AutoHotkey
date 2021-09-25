@@ -58,31 +58,34 @@ Icon_1=C:\Dih\zIco\compiler.ico
 ;	INTERFACE
 	Gui.Cores()
 	Gui, -Caption -Border
+		Gui.Font( "S10" , "Bold" , "cWhite" )
+	Gui, Add, Tab3,%		"x5	y5	w" A_ScreenWidth-5 	" h" A_ScreenHeight-taskbar-10 " vtab g_tab	Bottom"	,	Relatórios|Fechar
 	;	Bloco 1 Esquerda
-		Gui, Add, MonthCal,		y10	w225		gs_mes		vmes
+		Gui, Add, MonthCal,	x20	y20	w225		gs_mes		vmes
 			Gui.Font( "Bold", "c2BDC33" )
-		Gui, Add, Checkbox,						gs_mes		vPeriodo			Checked		,	Filtrar a partir do dia selecionado
+		Gui, Add, Checkbox,						gs_mes		vPeriodo			Checked		,	Filtrado por dia
 		Gui, Add, Checkbox,						gs_mes		vOp1		Section	Checked		,	Operador 1
 		Gui, Add, Checkbox,		ys				gs_mes		vOp2				Checked		,	Operador 2
 		Gui, Add, Checkbox,	xs					gs_mes		vOp3		Section	Checked		,	Operador 3
 		Gui, Add, Checkbox,		ys				gs_mes		vOp4				Checked		,	Operador 4
 		Gui, Add, Checkbox,	xs					gs_mes		vOp5		Section	Checked		,	Operador 5
-		Gui, Add, Checkbox,		ys				gs_mes		vOp6				Checked		,	Monitoramento
+		Gui, Add, Checkbox,		ys				gs_mes		vOp6				Checked		,	Especial
 			Gui.Font( "cWhite" )
-		Gui, Add, Text,		xs		w225	h17							0x1000	Center		,	Buscar contendo palavra
+		Gui, Add, Text,		xs					w225	h17				0x1000	Center		,	Buscar contendo palavra
 			Gui.Font()
 		Gui, Add, Edit,			yp+20	w225	gs_mes		vBusca
 			Gui.Font( "Bold", "c2BDC33" )
-		Gui, Add, Checkbox,						gs_mes		vev_especial	%d%	%c%			,	Filtrar apenas Eventos Especiais
+		Gui, Add, Checkbox,						gs_mes		vev_especial	Section	%d%	%c%	,	Filtrar apenas Eventos Especiais
 			Gui.Font()
 	;
 
 	;	ListView de Eventos
-		Gui, Add, ListView,%	"y10	w" A_ScreenWidth-255	"	gSelectLV	veventos	Grid	R25		AltSubmit"	,	Disparo|Finalizou|Relatório|Cliente|Unidade|start|end|id_cliente|ev_final
+			Gui.Font( "S10" )
+		Gui, Add, ListView,% "x260 y20	w" A_ScreenWidth-270	"	gSelectLV	veventos	Grid	R22		AltSubmit"	,	Disparo|Finalizou|Relatório|Cliente|Unidade|start|end|id_cliente|ev_final
 		LV_ModifyCol( 1, 80 )
 		LV_ModifyCol( 2, 80 )
-		LV_ModifyCol( 3, 500 )
-		LV_ModifyCol( 4, 45 )
+		LV_ModifyCol( 3, 490 )
+		LV_ModifyCol( 4, 60 )
 		LV_ModifyCol( 5, 290 )
 		LV_ModifyCol( 6, 0 )
 		LV_ModifyCol( 7, 0 )
@@ -92,16 +95,16 @@ Icon_1=C:\Dih\zIco\compiler.ico
 
 	;	Header Bloco 3 Horizontal
 			Gui.Font( "Bold", "cFFFFFF" )
-		Gui, Add, Text,%	"x10		w" (A_ScreenWidth-30)/2 "	h20	Section	0x1000	Center"	,	RELATÓRIO
-		Gui, Add, Text,%	"		ys	w" (A_ScreenWidth-30)/2 "	h20			0x1000	Center"	,	SEQUÊNCIA DE EVENTOS
+		Gui, Add, Text,%	"x20	ys+170	w" (A_ScreenWidth-30)/2-10 "	h20	Section	0x1000	Center"	,	RELATÓRIO
+		Gui, Add, Text,%	"		ys		w" (A_ScreenWidth-30)/2-2	 "	h20			0x1000	Center"	,	SEQUÊNCIA DE EVENTOS
 			Gui.Font()
 	;
 
 	;	ListView de Eventos Selecionados
 			Gui.Font( "S10" )
-		Gui, Add, Edit,%	"x10	w" (A_ScreenWidth-30)/2 "	h" A_ScreenHeight-taskbar-505 "	Section	vdescritivo	+VScroll"
+		Gui, Add, Edit,%	"x20 yp+25	w" (A_ScreenWidth-30)/2-10 "	h" A_ScreenHeight-taskbar-555 "	Section	vdescritivo	+VScroll"
 			Gui.Font()
-		Gui, Add, ListView,%	"ys	w" (A_ScreenWidth-30)/2 "	h" A_ScreenHeight-taskbar-505	"		vocorridos	Grid"	,	Unidade|Data|Evento|XXX|Descrição
+		Gui, Add, ListView,%	"ys		w" (A_ScreenWidth-30)/2-2	 "	h" A_ScreenHeight-taskbar-555	"		vocorridos	Grid"	,	Unidade|Data|Evento|XXX|Descrição
 	;
 
 	;	Gui Show
@@ -124,6 +127,12 @@ Icon_1=C:\Dih\zIco\compiler.ico
 	Send,	{Down}
 return
 
+_tab:
+Gui, Submit, NoHide
+	if ( tab = "Fechar" )
+		ExitApp
+Return
+
 s_mes:
 	search_delay()
 	Gui, Submit, NoHide
@@ -143,12 +152,12 @@ s_mes:
 		else
 			periodoz	:=	"AND (CAST(a.[Disparo] AS DATE) >= '"	mes	"' AND CAST(a.[Disparo] AS DATE) <= '" Today "')"
 		}
-		else	{
-			GuiControl,	+cB8B8B8 +Redraw, periodo
-			GuiControl,	,	Periodo,	Filtrar por dia?
-			FormatTime,	mes,	%mes%,	yyyy-MM-dd
-			periodoz	:=	"AND CAST(a.Disparo AS DATE) >= '"	mes "'"
-		}
+	else	{
+		GuiControl,	+cB8B8B8 +Redraw, periodo
+		GuiControl,	,	Periodo,	Filtrar por dia?
+		FormatTime,	mes,	%mes%,	yyyy-MM-dd
+		periodoz	:=	"AND CAST(a.Disparo AS DATE) >= '"	mes "'"
+	}
 	;	Operadores
 		operadores := []
 		operador =
@@ -338,7 +347,7 @@ busca_informações:
 			if ( StrLen( hora_arme ) > 1 )
 				fim_disparo :=	"`t[DESARMADO]`tàs "	hora_desarme ".`n`t[ATIVADO]`tàs " hora_arme	zInibidas
 			if ( StrLen( hora_restauro ) > 1 )
-				fim_disparo	:=	"`t[RESTAURADO]o`tàs "	hora_restauro
+				fim_disparo	:=	"`t[RESTAURADO]`tàs "	hora_restauro
 			encerramento	=	Disparo as %hora_disparo%, nas zonas:%sensores%`n%fim_disparo%`n`n%descricao%
 		}
 		Else	{
@@ -356,11 +365,11 @@ busca_informações:
 	}
 	Else
 		o	:=	relatorio
-	LV_ModifyCol( 1, 200 )
+	LV_ModifyCol( 1, 150 )
 	LV_ModifyCol( 2, 120 )
 	LV_ModifyCol( 3, 50 )
 	LV_ModifyCol( 4, 40 )
-	LV_ModifyCol( 5, 295 )
+	LV_ModifyCol( 5, 255 )
 	GuiControl, , Descritivo,%	o "`n_____________`n" operador_final
 	relatorio:=operador_final:=""
 return
