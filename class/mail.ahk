@@ -1,8 +1,13 @@
 ﻿Class	Mail	{
 
-	new( to, subject, body, attach := "" )	{
+	new( to, subject, body, from := "", attach := "" )	{
+		if ( StrLen( from ) = 0 )
+			from := """Sistema Monitoramento"" <do-not-reply@cotrijal.com.br>"
+		Else
+			from := """Sistema Monitoramento"" <" from ">"
+		OutputDebug % from
 		pmsg							:= ComObjCreate( "CDO.Message" )
-		pmsg.From						:= """Sistema Monitoramento"" <do-not-reply@cotrijal.com.br>"
+		pmsg.From						:= from
 		pmsg.To							:= to
 		pmsg.Subject					:= subject
 		pmsg.TextBody					:= body
