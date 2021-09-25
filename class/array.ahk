@@ -62,9 +62,14 @@
 		if ( StrLen(key_is) != 0 and partial = 0 )	{
 			For index in Array
 				For key, ArrayText in Array[index]
-					if ( key = key_is )
+				{
+					; MsgBox % key "`t" key_is
+					if ( key = key_is )	{
+						; MsgBox % ArrayText "`n" SearchText
 						if ( ArrayText = SearchText )
 							return	index
+					}
+				}
 			}
 		if ( StrLen(key_is) != 0 and partial = 1 )	{
 			list:=[]
@@ -77,7 +82,7 @@
 						}
 			; OutputDebug % "Lista: " list.Count()
 			}
-		return list.Count()=""?0:list
+		return list.Count() = "" ? 0 : list
 	}
 
 	QueryInDict(Array, params*)								{
