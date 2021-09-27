@@ -20,15 +20,15 @@ Icon_1=C:\Dih\zIco\compiler.ico
 ;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2LembEdit.ico
 
 #IfWinActive	Relatórios
-	#SingleInstance Force
+	#SingleInstance	Force
 	#Persistent
-	#Include ..\class\alarm.ahk
-	; #Include ..\class\array.ahk
-	#Include ..\class\functions.ahk
-	#Include ..\class\gui.ahk
-	; #Include ..\class\safedata.ahk
-	#Include ..\class\sql.ahk
-	; #Include ..\class\windows.ahk
+	#Include	..\class\alarm.ahk
+	; #Include	..\class\array.ahk
+	#Include	..\class\functions.ahk
+	#Include	..\class\gui.ahk
+	; #Include	..\class\safedata.ahk
+	#Include	..\class\sql.ahk
+	; #Include	..\class\windows.ahk
 ;
 
 ;	Local vars
@@ -95,18 +95,26 @@ SelectLV:
 		||	A_GuiEvent = K	)
 		row := A_EventInfo
 	lastrow := row
-	LV_GetText(	operador_final	, row,	2)
-	LV_GetText(	relatorio		, row,	3)
-	LV_GetText(	end				, row,	6)
-	LV_GetText(	start			, row,	7)
-	LV_GetText(	id_cliente		, row,	8)
-	LV_GetText(	ev_final		, row,	9)
+	LV_GetText(	operador_final	, row,	2	)
+	LV_GetText(	relatorio		, row,	3	)
+	LV_GetText(	end				, row,	6	)
+	LV_GetText(	start			, row,	7	)
+	LV_GetText(	id_cliente		, row,	8	)
+	LV_GetText(	ev_final		, row,	9	)
 return
+
+;	Preenche Lista de Unidades
+	s =
+		(
+		
+		)
+
+;
 
 ~Enter::
 	~NumpadEnter::
 	Gui,	Submit,	NoHide
-	; goto	s_mes
+	;	goto	s_mes
 ;
 
 Esc::
