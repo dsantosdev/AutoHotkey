@@ -6,44 +6,44 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 	,	relatorio_anterior	;	guicontext
 	,	pkid				;	guicontext
 	,	edicoes				;	guicontext
-is_test = 
-debug = 
+is_test	=
+debug	=
 
-#IfWinActive, Login Cotrijal
-#SingleInstance Force
+#IfWinActive,	Login Cotrijal
+#SingleInstance	Force
 #Persistent
-#Include ..\class\sql.ahk
-#Include ..\class\functions.ahk
-#Include ..\class\windows.ahk
-#Include ..\class\array.ahk
-#Include ..\class\gui.ahk
-#Include ..\class\safedata.ahk
+#Include		..\class\sql.ahk
+#Include		..\class\functions.ahk
+#Include		..\class\windows.ahk
+#Include		..\class\array.ahk
+#Include		..\class\gui.ahk
+#Include		..\class\safedata.ahk
 
 ; #Include classes.ahk
 
 if ( A_IsCompiled )	{
 	usuario_logado := a_args[1]
 	if ( usuario_logado = "liberar" )
-		goto skip
+		goto	skip
 	if ( usuario_logado = "" )
 		ExitApp
-		Else	{
-			nome_user := Windows.Users( usuario_logado )
-			S =
-				(
-				SELECT
-					[cargo]
-				FROM
-					[ASM].[dbo].[_colaboradores]
-				WHERE
-					[nome] = '%nome_user%'
-				)
-			s := sql( s, 3 )
-			if ( InStr(s[2,1], "Agente de monitoramento") = 0 )	{
-				MsgBox, , Finalizando,% "Seu cargo (" S[2,1] ") não tem autorização para acessar esse sistema."
-				ExitApp
-				}
+	Else	{
+		nome_user := Windows.Users( usuario_logado )
+		S =
+			(
+			SELECT
+				[cargo]
+			FROM
+				[ASM].[dbo].[_colaboradores]
+			WHERE
+				[nome] = '%nome_user%'
+			)
+		s := sql( s, 3 )
+		if ( InStr(s[2,1], "Agente de monitoramento") = 0 )	{
+			MsgBox, , Finalizando,% "Seu cargo (" S[2,1] ") não tem autorização para acessar esse sistema."
+			ExitApp
 			}
+	}
 	;	Update
 	skip:
 	version = 1.0.0.6
@@ -381,13 +381,69 @@ Return
 
 GuiClose:
 	loginGuiCLose:
-	if ( StrLen(@usuario) != 0 and StrLen(@senha) != 0 or is_login = 0 )	{
+	if ( StrLen( @usuario ) != 0 && StrLen( @senha ) != 0 || is_login = 0 )	{
 		if ( debug = 1 )
 			OutputDebug % "Login Gui Close"
 		login_in := Login(@usuario,@senha) = 0 ? 0 : 1
 		if ( login_in = 0 )	{
 			Gui,	Login:Destroy
-			MsgBox,,Falha de Login, Usuário ou Senha inválido!
+			s = SELECT TOP(1) [falhas] FROM [ASM].[dbo].[_login_fail] WHERE [user] = '%@usuario%' AND [falhas] < 3 ORDER BY [pkid] DESC
+				s := sql( s , 3 )
+				fails := Strlen( s[2 , 1] )
+				falhas := fails+1
+				if ( fails >= 3 ) {	;	Bloqueio
+					s =
+						(
+						UPDATE [ASM].[dbo].[_login_fail]
+						SET
+							 [data] = GETDATE()
+							,[libera] = DATEADD( mi, 30,getdate())
+							,[falhas] = '%falhas%'
+						WHERE
+							[user] = '%@usuario%'
+						)
+					sql( s , 3 )
+				}
+				Else if ( fails < 3 AND fails > 0 )	{	;	1 a 3
+					s =
+						(
+						UPDATE [ASM].[dbo].[_login_fail]
+						SET [falhas] = '%falhas%'
+						WHERE
+							[user] = '%@usuario%'
+						)
+					sql( s , 3 )
+				}
+				Else {	;	0
+					s =
+						(
+						INSERT INTO [ASM].[dbo].[_login_fail]
+						SET [falhas] = '%falhas%'
+						WHERE
+							[user] = '%@usuario%'
+						)
+					sql( s , 3 )
+				}
+			MsgBox,,Falha de Login,% "Usuário ou Senha inválido!`nVerifique se o NUMLOCK do teclado está ativado e se a tecla CAPSLOCK está ou não ativada!" fails = 0 ? "" : "`nSeu login falhou " fails+1 " vezes, na terceira falha o usuário " @usuario " será bloqueado por 30 minutos.
+			s =
+				(
+				IF NOT EXISTS (SELECT TOP(1) [falhas] FROM [ASM].[dbo].[_login_fail] WHERE [user] = '%@usuario%' and [falhas] < 3 ORDER BY [pkid] DESC)
+					INSERT INTO
+					[ASM].[dbo].[_login_fail]
+						(	 [user]
+							,[data]
+							,[libera]
+							,[falhas]	)
+					VALUES
+						(	 '@usuario'
+							,''
+							,''
+							,''	)
+				ELSE
+					UPDATE [ASM].[dbo].[_login_fail]
+						SET Col1 = Val1, Col2 = Val2, ...., ColN = ValN
+					WHERE ID = @SomeID
+				)
 			}
 		}
 		OnExit, Relatorio_Temporario
