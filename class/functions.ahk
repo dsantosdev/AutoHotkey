@@ -309,8 +309,7 @@ ping( address )	{
 		Return ( ( oS := ( objStatus.StatusCode = "" or objStatus.StatusCode <> 0 ) ) ? "0" : "1" )
 }
 
-
-send_mail( destino, assunto, corpo, at:="") {
+send_mail( destino, assunto, corpo, at:="") {	;	REMOVER - há classe disso já
 	pmsg := ComObjCreate("CDO.Message")
 	pmsg.From := """Sistema Monitoramento"" <CapitaoCaverna@cotrijal.com.br>"
 	pmsg.To := destino
