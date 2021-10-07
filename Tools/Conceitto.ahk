@@ -38,21 +38,22 @@ inicio	:=	A_Now
 	global	debug = 
 		,	info_das_cameras	:= {}
 		,	receiversx			:= {}
+		Coordmode, ToolTip, Screen
 ;
 
 ;	Tokens dos servidores
-	ToolTip, Requisitando token do servidor 1 , 50 , 50
-	token_1 := Dguard.token( "vdm01" )
+	ToolTip, Requisitando token do servidor 1 , 50 , 100
+	token_1 := Dguard.token( "vdm01", "cjal2021","conceitto" )
 		OutputDebug % StrLen( token_1 ) > 0
 										? "-Obtido token 1`n`t" token_1
 										: "Falha ao obter token 1"
-	ToolTip, Requisitando token do servidor 2 , 50 , 50
-	token_2 := Dguard.token( "vdm02" )
+	ToolTip, Requisitando token do servidor 2 , 50 , 100
+	token_2 := Dguard.token( "vdm02", "cjal2021","conceitto"  )
 		OutputDebug % StrLen( token_2 ) > 0
 										? "-Obtido token 2`n`t" token_2
 										: "Falha ao obter token 2"
-	ToolTip, Requisitando token do servidor 3 , 50 , 50
-	token_3 := Dguard.token( "vdm03" )
+	ToolTip, Requisitando token do servidor 3 , 50 , 100
+	token_3 := Dguard.token( "vdm03", "cjal2021","conceitto"  )
 		OutputDebug % StrLen( token_3 ) > 0
 										? "-Obtido token 3`n`t" token_3 "`n"
 										: "Falha ao obter token 3`n"
@@ -64,7 +65,7 @@ inicio	:=	A_Now
 
 	json_return := json( Dguard.http( "http://vdm01:8081/api/servers", token_1 ) )
 		Loop,% json_return.servers.Count()	{
-		ToolTip,% "-Armazenando os dados das câmeras do servidor 1 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count(), 50 , 50
+		ToolTip,% "-Armazenando os dados das câmeras do servidor 1 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
 			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
 			receiver := json( http( "http://vdm01:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_1 ) )
 			json_camera := Dguard.Server( "vdm01" , _guid , token_1 )
@@ -124,7 +125,7 @@ inicio	:=	A_Now
 
 	json_return := json( Dguard.http( "http://vdm02:8081/api/servers", token_2 ) )
 		Loop,% json_return.servers.Count() {
-			ToolTip,% "-Armazenando os dados das câmeras do servidor 2 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count(), 50 , 50
+			ToolTip,% "-Armazenando os dados das câmeras do servidor 2 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
 			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
 			receiver := json( http( "http://vdm02:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_2 ) )
 			json_camera := Dguard.Server( "vdm02" , _guid , token_2 )
@@ -184,9 +185,9 @@ inicio	:=	A_Now
 	}
 
 	json_return := json( Dguard.http( "http://vdm03:8081/api/servers", token_3 ) )
-		ToolTip,% "-Armazenando os dados das câmeras do servidor 3 do dguard em array." , 50 , 50
+		ToolTip,% "-Armazenando os dados das câmeras do servidor 3 do dguard em array." , 50 , 100
 		Loop,% json_return.servers.Count() {
-			ToolTip,% "-Armazenando os dados das câmeras do servidor 3 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 50
+			ToolTip,% "-Armazenando os dados das câmeras do servidor 3 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
 			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
 			receiver := json( http( "http://vdm03:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_3 ) )
 			json_camera := Dguard.Server( "vdm03" , _guid , token_3 )
@@ -266,7 +267,7 @@ inicio	:=	A_Now
 ;
 
 ;	Popula a tabela sql com as informações
-	ToolTip, Populando o Banco de Dados , 50 , 50
+	ToolTip, Populando o Banco de Dados , 50 , 100
 	d =
 		(
 			DELETE FROM
@@ -306,8 +307,8 @@ inicio	:=	A_Now
 	}
 	Else	{
 		decorrido := A_Now - inicio
-		ToolTip, % "Dados Atualizados.`nTempo decorrido = " formatseconds( decorrido ), 50 , 50
-		outputdebug, % "Dados Atualizados.`nTempo decorrido = " formatseconds( decorrido ), 50 , 50
+		ToolTip, % "Dados Atualizados.`nTempo decorrido = " formatseconds( decorrido ) , 50 , 100
+		outputdebug, % "Dados Atualizados.`nTempo decorrido = " formatseconds( decorrido ) , 50 , 100
 	}
 ;	ToolTip, Iniciando 
 
@@ -344,13 +345,15 @@ ToolTip
 	Gui, Add, Checkbox,			ys		w300	h30		v_definidos	g_filtro			, Exibir apenas câmeras já configuradas
 	Gui.Font( )
 	Gui.Font( "S10" , "Bold" )
-	Gui, Add, ListView,	x10		y50		w615	h700	v_listview				Grid	, Nome|Ip|Receptora|Conta|guid|id|server|api
+	Gui, Add, ListView,	x10		y50		w615	h700	v_listview				Grid	, Nome|Ip|Receptora|Conta|guid|id|Servidor|api
 		LV_ModifyCol( 1 , 175 )
 		LV_ModifyCol( 2 , 100 )
-		LV_ModifyCol( 3 , 100 )
-		LV_ModifyCol( 4 , 100 )
-		Loop, 4
-			LV_ModifyCol( A_Index + 4, 0 )
+		LV_ModifyCol( 3 , 100 " integer" )
+		LV_ModifyCol( 4 , 100 " integer" )
+		LV_ModifyCol( 5 , 0 )
+		LV_ModifyCol( 6 , 0 )
+		LV_ModifyCol( 7 , 75 )
+		LV_ModifyCol( 8 , 0 )
 		Gosub, preenche_listview
 	Gui, Add, Button,	xm				w300	h30					g_copyUrl	Section	, Copiar URL
 	Gui, Add, Button,			ys		w300	h30		gGuiClose						, Cancelar
@@ -405,7 +408,6 @@ _filtro:
 		where = WHERE ( [name] like '`%%_busca%`%' OR [ip] like '`%%_busca%`%' ) AND [receiver] != 10001
 	Else
 		where = WHERE [name] like '`%%_busca%`%' OR [ip] like '`%%_busca%`%'
-		Clipboard:=where
 	LV_Delete()
 Goto, preenche_listview
 
