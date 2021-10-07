@@ -1,6 +1,6 @@
 ﻿Class	dguard {
 
-	curl( comando , server = "" , tipo = "" )	{
+	curl( comando , server = "" , tipo = "" )									{
 		comando	:=	StrReplace( comando , "`n" )
 		DetectHiddenWindows On
 		Run %ComSpec%,, Hide, pid
@@ -24,7 +24,7 @@
 		return exec.StdOut.ReadAll()
 	}
 
-	get_image( guid_da_camera , token = "" ) {
+	get_image( guid_da_camera , token = "" )									{
 		horario := A_Now 
 		static req := ComObjCreate( "Msxml2.XMLHTTP" )
 		req.open(	"GET"
@@ -59,7 +59,7 @@
 			MsgBox Arquivo não existe
 	}
 
-	Mover( win_id := "", win_title := "A" ) {
+	Mover( win_id := "", win_title := "A" )										{
 		if ( StrLen( win_id  ) = 0 )	{
 			if ( StrLen( win_title ) > 1 )
 				WinActivate,%	win_title
@@ -73,18 +73,26 @@
 		return
 	}
 
-	token( server = "" , pass = "" , user = "" )	{
+	token( server = "" , pass = "" , user = "" )								{
+		ip_s = 160									;	Prepara var com os ips do monitoramento
+			Loop, 20
+				monitoramento .= ip_s+A_Index ","
+				monitoramento .= "184"
+				ip := StrSplit( A_IpAddress1 , "." )
+		if (user = "conceitto"
+		&&	StrLen( pass ) = 0 )					;	Específico para o sistema da conceitto
+			pass = cjal2021
 		server	:=	StrLen( server )		=	0	;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
-		pass	:=	StrLen( pass )			=	0	;	parâmetro de senha não enviado, define como senha padrão(colunas de operador, rede interna)
-									?	"@dm1n"
-									:	pass
 		user	:=	StrLen( user )			=	0	;	parâmetro de usuário não enviado
 									?	"admin"
 									:	user
 		pass	:=	InStr( server , "vdm" )	>	0	;	se o parâmetro de servidor conter "vdm", define a senha padrão
-											?	"admin"
+											?	StrLen( pass ) = 0
+												?	InStr( monitoramento , ip[4] )
+													?	"admin"	:	pass
+												:	pass
 											:	pass
 		url	=	"http://%server%:8081/api/login" -H "accept: application/json"  -H "Content-Type: application/json" -d "{ \"username\": \"%user%\", \"password\": \"%pass%\"}"
 		retorno	:=	StrReplace(	Dguard.curl( url , server , "POST" ) , """" )
@@ -92,7 +100,7 @@
 		return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
 	}
 
-	http( url , token )									{
+	http( url , token )															{
 		static req := ComObjCreate( "Msxml2.XMLHTTP" )
 		req.open( "GET", url, false )
 		req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
@@ -114,7 +122,7 @@
 			return "Value '" value "' not found in array."
 	}
 
-	server( server = "" , guid = "" , token = "" )	{
+	server( server = "" , guid = "" , token = "" )								{
 		server	:=	StrLen( server )	=	0	;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
@@ -124,3 +132,4 @@
 	}
 
 }
+
