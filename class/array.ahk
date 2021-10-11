@@ -1,6 +1,7 @@
 ﻿Class Array	{
 
 	InArray(Array, SearchText, Partial="0")					{
+		; OutputDebug % searchtext
 		if ( debug > 2 )
 			OutputDebug % "_____InArray`n`tSearchText: " SearchText "`n`tArray: " array.Count() "`n`tPartial: " partial "`n"
 		if ( StrLen( SearchText ) = 0 )	{
@@ -42,6 +43,7 @@
 	}
 
 	InDict(Array,SearchText,key_is="",partial="0",fill="")	{
+		; OutputDebug % SearchText
 		if ( fill = 1 )	{
 			list:=[]
 			For index in Array

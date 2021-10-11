@@ -1,42 +1,28 @@
 ﻿;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2Agenda.ico
 
-; #Include ..\class\classes.ahk
-#Include ..\class\sql.ahk
-#Include ..\class\array.ahk
-#Include ..\class\safedata.ahk
-#Include ..\class\gui.ahk
-#Include ..\class\windows.ahk
-#Include ..\class\string.ahk
-#Include ..\class\functions.ahk
+#Include C:\Users\dsantos\Desktop\AHK\AHK - GIT\Libs\_.ahk
+#Include C:\Users\dsantos\Desktop\AHK\AHK - GIT\Libs\_arrays.ahk
+Global	Coded
+	,	Base_Key
+	,	Alfabeto:="abcdefghijklmnopqrstuvwxyz"
 #SingleInstance,	Force
 #IfWinActive		Agenda - Avisos - Ocomon - Frota
 #NoTrayIcon
+
 Menu,	Tray,	Icon
 Menu,	Tray,	Tip,	Agenda - Avisos - Ocomon - Frota
-
-;Goto, Login
-interface:
-test =
-debug = 0
-if ( debug = 1 )
-	OutputDebug % "interface"
-Gui, Login:Destroy
 
 if ( A_UserName != "dsantos" )
 	Menu, Tray,  NoStandard
 if ( A_UserName = "arsilva" )
 	admin	=	1	
-	else if (	A_UserName = "alberto"
-			||	A_UserName = "llopes"
-			||	A_UserName = "dsantos" )
-		admin	=	2	
+	else if ( A_UserName = "alberto" || A_UserName = "llopes" || A_UserName = "dsantos" )
+	admin	=	2	
 	else
-		admin	=	0
+	admin	=	0
 ;return
 
-;	GUI 
-	if ( debug = 1 )
-		OutputDebug % "GUI " SubStr( A_Now, -1 )
+;	GUI
 	;	Configurações
 		if ( admin = 1 )	;	Header
 			header=Agenda|Avisos|Ocomon|Frota|Registro|Vigilantes
@@ -44,16 +30,16 @@ if ( A_UserName = "arsilva" )
 			header=Agenda|Avisos|Ocomon|Frota|Registro|Vigilantes|Relatórios Monitoramento ;|Detecções de Imagem|Sinistros em Andamento
 			else
 				header=Agenda|Avisos|Ocomon|Frota|Registro
-		Gui.Cores()
+		GuiConfig.Cores()
 	;	Tab	1	-	Agenda
 		Gui,	Font,		S11	cWhite	Bold
-		Gui,	Add,		Tab3,		x5		y5		w1250			vtab		gOnTabSelect	AltSubmit						,	%	header
+		Gui,	Add,		Tab3,		x5		y5		w1250			vtab		gOnTabSelect	AltSubmit		 				,	%header%
 			Gui,	Font
 		Gui,	Add,		MonthCal,	x10		y35		w230	h163	vmcall		g_date
 		;	FILTROS
 			Gui,	Font,	Bold	cFFFFFF
 			Gui,	Add, Text,			x245	y40		w120	h20														,	ÚLTIMOS EVENTOS
-			Gui,	Add, DropDownList,	x370	y35						vOperador	g_date		AltSubmit				,	Todos|Operador 1|Operador 2|Operador 3|Operador 4|Operador 5
+			Gui,	Add, DropDownList,	x370	y35						vOperador	g_date			AltSubmit			,	Todos|Operador 1|Operador 2|Operador 3|Operador 4|Operador 5
 			Gui,	Add, Checkbox,		x500	y40		w550			vPeriodo	g_date								,	Filtrado por dia
 			Gui,	Add, Text,			x1055	y40		w60																,	Contendo:
 			Gui,	Font
@@ -64,9 +50,7 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
 			Gui,	Font
 		Gui,	Add,		Edit,		x10		y235	w1235	h300	veditbox
-			gosub	carrega_lv 
-			if ( debug = 1 )
-				OutputDebug % "Agenda carregada " SubStr( A_Now, -1 )
+			gosub	carrega_lv
 	;	Tab	2	-	Avisos
 		Gui,	Tab,			2
 			Gui,	Font,		S11	cWhite	Bold
@@ -78,9 +62,7 @@ if ( A_UserName = "arsilva" )
 			Gui,	Font,		S11	cWhite	Bold	
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
 			Gui,	Font
-		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox2 
-			if ( debug = 1 )
-				OutputDebug % "Avisos " SubStr( A_Now, -1 )
+		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox2
 	;	Tab	3	-	Ocomon
 		Gui,	Tab,		3
 			Gui,	Font,		S11	cWhite	Bold
@@ -93,8 +75,6 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
 			Gui,	Font
 		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox3
-			if ( debug = 1 )
-				OutputDebug % "Ocomon " SubStr( A_Now, -1 )
 	;	Tab 4	-	Frota
 		Gui,	Tab,		4
 			Gui,	Font,		S11	cWhite	Bold
@@ -107,8 +87,6 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
 			Gui,	Font
 		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox4
-			if ( debug = 1 )
-				OutputDebug % "Frota " SubStr( A_Now, -1 )
 	;	Tab 5	-	Registros
 		Gui,	Tab,		5
 		if ( admin = 1 || admin = 2 )	{
@@ -132,8 +110,6 @@ if ( A_UserName = "arsilva" )
 			Gui,	Add,	Button,			x110	y515					vmudar	gChange			%d%								,	MODO OPERADOR
 			if ( admin = 1 || admin = 2 )
 				gosub	registros
-					if ( debug = 1 )
-						OutputDebug % "Voltou registros admin " SubStr( A_Now, -1 )
 		;	Modo operador
 			Gui,	Font,	S10	Bold	cWhite
 			Gui,	Add,	Text,		x10		%e%				y28		w1240							h30	v_user		Center	0x1200
@@ -149,8 +125,6 @@ if ( A_UserName = "arsilva" )
 			Gui,	Add,	Text,%		"x"((1240/2)+5)*1	"	y108	w"(1240/2)+5	"	"	e	"	h20	v_b_volta	Right		0x1000"
 				Gui,	Font
 			Gui,	Add,	Button,		x10						y130					g_relatorio_individual v_relatorio_individual %e%	,	Relatório Individual
-				if ( debug = 1 )
-					OutputDebug % "Fim Registro "  SubStr( A_Now, -1 )
 	;	Tab 6	-	Vigilantes
 		Gui,	Tab,		6
 			Gui,	Font,	S11	cWhite	Bold
@@ -163,8 +137,6 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,	Text,			x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
 			Gui,	Font
 		Gui,	Add,	Edit,			xp		y235	w1235	h300	veditbox6
-			if ( debug = 1 )
-				OutputDebug % "Vigilantes " SubStr( A_Now, -1 )
 	;	Tab 7	-	Relatórios Individuais - ADMIN MODE
 		Gui,	Tab,	7
 		Gui,	Add,	DateTime,		x10		y35		w150	h25		v@data_relatorio	g_busca_relatorio_individual
@@ -172,21 +144,18 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,	Button,			x935	y60		w300	h30							g_busca_relatorio_individual							,	Efetuar busca em relatórios
 			Gui,	Font,	S11	cWhite	Bold
 		Gui,	Add,	Checkbox,		x165	y30				h30		v@100				g_top_100						Checked					,	Buscando os 100 últimos relatórios
-		Gui,	Add,	Checkbox,		x450	y30				h30		v@Vistos			g_top_100												,	Incluir relatórios já visualizados
 		Gui,	Add,	Text,			x10		y60		w617	h30										Center	0x1200								,	USUÁRIO
 		Gui,	Add,	Text,			x628	y60		w300	h30										Center	0x1200								,	Buscar relatórios que contenham:
 		Gui,	Add,	DropDownList,	x10		y100	w617			v@usuarios_ddl		g_busca_relatorio_individual						R26
 			Gui,	Font
 			Gui,	Font, S10
-		Gui,	Add,	ListView,		x10		y140	w400			vlv_relatorios		g_exibe_relatorio_individual	AltSubmit	Grid	R19	,	Data|Operador|Relatório|Antigos|user_ad|pkid|visto|por
+		Gui,	Add,	ListView,		x10		y140	w400			vlv_relatorios		g_exibe_relatorio_individual	AltSubmit	Grid	R19	,	Data|Operador|Relatório|Antigos|user_ad|pkid
 			LV_ModifyCol(1,80)
 			LV_ModifyCol(2,130)
 			LV_ModifyCol(3,185)
 			LV_ModifyCol(4,0)
 			LV_ModifyCol(5,0)
-			LV_ModifyCol(6,0)
-			LV_ModifyCol(7,0)
-			LV_ModifyCol(8,0)
+			Gosub, _carrega_relatorio_individual
 		Gui,	Add,	Edit,			x410	y140	w835	h408	vedb_relatorios
 			Gui,	Font
 		; Gui,	Add,	Button,			x10		y515					vrel				gGeraRelatorio				,	Gerar Relatório
@@ -201,13 +170,9 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,	Text,			x10		y305	w1235	h20								Center		0x1000				,	Conteúdo
 			Gui,	Font
 		Gui,	Add,	Edit,			xp		y325	w1235	h210	veditbox8
-			if ( debug = 1 )
-				OutputDebug % "Detecção " SubStr( A_Now, -1 )
 	;	Tab 9	-	Sinistros
 		Gui,	Tab,	9
 		Gui,	Add,	ListView,	x10		y35		w1235	vlv9	AltSubmit	Grid	R28	NoSort	,	Operador|Usuário do Iris|Hora Inicial do Sinistro|Hora Final do Sinistro|Verificou Imagens|Ocorrências
-			if ( debug = 1 )
-				OutputDebug % "Sinistros " SubStr( A_Now, -1 )
 	Gui,	Show,						x0		y0																									,	Agenda - Avisos - Ocomon - Frota
 		Send,	{Down}
 		if ( trocou = 1 )	{
@@ -220,10 +185,10 @@ _top_100:
 	Gui, Submit, NoHide
 	GuiControl, , @100, % @100 = 1 ? 1 : 0
 	if ( @100 = 1 )	{
-		busca_usuario := @busca_relatorio := busca_data := ""
+		busca_usuario:=@busca_relatorio:=busca_data:=""
 		GuiControl, , @busca_relatorios
 		GuiControl, , @data_relatorio,	%	A_Now
-		GuiControl,	Choose,	@usuarios_ddl,	1
+		GuiControl, Choose, @usuarios_ddl , 1
 		}
 	Else	{
 		ano := SubStr( A_Now, 1, 4 )
@@ -236,8 +201,10 @@ _top_100:
 
 _busca_relatorio_individual:
 	Gui, Submit, NoHide
+
 	if ( StrLen( @busca_relatorios ) > 0 )
 		GuiControl, , @100, 0
+
 	if ( @last_data != SubStr( @data_relatorio, 1, 8 ) ) {
 		@100 = 0
 		GuiControl, , @100, 0
@@ -257,69 +224,41 @@ _busca_relatorio_individual:
 
 _carrega_relatorio_individual:
 	Gui, Submit, NoHide
-	visualizados := @vistos = 0
-							? ""
-							: "OR [visualizado] IS NOT NULL"
 	GuiControl, , @100, % @100 = 1 ? 1 : 0
 	Gui, ListView, lv_relatorios
 	LV_Delete()
-	top	:=	@100 = 1 ? "Top(100)" : ""
+
 	select =
 		(
-		SELECT	%top%
-			[data]
+		SELECT	[data]
 			,	[nome]
 			,	[relatorio]
 			,	[relatorio_pre_edit]
 			,	[user_ad]
 			,	[pkid]
-			,	[visualizado]
-			,	[usuario]
 		FROM
 			[ASM].[dbo].[_relatorios_individuais]
 		WHERE
 			[relatorio] like '`%`%'
 			%busca_usuario%
 			%busca_data%
-			AND ([visualizado] IS NULL
-			%visualizados%)
 		ORDER BY
 			1 DESC
 		)
-	if ( debug = 0 )
-		Clipboard:=select
-	relatorios := sql( select, 3 )
-	if ( debug = 1 )
-		OutputDebug % "Iniciou LV " SubStr( A_Now, -1 )
+	relatorios := adosql( select, 3 )
+
 	Loop,	% relatorios.Count()-1	{
-		if (	A_Index = 2 	
-			&&	StrLen( relatorios[A_Index,7] ) > 0 )
-			if ( StrLen( relatorios[A_Index,4] ) > 0 )
-				GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" relatorios[A_Index,8] "`nvisto em:`t" datetime( 2, relatorios[A_Index,7] ) "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre
-				Else
-					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" relatorios[A_Index,8] "`nvisto em:`t" datetime( 2, relatorios[A_Index,7] )
-			Else if ( A_Index = 2 )
-				if ( StrLen( relatorios[A_Index,4] ) > 0 )
-					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre
-					Else
-						GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio
-		
 		relatorio := Safe_Data.Decrypt( relatorios[A_Index+1,3], relatorios[A_Index+1,5] )
-		pre := Safe_Data.decrypt( relatorios[A_Index+1,4], relatorios[A_Index+1,5] )
 		if !InStr( relatorio, @busca_relatorios )
 			Continue
 		LV_Add(	""
 			,	SubStr( relatorios[A_Index+1,1] , 1, 10 )
-			,	String.Name( relatorios[A_Index+1,2] )
+			,	formata_nomes( relatorios[A_Index+1,2] )
 			,	relatorio
-			,	pre
+			,	relatorios[A_Index+1,4]
 			,	relatorios[A_Index+1,5]
-			,	relatorios[A_Index+1,6]
-			,	relatorios[A_Index+1,7]
-			,	relatorios[A_Index+1,8]	)
+			,	relatorios[A_Index+1,6]	)
 		}
-		if ( debug = 1 )
-			OutputDebug % "Finalizou LV " SubStr( A_Now, -1 )
 	if ( StrLen( usuarios_ddl ) = 0 )	{
 		s=
 			(
@@ -330,7 +269,7 @@ _carrega_relatorio_individual:
 			ORDER BY
 				1 ASC
 			)
-		users := sql( s, 3 )
+		users := adosql( s, 3 )
 		Loop, % users.Count()-1
 			usuarios_ddl .= users[A_Index+1,1] "|"
 		GuiControl, , @usuarios_ddl ,% "Todos||"	SubStr(usuarios_ddl,1,StrLen(usuarios_ddl)-1)
@@ -351,91 +290,26 @@ _exibe_relatorio_individual:
 		Return
 	keyboard = 0
 	is_k:
-		if ( A_GuiControl = "tab" )
-			Return
 		foi_busca = 0
 		Gui,	ListView,	lv_relatorios
 		Gui,	Submit,		NoHide
 		if ( keyboard = 0 )	{
-			LV_GetText( pkid_lv,			A_EventInfo	=	0
-														?	1
-														:	A_EventInfo, 6 )
 			LV_GetText( exibir_relatorio,	A_EventInfo	=	0
 														?	1
 														:	A_EventInfo, 3 )
 			LV_GetText( nome_user,			A_EventInfo	=	0
 														?	1
 														:	A_EventInfo, 2 )
-			LV_GetText( visto_as,			A_EventInfo	=	0
-														?	1
-														:	A_EventInfo, 7 )
-			LV_GetText( visto_por,			A_EventInfo	=	0
-														?	1
-														:	A_EventInfo, 8 )
-			LV_GetText( pre_edit,			A_EventInfo	=	0
-														?	1
-														:	A_EventInfo, 4 )
 			}
 			Else {
-				LV_GetText( pkid_lv,			LV_GetNext()	=	0
-															?	1
-															:	LV_GetNext(), 6 )
-				LV_GetText( exibir_relatorio,	LV_GetNext()	=	0
-															?	1
-															:	LV_GetNext(), 3 )
-				LV_GetText( nome_user,			LV_GetNext()	=	0
-															?	1
-															:	LV_GetNext(), 2 )
-				LV_GetText( visto_as,			LV_GetNext()	=	0
-															?	1
-															:	LV_GetNext(), 7 )
-				LV_GetText( visto_por,			LV_GetNext()	=	0
-															?	1
-															:	LV_GetNext(), 8 )
-				LV_GetText( pre_edit,			LV_GetNext()	=	0
-															?	1
-															:	LV_GetNext(), 4 )
+				LV_GetText( exibir_relatorio,	LV_GetNext(), 3 )
+				LV_GetText( nome_user,			LV_GetNext(), 2 )
 				}
-		if ( A_UserName = "Alberto" )	{
-			hora := datetime( 1 )
-			u =
-				(
-				DECLARE @check DATETIME
-				SELECT
-					@check = [visualizado]
-				FROM
-					[ASM].[dbo].[_relatorios_individuais]
-				WHERE
-					[pkid]	=	'%pkid_lv%'
-				IF @check IS NULL OR LEN(@check) = 0
-					UPDATE
-						[ASM].[dbo].[_relatorios_individuais]
-					SET
-						[usuario]		= 'Alberto',
-						[visualizado]	= '%hora%'
-					WHERE
-						[pkid]			= '%pkid_lv%'
-				)
-			sql( u, 3 )
-			}
-			if ( StrLen( visto_as ) > 0 )
-				if ( StrLen( pre_edit ) > 0 )
-					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" visto_por "`nvisto em:`t" datetime( 2, visto_as ) "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre_edit
-					Else
-						GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" visto_por "`nvisto em:`t" datetime( 2, visto_as )
-				Else
-					if ( StrLen( pre_edit ) > 0 )
-						GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre_edit
-						Else
-							GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio
+		GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio
 Return
 
 _relatorio_individual:
-	if !FileExist("C:\Dguard Advanced\relatorio_individual.exe")
-		FileCopy, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\relatorio_individual.exe, C:\Dguard Advanced\relatorio_individual.exe, 1
-	if ( StrLen( @usuario ) = 0 )
-		@usuario = liberar
-	Run, C:\Dguard Advanced\relatorio_individual.exe "%@Usuario%"
+	Run,	C:\Dguard Advanced\relatorio_individual.exe "Agenda_user"
 Return
 
 Change:
@@ -599,13 +473,12 @@ carrega_lv:
 				%operador%
 				%b%
 			ORDER BY
-				6 DESC;
-			DELETE FROM [IrisSQL].[dbo].[Agenda] WHERE [Assunto] LIKE '`%Informou`%';
+				6 DESC
 		)
 	;	bloco de selecionar multi datas	POR FAZER
 		; s:="SELECT Fkidaviso FROM [IrisSQL].[dbo].[AvisoAgenda] WHERE (DATEPART(yy,Dataagendado)=" SubStr(yday,1,4) " AND DATEPART(mm,Dataagendado)=" SubStr(yday,5,2) " AND DATEPART(dd,Dataagendado)=" SubStr(yday,7,2) ") order by 1 desc"
-		; s:=sql(s)
-	fill := sql(sqlv)
+		; s:=adosql(s)
+	fill := adosql(sqlv)
 	Loop, % fill.Count()-1	{
 		hour :=	fill[A_Index+1,2]
 		oper :=	fill[A_Index+1,3]
@@ -651,7 +524,7 @@ registros:
 			LV_ModifyCol(A_Index,"Center")
 	if ( d1 != "" )	{	;	Contém filtro por nome
 		reg	 =	SELECT [login],[login2] FROM [Sistema_Monitoramento].[dbo].[Operadores]	WHERE nome = '%d1%'
-		reg	 :=	sql(reg,3)
+		reg	 :=	adosql(reg,3)
 		res1 :=	StrReplace(reg[2,1],"`r`n")
 		res2 :=	StrReplace(reg[2,2],"`r`n")
 		if ( StrLen(res2 ) = 0 )
@@ -687,7 +560,7 @@ registros:
 			%isd%
 		)
 	
-	r :=	sql(r,3)
+	r :=	adosql(r,3)
 	Loop,	%	r.Count()-1
 		LV_Add(	""
 			,	r[A_Index+1,1]
@@ -725,7 +598,7 @@ deteccao:
 		ORDER BY
 			1 DESC
 		)
-	dete:=sql(dete,3)
+	dete:=adosql(dete,3)
 	LV_Delete()
 		LV_ModifyCol(1,115)
 		LV_ModifyCol(2,120)
@@ -927,7 +800,7 @@ OnTabSelect:
 			ORDER BY
 				2 DESC
 			)
-		fill := sql( sqlv )
+		fill := adosql( sqlv )
 		LV_ModifyCol(1,115)
 		LV_ModifyCol(2,1100)
 		Loop, % fill.Count()-1
@@ -966,7 +839,7 @@ OnTabSelect:
 			ORDER BY
 				2 DESC
 			)
-		fill := sql( sqlv )
+		fill := adosql( sqlv )
 		Loop, % fill.Count()-1
 			LV_Add("",	fill[A_Index+1,2],	fill[A_Index+1,3])
 			LV_ModifyCol(1,Sort)
@@ -1003,7 +876,7 @@ OnTabSelect:
 			ORDER BY
 				2 DESC
 			)
-		fill := sql( sqlv )
+		fill := adosql( sqlv )
 		Loop, % fill.Count()-1
 			LV_Add("",	fill[A_Index+1,2],	fill[A_Index+1,3])
 			LV_ModifyCol(1,Sort)
@@ -1024,7 +897,7 @@ OnTabSelect:
 			ORDER BY
 				2	DESC
 			)
-		u := sql( u )
+		u := adosql( u )
 		usuarioatual := u[2,1]
 		if ( StrLen( u[2,1] ) < 3 )
 			usuarioatual := A_IPAddress1
@@ -1041,7 +914,7 @@ OnTabSelect:
 			ORDER BY
 				1
 			)
-		login := sql( login, 3 )
+		login := adosql( login, 3 )
 		Loop,	%	login.Count()-1
 			l1 .= "|" login[A_Index+1,1] 
 		GuiControl,	,	d1,% "|" l1
@@ -1068,21 +941,18 @@ OnTabSelect:
 			ORDER BY
 				1 DESC
 			)
-		fill := sql( sqlv, 3 )
-		Loop, % fill.Count()-1
+		fill := adosql( sqlv, 3 )
+		Loop, % fill.Count()-1	{
 			LV_Add(	""
 				,	fill[A_Index+1,1]
 				,	Safe_Data.Decrypt( fill[A_Index+1,2], "vigilante" )
-				,	String.Name( fill[A_Index+1,3] )	)
+				,	Formata_nomes( fill[A_Index+1,3] )	)
+			}
 			LV_ModifyCol(1,Sort)
 		GuiControl	Focus,	lv6
 		}
-	if ( tab = 7 )	{
-		vistos = 0
-		Gosub, _carrega_relatorio_individual
-			if ( debug = 1 )
-				OutputDebug % "Carregou Relatórios Individuais "  SubStr( A_Now, -1 )
-		}
+	if ( tab = 7 )
+		goto _exibe_relatorio_individual
 	if ( tab = 8 )	{
 		Gui,	ListView,	lv8
 		eventos	=
@@ -1101,7 +971,7 @@ OnTabSelect:
 			ORDER BY
 				1 DESC
 			)
-		eventos := sql( eventos )
+		eventos := adosql( eventos )
 		LV_Delete()
 		Loop,	%	eventos.Count()-1
 			LV_Add(	""
@@ -1138,7 +1008,7 @@ OnTabSelect:
 			ORDER BY
 				1 DESC
 			)
-		eventos := sql( eventos )
+		eventos := adosql( eventos )
 		LV_Delete()
 		Loop, % eventos.Count()-1
 			LV_Add(	""
@@ -1174,11 +1044,10 @@ return
 
 Esc::
 	GuiClose:
-	LoginGuiClose:
 ExitApp
 
 GeraRelatorio:
-	Gui.Cores("relatorio")
+	GuiConfig.Cores("relatorio")
 		Gui,	relatorio:Font, cWhite Bold
 	Gui,	relatorio:Add,	Text,			x5		y0		w110	h20		0x1000								,	Operador
 	Gui,	relatorio:Add,	Text,			x5		y30		w110	h20		0x1000								,	Motivo
@@ -1208,26 +1077,33 @@ GeraRelatorio:
 return
 
 _intervalo:
-	if (	SubStr( A_Now, 9 ) < "070000"
-		||	SubStr(A_Now,9) > "200000" )	{
-		hoje := SubStr( Date.Format( A_Now ), 1, 10 )
+	if (SubStr( A_Now , 9 ) < "070000"
+	||	SubStr( A_Now , 9 ) > "200000" )	{
+		hoje := SubStr( formata_data( A_Now ) , 1 , 10 )
 		horav = 20:00:00
-		}
-		else {
-			hoje := SubStr( Date.Format( A_Now ), 1, 10 )
-			horav = 07:00:00
-			}
-	verifica_uso=	;	Verifica se alguém do TURNO ATUAL está com o intervalo marcado
+	}
+	else {
+		hoje := SubStr( formata_data( A_Now ) , 1 , 10 )
+		horav = 07:00:00
+	}
+	verifica_uso =	;	Verifica se alguém do TURNO ATUAL está com o intervalo marcado
 		(
-		SELECT TOP 1 * FROM [ASM].[dbo].[_registro_saidas]
+		SELECT TOP 1
+				[nome]
+			,	[saida]
+			,	[retorno]
+			,	[duracao]
+			,	[motivo]
+		FROM
+			[ASM].[dbo].[_registro_saidas]
 		WHERE
-			saida BETWEEN '%hoje% %horav%' AND GETDATE()
-			AND	retorno is null
-			AND	nome<>'%usuarioatual%'
+			[saida] BETWEEN '%hoje% %horav%' AND GETDATE()
+			AND	[retorno] IS NULL
+			AND	[nome] <> '%usuarioatual%'
 		ORDER BY
 			[SAIDA] DESC
 		)
-	em_uso := sql( verifica_uso, 3 )
+	em_uso := adosql( verifica_uso , 3 )
 	if ( em_uso.Count()-1 > 0 )	{
 		uso_user := em_uso[2,2]
 		saida_user := SubStr( em_uso[2,3],12 )
@@ -1245,14 +1121,14 @@ _intervalo:
 		GuiControl,	,	_l_volta
 		GuiControl,	,	_b_sai
 		GuiControl,	,	_b_volta
-		botao 		=	Registrar Retorno do Intervalo
-		GuiControl,	,	_l_sai,	%	"Saída: " Date.Now()
-		atualiza	=	INSERT INTO [ASM].[dbo].[_registro_saidas] ([nome],[motivo]) VALUES ('%usuarioatual%','Intervalo')
-		atualiza	:=	sql( atualiza, 3 )
+		botao 			=		Registrar Retorno do Intervalo
+		GuiControl,	,	_l_sai,	%	"Saída: " agora()
+		atualiza		=		INSERT INTO [ASM].[dbo].[_registro_saidas] ([nome],[motivo]) VALUES ('%usuarioatual%','Intervalo')
+		atualiza		:=	adosql(atualiza,3)
 		}
 		else	{					;	ao retornar
 			GuiControl,	Disable,	_snack
-			GuiControl,	,	_l_volta,	% "Retorno: " Date.Now()
+			GuiControl,	,	_l_volta,	% "Retorno: " agora()
 			botao = Registrar Saída Para Intervalo
 			atualiza =
 				(
@@ -1265,7 +1141,7 @@ _intervalo:
 					pkid = (SELECT TOP 1 [pkid] FROM [ASM].[dbo].[_registro_saidas] WHERE [retorno] IS NULL AND
 					[nome] = '%usuarioatual%' AND [motivo] = 'Intervalo');
 				)
-			atualiza := sql(atualiza,3)
+			atualiza := adosql(atualiza,3)
 			GuiControl,	Enable,	_bath
 			}
 	Sleep,	2000
@@ -1275,14 +1151,14 @@ return
 
 _banheiro:
 	if ( SubStr(A_Now,9)<"070000" OR SubStr(A_Now,9) > "200000" )	{
-		hoje := SubStr( Date.Format( A_Now ), 1, 10 )
+		hoje := SubStr(formata_data(A_Now),1,10)
 		horav = 20:00:00
 		}
 		else	{
-			hoje := SubStr( Date.Format( A_Now ), 1, 10 )
-			horav = 07:00:00
-			}
-	verifica_uso =	;	Verifica se alguém do TURNO ATUAL está com o banheiro marcado
+		hoje := SubStr(formata_data(A_Now),1,10)
+		horav = 07:00:00
+		}
+	verifica_uso=	;	Verifica se alguém do TURNO ATUAL está com o banheiro marcado
 		(
 		SELECT
 			*
@@ -1297,15 +1173,11 @@ _banheiro:
 		ORDER BY
 			[SAIDA] DESC
 		)
-	em_uso := sql( verifica_uso, 3 )
+	em_uso := adosql(verifica_uso,3)
 	if ( em_uso.Count()-1 > 0 )	{
 		uso_user := em_uso[2,2]
-		saida_user := SubStr( em_uso[2,3], 12 )
-		MsgBox,	0x40030,	%	em_uso[2,6]="Banheiro"
-												?	"Banheiro em Uso"
-												:	"Intervalo em Andamento", %	em_uso[2,6] =	"Banheiro"
-																							?	"Aguarde o colaborador`n`t" uso_user "`nretornar do banheiro.`n`n`nEm uso desde as:`n`t" saida_user
-																							:	"Aguarde o colaborador`n`t" uso_user "`nretornar do Intervalo.`n`n`nEm Intervalo desde as:`n`t "saida_user
+		saida_user := SubStr(em_uso[2,3],12)
+		MsgBox,	0x40030,	%	(em_uso[2,6]="Banheiro")?("Banheiro em Uso"):("Intervalo em Andamento"), %	(em_uso[2,6]="Banheiro")?("Aguarde o colaborador`n`t" uso_user "`nretornar do banheiro.`n`n`nEm uso desde as:`n`t" saida_user):("Aguarde o colaborador`n`t" uso_user "`nretornar do Intervalo.`n`n`nEm Intervalo desde as:`n`t "saida_user)
 		return
 		}
 	bath := !bath
@@ -1320,13 +1192,13 @@ _banheiro:
 		GuiControl,	,	_b_sai
 		GuiControl,	,	_b_volta
 		botao 			=		Registrar Retorno do Banheiro
-		GuiControl,	,	_b_sai,	%	"Saída: " Date.Now()
+		GuiControl,	,	_b_sai,	%	"Saída: " agora()
 		atualiza		=		INSERT INTO [ASM].[dbo].[_registro_saidas]	([nome],[motivo])	VALUES ('%usuarioatual%','Banheiro')
-		atualiza		:=	sql(atualiza,3)
+		atualiza		:=	adosql(atualiza,3)
 	}
 	else	{
 		GuiControl,	Disable,	_bath
-		GuiControl,	,	_b_volta,	% "Retorno: " Date.Now()
+		GuiControl,	,	_b_volta,	% "Retorno: " agora()
 		botao			= Registrar Saída Para Banheiro
 		atualiza		=
 			(
@@ -1336,7 +1208,7 @@ _banheiro:
 			[duracao]			=	DATEDIFF(SECOND, [saida], GetDate())
 			WHERE	pkid	=	(SELECT TOP 1 [pkid] FROM [ASM].[dbo].[_registro_saidas] WHERE [retorno] IS NULL AND [nome] = '%usuarioatual%' AND [motivo] = 'Banheiro');
 			)
-		atualiza		:= sql(atualiza,3)
+		atualiza		:= adosql(atualiza,3)
 		GuiControl,	Enable,	_snack
 		}
 	Sleep,	2000
@@ -1361,12 +1233,12 @@ verifica:	;{	Verifica ao reiniciar o software os estados de banheiro e intervalo
 	if ( A_UserName = "DSANTOS" )
 		usuarioatual = DIEISSON
 	h_null	=	SELECT TOP(1) [pkid],[nome],[saida],[Retorno],[duracao],[motivo] FROM [ASM].[dbo].[_registro_saidas] WHERE [nome] = '%usuarioatual%' ORDER BY [saida] DESC
-	h_null	:=	sql(h_null,3)
+	h_null	:=	adosql(h_null,3)
 	if ( StrLen(h_null[2,4]) = 0 && h_null[2,6] = "Intervalo" )	{
 		botao 		=	Registrar Retorno do Intervalo
 		GuiControl,	,	_snack,	%botao%
 		GuiControl,	Disable,	_bath
-		GuiControl,	,	_l_sai,	%	"Saída: " Date.Format( h_null[2,3], "dmy", "ymd" )
+		GuiControl,	,	_l_sai,	%	"Saída: " formata_data(h_null[2,3],"dmy","ymd")
 		GuiControl,	,	_l_volta
 		GuiControl,	,	_b_sai
 		GuiControl,	,	_b_volta
@@ -1378,13 +1250,13 @@ verifica:	;{	Verifica ao reiniciar o software os estados de banheiro e intervalo
 			GuiControl,	Disable,	_snack
 			GuiControl,	,	_l_sai
 			GuiControl,	,	_l_volta
-			GuiControl,	,	_b_sai,	%	"Saída: " Date.Format( h_null[2,3], "dmy", "ymd" )
+			GuiControl,	,	_b_sai,	%	"Saída: " formata_data(h_null[2,3],"dmy","ymd")
 			GuiControl,	,	_b_volta
 			bath			=	1
 			}
 return
 
-Checagem:	;{	Verifica se o Usuário do Iris mudou
+Checagem:	;{	Verifica se o usuário do Iris mudou
 	u=	;	user logado
 		(
 		SELECT	TOP(1)	[LOG~USUARIO],[LOG~ORDEM]
@@ -1393,7 +1265,7 @@ Checagem:	;{	Verifica se o Usuário do Iris mudou
 		AND		[LOG~ESTACAO]	=	'%A_ComputerName%'
 		ORDER	BY	2	DESC
 		)
-	u	:=	sql(u)
+	u	:=	adosql(u)
 	usuarioa := u[2,1]
 	;{	usuarios admins e normais
 	if ( usuarioatual = "dsantos" && usuarioa = "dieisson" )
@@ -1408,14 +1280,14 @@ Checagem:	;{	Verifica se o Usuário do Iris mudou
 		return
 	if ( usuarioa = "ddiel" && usuarioatual = "djeison" )
 		return	;}
-	if ( usuarioa != usuarioatual )	;{	Se mudou o Usuário, reinicia
+	if ( usuarioa != usuarioatual )	;{	Se mudou o usuário, reinicia
 		if ( A_UserName = "alberto" || A_UserName = "dsantos" )
 			return
 			else
 			Reload
 return
 
-FormatSeconds( Second )	{
+FormatSeconds(Second)	{
 	time	=	19990101
 	time	+=	%Second%,	seconds
 	FormatTime,	mmss,	%time%,	mm:ss
@@ -1442,7 +1314,7 @@ gerar:
 		radio = 1
 	if ( operador != "" )	{	;	Contém filtro por nome
 		reg = SELECT [login],[login2] FROM [Sistema_Monitoramento].[dbo].[Operadores]	WHERE nome = '%operador%'
-		reg	:=	sql(reg,3)
+		reg	:=	adosql(reg,3)
 		res1	:=	StrReplace(reg[2,1],"`r`n")
 		res2	:=	StrReplace(reg[2,2],"`r`n")
 		}
@@ -1497,8 +1369,8 @@ gerar:
 		texto	:=	"Consulta buscando dados:`n`n" operador "`n" motivox "`n" data
 	GuiControl,	relatorio:,	query,	%texto%
 	sql_r = SELECT[pkid],[nome],[saida],[Retorno],[duracao],[motivo] FROM [ASM].[dbo].[_registro_saidas] WHERE %periodo% %nome% %why% ORDER BY %radio%
-	sql_le=
-	sql_r := sql(sql_r,3)
+	adosql_le=
+	sql_r := adosql(sql_r,3)
 		r=
 		Gosub CreateNewCalc
 	IfWinExist,	Relatório de erros
@@ -1624,7 +1496,7 @@ CreateNewCalc:
 	oLocale.Country	:=	"BR"
 Return
 
-MakePropertyValue( oSM, cName, uValue )	{	
+MakePropertyValue(oSM, cName, uValue)	{	
 	oPropertyValue					:=	oSM.Bridge_GetStruct("com.sun.star.beans.PropertyValue")
 	If	cName
 		oPropertyValue.Name	:=	cName
@@ -1641,33 +1513,3 @@ FileURL( File )	{
 	Return v
 }
 
-Login:
-	#IfWinActive, Login Cotrijal
-	Gui.Cores("login","9BACC0","374658")
-		Gui, login:Font,	Bold	S10 cWhite
-	Gui, login:Add, Text,	x10	y10		w80		h20									, Usuário
-	Gui, login:Add, Text,	x10	y30		w80		h20									, Senha
-		Gui, login:Font
-		Gui, login:Font, Bold S10
-	Gui, login:Add, Edit,	x90	y10		w140	h20		v@usuario
-	Gui, login:Add, Edit,	x90	y30		w140	h20		v@senha		Password
-	Gui, login:Add, Button,	x10	y55		w221	h25		vAutentica	g_Autenticar	, Ok
-		Gui, login:Font
-	Gui, login: +AlwaysOnTop	-MinimizeBox
-	Gui, login:Show,																, Login Cotrijal
-	Sleep, 500
-	Gui, login:+LastFound
-	Guicontrol, login:Focus, @usuario
-	Return
-
-	_Autenticar:
-		Gui,	Login:Submit,	NoHide
-		is_login := Login( @usuario, @senha )
-		if	( logou = "interface" )
-			Return
-		goto,%	logou := Login( @usuario, @senha ) =	0
-													?	"GuiClose"
-													:	"Interface"
-	Return
-
-return

@@ -143,7 +143,7 @@ Class	String		{
 		Return phrase
 	}
 
-	Remove_accents( word )			{
+	Remove_accents( word )					{
 		chars :={	a:"[áàâǎăãảạäåāąấầẫẩậắằẵẳặǻ]"
 			,		A:"[áàâǎăãảạäåāąấầẫẩậắằẵẳặǻ]"
 			,		c:"[ćĉčċç]"
@@ -171,4 +171,24 @@ Class	String		{
 		Return	word
 	}
 
+	Telefone( numero_telefone , tipo = "" )	{
+		sem_numero := StrLen( numero_telefone ) =	0
+												?	1
+												:	0
+		if ( sem_numero = 1 )
+			Return
+		numero_telefone	:=	StrReplace( StrReplace( StrReplace( numero_telefone , "(" ) , ")" ) , " " )
+		ddd				:=	SubStr( numero_telefone , 1 , 3 )
+		if (ddd = "054"	;	Remove o zero da frente do ddd
+		||	ddd = "055"
+		||	ddd = "051"
+		||	ddd = "053" )
+			numero_telefone	:=	SubStr( numero_telefone, 2 )
+		numero_final_a := SubStr( numero_telefone, -7 )
+		numero_final_b := SubStr( numero_telefone, -3 )
+		if ( StrLen( numero_telefone ) = 11 )	;	verifica se é celular ou fixo
+			return "0(" SubStr( numero_telefone , 1 , 3 ) ") " SubStr( numero_telefone , 3 , 4 ) " - " SubStr( numero_telefone , -3 )
+		else
+			return "0(" SubStr( numero_telefone , 1 , 2 ) ") " SubStr( numero_telefone , 3 , 4 ) " - " SubStr( numero_telefone , -3 )
+	}
 }
