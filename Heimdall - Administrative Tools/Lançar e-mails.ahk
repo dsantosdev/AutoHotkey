@@ -114,7 +114,7 @@ Icon_1=C:\Dih\zIco\mail.ico
 
 	~Enter::
 		~NumpadEnter::
-		#IfWinActive, Login Cotrijal
+		if ( WinActive( "Login Cotrijal" ) != "0x0" )
 			Goto _Autenticar
 	Return
 
@@ -157,7 +157,7 @@ interface:
 			gosub	ddl
 return
 
-cl:							;{	Usado em debug apenas
+cl:				;{	Usado em debug apenas
 	Gui,	Submit,	NoHide
 	; MsgBox % _multidate
 	; Clipboard:=_uni
@@ -269,37 +269,38 @@ return
 
 preenche_lv:
 	LV_Delete()
-	f =
+	s =
 		(
 		SELECT TOP 100
-				p.Mensagem
-			,	c.Nome
-			,	p.QuandoGerou
-			,	p.Idaviso
-			,	p.IdCliente
+				p.[Mensagem]
+			,	c.[Nome]
+			,	p.[Inserido]
+			,	p.[pkid]
+			,	p.[Id_Cliente]
 		FROM
-			[IrisSQL].[dbo].[Agenda]	p
-		LEFT JOIN
 			[IrisSQL].[dbo].[Clientes]	c
+		LEFT JOIN
+			[ASM].[ASM].[dbo].[_Agenda]	p
 		ON
-			p.IdCliente = c.IdUnico
+			p.[Id_Cliente] = c.[IdUnico]
+		WHERE p.[inserido] IS NOT NULL
 		ORDER BY
 			3 DESC
 		)
-	fg:=sql(f)
-	Loop,	% fg.Count()-1
+	dados_lv := sql( s )
+	Loop,%	dados_lv.Count()-1
 		LV_Add(	""
-			,	fg[ A_Index+1 , 2 ]
-			,	fg[ A_Index+1 , 1 ]
-			,	fg[ A_Index+1 , 3 ]
-			,	fg[ A_Index+1 , 4 ]	)
+			,	dados_lv[ A_Index+1 , 2 ]
+			,	dados_lv[ A_Index+1 , 1 ]
+			,	dados_lv[ A_Index+1 , 3 ]
+			,	dados_lv[ A_Index+1 , 4 ]	)
 	LV_ModifyCol( 1 , 140 )
 	LV_ModifyCol( 2 , 250 )
 	LV_ModifyCol( 3 , 140 )
 	LV_ModifyCol( 4 , 40 )
 return
 
-_lv2:							;{	Select da listView
+_lv2:			;{	Select da listView
 	if A_GuiEvent = Normal	;	não funciona entre parenteses
 	{
 		LV_GetText( _lv , A_EventInfo , 2 )
@@ -332,11 +333,11 @@ Exclude:		;{	Menu de exclusão
 	IfMsgBox,	No
 		return
 	else {
-		d=DELETE FROM [IrisSQL].[dbo].[Agenda] WHERE Idaviso='%idremove%'
-			sql(d)
+		d = DELETE FROM [ASM].[dbo].[_Agenda] WHERE [pkid] = '%idremove%'
+			sql( d , 3 )
 			; MsgBox % sql_le
-		d=DELETE FROM [IrisSQL].[dbo].[AvisoAgenda] WHERE Fkidaviso='%idremove%'
-			sql(d)
+		d = DELETE FROM [ASM].[dbo].[_agenda_alertas] WHERE [id_aviso] = '%idremove%'
+			sql( d , 3 )
 			; MsgBox % sql_le
 		GuiControl,	,	showbox
 	}
@@ -374,13 +375,13 @@ Exclude:		;{	Menu de exclusão
 		e =
 			(
 			UPDATE
-				[IrisSQL].[dbo].[Agenda]
+				[ASM].[dbo].[_Agenda]
 			SET
 				[Mensagem] = '%_mensagem%'
 			WHERE
-				Idaviso = '%id_edit%'
+				[pkid] = '%id_edit%'
 			)
-			sql( e )
+			sql( e , 3 )
 		Gui, Destroy
 		Gosub, Interface
 		Gui, Submit, NoHide
@@ -399,41 +400,41 @@ _add:
 		MsgBox Você precisa adicionar algum texto para poder salvar!
 		return
 	}
-	if ( _uni = "" )		{
+	if ( _uni = "" )	{
 		MsgBox Você precisa selecionar uma unidade para poder salvar!
 		return
 	}
-	Loop
-	{
+	Loop	{
 		_text := RegExReplace( _text , "\R+\R" , "`r`n " )
 		if ErrorLevel = 0
 			break
 	}
 	Loop, parse, forid,  `n, `r
 		If ( InStr( A_LoopField , _uni ) > 0 )
-			If ( InStr( A_LoopField ,	"Sede -" ) = 0 )	{
+			If ( InStr( A_LoopField ,	"Sede -" ) = 0 ) {
 				iduni	:=	StrSplit( A_LoopField , "-" )
 				idu		:=	iduni[2]
-				op		:=	iduni[3]
+				op		:=	iduni[3] = "1;2;3;4;5" ? 0 : iduni[3]
 				cli		:=	iduni[4]
 			}	
-			else	{
+			else {
 				iduni	:=	StrSplit( A_LoopField , "-" )
 				idu		:=	iduni[3]
-				op		:=	iduni[4]
+				op		:=	iduni[4] = "1;2;3;4;5" ? 0 : iduni[4]
 				cli		:=	iduni[5]
 			}
-	FormatTime, dataagendado , % _date, yyyy-MM-dd HH:mm:ss.000
-	FormatTime, agora, %A_Now%, yyyy-MM-dd HH:mm:ss.000
+	FormatTime, dataagendado	, % _date, yyyy-MM-dd HH:mm:ss.000
+	FormatTime, inserido		, %A_Now%, yyyy-MM-dd HH:mm:ss.000
 	dataagendado_ := _date
 	if ( multidatas.Count() != "" )	{
 		t_dias := t_dias + multidatas.Count()
-		Dataagendado_ := StrReplace( StrReplace( StrReplace( dataagendado_ , " " ) , "-" ) , ":" )
-		Loop,	%	multidatas.Count()
+		Dataagendado_ := datetime( 3 , StrReplace( StrReplace( StrReplace( dataagendado_ , " " ) , "-" ) , ":" ) )
+		Loop,%	multidatas.Count()	{
 			if ( A_Index = 1 )
-				Dataagendado_ .= "`n`t" datetime( multidatas[A_Index] )
+				Dataagendado_ .= "`n`t" datetime( 3, multidatas[A_Index] )
 			else
-				Dataagendado_ .= "`n`t" datetime( multidatas[A_Index] )
+				Dataagendado_ .= "`n`t" datetime( 3, multidatas[A_Index] )
+		}
 	}
 	else
 		dataagendado_ := Dataagendado
@@ -441,84 +442,83 @@ _add:
 		_text := StrReplace( _text , "'" , "’" )
 	if ( StrLen( user ) = 0 )
 		user := A_IPAddress1
-	MsgBox,	0x1, Confirmar inserção de E-Mail, `tConfirma adicionar os seguintes dados no sistema?`n`nOperador:	%op%`nMensagem:`n---------`n`t%_text%`n---------`nInserido por:`t%user% `nInserido em:	%agora%`nCliente:`t`t%cli%`nAgendado em`t%t_dias%`tdia(s).`nAgendado para:`n`t%dataagendado_%
+	MsgBox,	0x1, Confirmar inserção de E-Mail,%	"`tConfirma adicionar os seguintes dados no sistema?"
+		.	"`n`nOperador:	" op
+		.	"`nMensagem:`n---------`n`t" _text "`n---------"
+		.	"`nInserido por:`t" user
+		.	"`nInserido em:	" agora
+		.	"`nCliente:`t`t" cli
+		.	"`nAgendado em`t" t_dias "`tdia(s)."
+		.	"`nAgendado para:`n`t" dataagendado_
 	IfMsgBox Cancel
 	{
 		GuiControl, Focus, _text
 		return
 	}
-	Ins =
+	alerta := _notify
+	Ins =	;	Insere a mensagem na tabela Agenda
 		(
 		INSERT INTO
-			[IrisSQL].[dbo].[Agenda]
-				(	[Assunto]
-				,	[Mensagem]
-				,	[TipoInfo]
-				,	[SistemaGerou]
-				,	[EstacaoGerou]
-				,	[QuandoGerou]
-				,	[Cliente]
-				,	[Contrato]
-				,	[Quandoavisar]
-				,	[Usuariogerou]
-				,	[IdCliente])
-			VALUES
-				(	'%op%'
-				,	'%_text%'
-				,	'1'
-				,	'MO'
-				,	'%A_ComputerName%'
-				,	Cast('%agora%' as DateTime)
-				,	'%cli%'
-				,	'1'
-				,	Cast('%dataagendado%' as DateTime)
-				,	'%user%'
-				,	'%idu%'	)
+			[ASM].[dbo].[_Agenda]
+			(	[Mensagem]
+			,	[Inserido]
+			,	[Alerta]
+			,	[Gerado_Por]
+			,	[Id_Cliente]
+			,	[Estacao] )
+		VALUES
+			(	'%_text%'
+			,	'%inserido%'
+			,	'%alerta%'
+			,	'%@usuario%'
+			,	'%idu%'
+			,	'%A_ComputerName%'	)
 		)
-
-	sql( ins )
-	i =
+		sql( ins , 3 )
+	top_1 =	;	Seleciona o ID da mensagem
 		(
 		SELECT TOP 1
-			[Idaviso]
+			[pkid]
 		FROM
-			[IrisSQL].[dbo].[Agenda]
+			[ASM].[dbo].[_Agenda]
 		ORDER BY
 			1
 		DESC
 		)
-		id	:=sql(i)
-		id	:=id[2,1]
+		id	:= sql( top_1 , 3 )
+		id	:= id[ 2 , 1 ] = "" ? "1" : id[ 2 , 1 ]
 	if ( _multidate = 1 )
 		Loop,  % multidatas.Count()	{
-			FormatTime, _add_day,% multidatas[A_Index], yyyy-MM-dd HH:mm:ss.000
+			FormatTime, _add_day ,% multidatas[A_Index] , yyyy-MM-dd HH:mm:ss.000
 			if (A_Index = multidatas.Count()
 			&&	multidatas.Count() > 1 )
-				notificacao.="('" id "',cast('" _add_day "' as datetime),'AgendaASM','" _notify "')"
-			else if( A_Index = 1 )	{
-				primeiran = ( '%id%', Cast( '%dataagendado%' as DateTime ) , 'AgendaASM' , '%_notify%' ),`n
-				notificacao.= primeiran "('" id "',cast('" _add_day "' as datetime),'AgendaASM','" _notify "'),`n"
+				notificacao .= "('" id "'`n,`tCast( '" _add_day "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL )"
+			else if ( A_Index = 1 )	{
+				primeiran := "('" id "'`n,`tCast( '" _add_day "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL ),`n"
+				notificacao.= primeiran "('" id "'`n,`tCast( '" dataagendado "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL ),`n"
 				if ( multidatas.Count() = 1 )	{
 					notificacao := SubStr( notificacao , 1 , StrLen( notificacao )-2 )
 					break
 				}
-			}	else
-				notificacao .= "('" id "',cast('" _add_day "' as datetime),'AgendaASM','" _notify "'),`n"
+			}
+			else
+				notificacao .= "('" id "'`n,`tCast( '" dataagendado "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL ),`n"
 		}
 	else
-		notificacao = ('%id%', Cast( '%dataagendado%' as DateTime ) , 'AgendaASM' , '%_notify% ' )
-	ins2 =
+		notificacao := "('" id "'`n,`tCast( '" dataagendado "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL )"
+	ins =
 		(
 		INSERT INTO
-			[IrisSQL].[dbo].[Avisoagenda]
-				(	[Fkidaviso]
-				,	[Dataagendado]
-				,	[QuemAvisar]
-				,	[Lembrar]	)
+			[ASM].[dbo].[_Agenda_Alertas]
+				(	[id_aviso]
+				,	[data_alerta]
+				,	[quem_avisar]
+				,	[visualizado]
+				,	[data_visualizado]	)
 			VALUES
 				`n%notificacao%
 		)
-		sql( ins2 )
+		sql( ins , 3 )
 	Gui, Destroy	;	rever para carregar sem destruir
 	_multidate = 0
 	Dataagendado = dataagendado_ = ""
@@ -587,12 +587,14 @@ Multi_data:				;{	Email para mais de um dia
 		return
 	}
 	Gui.Cores( "Multi" )
+		; OutputDebug % _date
 	multidatas := []
 	_date += 1 , Days
+		; OutputDebug % _date
 	ndate := _date
 	Gui, multi:Add,	DateTime,	x10	w200	h30	hwndHdate	Choose%_date%	v_date1,	dd/MM/yyyy HH:mm:ss
 	Loop,%	dias-1	{
-		ndate += 1 ,	Days
+			ndate += 1 ,	Days
 		Gui, multi:Add,	DateTime,	%	"x10	w200	h30	hwndHdate	Choose"	ndate	"	v_date"	A_Index+1	,	dd/MM/yyyy HH:mm:ss
 	}
 	Gui, multi:Add,	Button,	x10	W200	gOkDatas,	Finalizar
@@ -603,8 +605,10 @@ return
 OkDatas:					;{	parser de mais de um dia
 	Gui,	multi:Submit,	NoHide
 	Datas=
-	Loop,%	dias
+	multidatas := []
+	Loop,%	dias	{
 		multidatas.push( _date%A_Index% )
+	}
 	_date += -1 ,	Days
 	MultiGuiClose:
 		Gui,	multi:Destroy
