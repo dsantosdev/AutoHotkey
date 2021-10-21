@@ -1,28 +1,60 @@
-﻿;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2Agenda.ico
+﻿/*
+ * * * Compile_AHK SETTINGS BEGIN * * *
 
-#Include C:\Users\dsantos\Desktop\AHK\AHK - GIT\Libs\_.ahk
-#Include C:\Users\dsantos\Desktop\AHK\AHK - GIT\Libs\_arrays.ahk
-Global	Coded
-	,	Base_Key
-	,	Alfabeto:="abcdefghijklmnopqrstuvwxyz"
-#SingleInstance,	Force
-#IfWinActive		Agenda - Avisos - Ocomon - Frota
-#NoTrayIcon
+[AHK2EXE]
+Exe_File=\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\agenda_user.exe
+Created_Date=1
+[VERSION]
+Set_Version_Info=1
+Company_Name=Heimdall
+File_Version=0.0.0.4
+Inc_File_Version=1
+Product_Name=agenda_user
+Product_Version=1.1.33.2
+Set_AHK_Version=1
 
-Menu,	Tray,	Icon
-Menu,	Tray,	Tip,	Agenda - Avisos - Ocomon - Frota
+* * * Compile_AHK SETTINGS END * * *
+*/
 
-if ( A_UserName != "dsantos" )
-	Menu, Tray,  NoStandard
-if ( A_UserName = "arsilva" )
-	admin	=	1	
-	else if ( A_UserName = "alberto" || A_UserName = "llopes" || A_UserName = "dsantos" )
-	admin	=	2	
-	else
-	admin	=	0
+;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2Agenda.ico
+
+; #Include ..\class\classes.ahk
+	#Include ..\class\sql.ahk
+	#Include ..\class\array.ahk
+	#Include ..\class\safedata.ahk
+	#Include ..\class\gui.ahk
+	#Include ..\class\windows.ahk
+	#Include ..\class\string.ahk
+	#Include ..\class\functions.ahk
+	#SingleInstance,	Force
+	#IfWinActive		Agenda - Avisos - Ocomon - Frota
+	#NoTrayIcon
+	Menu,	Tray,	Icon
+	Menu,	Tray,	Tip,	Agenda - Avisos - Ocomon - Frota
+
+;Goto, Login
+	interface:
+	test =
+	debug = 0
+	if ( debug = 1 )
+		OutputDebug % "interface"
+	Gui, Login:Destroy
+
+	if ( A_UserName != "dsantos" )
+		Menu, Tray,  NoStandard
+	if ( A_UserName = "arsilva" )
+		admin	=	1	
+		else if (	A_UserName = "alberto"
+				||	A_UserName = "llopes"
+				||	A_UserName = "dsantos" )
+			admin	=	2	
+		else
+			admin	=	0
 ;return
 
-;	GUI
+;	GUI 
+	if ( debug = 1 )
+		OutputDebug % "GUI " SubStr( A_Now, -1 )
 	;	Configurações
 		if ( admin = 1 )	;	Header
 			header=Agenda|Avisos|Ocomon|Frota|Registro|Vigilantes
@@ -30,16 +62,16 @@ if ( A_UserName = "arsilva" )
 			header=Agenda|Avisos|Ocomon|Frota|Registro|Vigilantes|Relatórios Monitoramento ;|Detecções de Imagem|Sinistros em Andamento
 			else
 				header=Agenda|Avisos|Ocomon|Frota|Registro
-		GuiConfig.Cores()
+		Gui.Cores()
 	;	Tab	1	-	Agenda
 		Gui,	Font,		S11	cWhite	Bold
-		Gui,	Add,		Tab3,		x5		y5		w1250			vtab		gOnTabSelect	AltSubmit		 				,	%header%
+		Gui,	Add,		Tab3,		x5		y5		w1250			vtab		gOnTabSelect	AltSubmit						,	%	header
 			Gui,	Font
 		Gui,	Add,		MonthCal,	x10		y35		w230	h163	vmcall		g_date
 		;	FILTROS
 			Gui,	Font,	Bold	cFFFFFF
 			Gui,	Add, Text,			x245	y40		w120	h20														,	ÚLTIMOS EVENTOS
-			Gui,	Add, DropDownList,	x370	y35						vOperador	g_date			AltSubmit			,	Todos|Operador 1|Operador 2|Operador 3|Operador 4|Operador 5
+			Gui,	Add, DropDownList,	x370	y35						vOperador	g_date		AltSubmit				,	Todos|Operador 1|Operador 2|Operador 3|Operador 4|Operador 5
 			Gui,	Add, Checkbox,		x500	y40		w550			vPeriodo	g_date								,	Filtrado por dia
 			Gui,	Add, Text,			x1055	y40		w60																,	Contendo:
 			Gui,	Font
@@ -50,7 +82,15 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
 			Gui,	Font
 		Gui,	Add,		Edit,		x10		y235	w1235	h300	veditbox
-			gosub	carrega_lv
+			LV_ModifyCol(1,115)
+			LV_ModifyCol(1,Sort)
+			LV_ModifyCol(2,600)
+			LV_ModifyCol(3,60)
+			LV_ModifyCol(4,200)
+			LV_ModifyCol(5,0)
+			Gosub, carrega_lv 
+			if ( debug = 1 )
+				OutputDebug % "Agenda carregada " SubStr( A_Now, -1 )
 	;	Tab	2	-	Avisos
 		Gui,	Tab,			2
 			Gui,	Font,		S11	cWhite	Bold
@@ -62,7 +102,9 @@ if ( A_UserName = "arsilva" )
 			Gui,	Font,		S11	cWhite	Bold	
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
 			Gui,	Font
-		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox2
+		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox2 
+			if ( debug = 1 )
+				OutputDebug % "Avisos " SubStr( A_Now, -1 )
 	;	Tab	3	-	Ocomon
 		Gui,	Tab,		3
 			Gui,	Font,		S11	cWhite	Bold
@@ -75,6 +117,8 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
 			Gui,	Font
 		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox3
+			if ( debug = 1 )
+				OutputDebug % "Ocomon " SubStr( A_Now, -1 )
 	;	Tab 4	-	Frota
 		Gui,	Tab,		4
 			Gui,	Font,		S11	cWhite	Bold
@@ -87,16 +131,18 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
 			Gui,	Font
 		Gui,	Add,		Edit,		xp		y235	w1235	h300	veditbox4
+			if ( debug = 1 )
+				OutputDebug % "Frota " SubStr( A_Now, -1 )
 	;	Tab 5	-	Registros
 		Gui,	Tab,		5
 		if ( admin = 1 || admin = 2 )	{
 			d	=	
 			e	=	Hidden
-			}
-			else	{
-				d	=	Hidden
-				e	=	
-				}
+		}
+		else	{
+			d	=	Hidden
+			e	=	
+		}
 		;	Modo Admin
 			Gui,	Add,	MonthCal,		x10		y35		w230	h163	vmcal	gregistros		%d%
 				Gui,	Font,	S11	cWhite	Bold
@@ -110,6 +156,8 @@ if ( A_UserName = "arsilva" )
 			Gui,	Add,	Button,			x110	y515					vmudar	gChange			%d%								,	MODO OPERADOR
 			if ( admin = 1 || admin = 2 )
 				gosub	registros
+					if ( debug = 1 )
+						OutputDebug % "Voltou registros admin " SubStr( A_Now, -1 )
 		;	Modo operador
 			Gui,	Font,	S10	Bold	cWhite
 			Gui,	Add,	Text,		x10		%e%				y28		w1240							h30	v_user		Center	0x1200
@@ -125,6 +173,8 @@ if ( A_UserName = "arsilva" )
 			Gui,	Add,	Text,%		"x"((1240/2)+5)*1	"	y108	w"(1240/2)+5	"	"	e	"	h20	v_b_volta	Right		0x1000"
 				Gui,	Font
 			Gui,	Add,	Button,		x10						y130					g_relatorio_individual v_relatorio_individual %e%	,	Relatório Individual
+				if ( debug = 1 )
+					OutputDebug % "Fim Registro "  SubStr( A_Now, -1 )
 	;	Tab 6	-	Vigilantes
 		Gui,	Tab,		6
 			Gui,	Font,	S11	cWhite	Bold
@@ -137,6 +187,8 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,	Text,			x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
 			Gui,	Font
 		Gui,	Add,	Edit,			xp		y235	w1235	h300	veditbox6
+			if ( debug = 1 )
+				OutputDebug % "Vigilantes " SubStr( A_Now, -1 )
 	;	Tab 7	-	Relatórios Individuais - ADMIN MODE
 		Gui,	Tab,	7
 		Gui,	Add,	DateTime,		x10		y35		w150	h25		v@data_relatorio	g_busca_relatorio_individual
@@ -144,18 +196,21 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,	Button,			x935	y60		w300	h30							g_busca_relatorio_individual							,	Efetuar busca em relatórios
 			Gui,	Font,	S11	cWhite	Bold
 		Gui,	Add,	Checkbox,		x165	y30				h30		v@100				g_top_100						Checked					,	Buscando os 100 últimos relatórios
+		Gui,	Add,	Checkbox,		x450	y30				h30		v@Vistos			g_top_100												,	Incluir relatórios já visualizados
 		Gui,	Add,	Text,			x10		y60		w617	h30										Center	0x1200								,	USUÁRIO
 		Gui,	Add,	Text,			x628	y60		w300	h30										Center	0x1200								,	Buscar relatórios que contenham:
 		Gui,	Add,	DropDownList,	x10		y100	w617			v@usuarios_ddl		g_busca_relatorio_individual						R26
 			Gui,	Font
 			Gui,	Font, S10
-		Gui,	Add,	ListView,		x10		y140	w400			vlv_relatorios		g_exibe_relatorio_individual	AltSubmit	Grid	R19	,	Data|Operador|Relatório|Antigos|user_ad|pkid
+		Gui,	Add,	ListView,		x10		y140	w400			vlv_relatorios		g_exibe_relatorio_individual	AltSubmit	Grid	R19	,	Data|Operador|Relatório|Antigos|user_ad|pkid|visto|por
 			LV_ModifyCol(1,80)
 			LV_ModifyCol(2,130)
 			LV_ModifyCol(3,185)
 			LV_ModifyCol(4,0)
 			LV_ModifyCol(5,0)
-			Gosub, _carrega_relatorio_individual
+			LV_ModifyCol(6,0)
+			LV_ModifyCol(7,0)
+			LV_ModifyCol(8,0)
 		Gui,	Add,	Edit,			x410	y140	w835	h408	vedb_relatorios
 			Gui,	Font
 		; Gui,	Add,	Button,			x10		y515					vrel				gGeraRelatorio				,	Gerar Relatório
@@ -170,9 +225,13 @@ if ( A_UserName = "arsilva" )
 		Gui,	Add,	Text,			x10		y305	w1235	h20								Center		0x1000				,	Conteúdo
 			Gui,	Font
 		Gui,	Add,	Edit,			xp		y325	w1235	h210	veditbox8
+			if ( debug = 1 )
+				OutputDebug % "Detecção " SubStr( A_Now, -1 )
 	;	Tab 9	-	Sinistros
 		Gui,	Tab,	9
 		Gui,	Add,	ListView,	x10		y35		w1235	vlv9	AltSubmit	Grid	R28	NoSort	,	Operador|Usuário do Iris|Hora Inicial do Sinistro|Hora Final do Sinistro|Verificou Imagens|Ocorrências
+			if ( debug = 1 )
+				OutputDebug % "Sinistros " SubStr( A_Now, -1 )
 	Gui,	Show,						x0		y0																									,	Agenda - Avisos - Ocomon - Frota
 		Send,	{Down}
 		if ( trocou = 1 )	{
@@ -185,10 +244,10 @@ _top_100:
 	Gui, Submit, NoHide
 	GuiControl, , @100, % @100 = 1 ? 1 : 0
 	if ( @100 = 1 )	{
-		busca_usuario:=@busca_relatorio:=busca_data:=""
+		busca_usuario := @busca_relatorio := busca_data := ""
 		GuiControl, , @busca_relatorios
 		GuiControl, , @data_relatorio,	%	A_Now
-		GuiControl, Choose, @usuarios_ddl , 1
+		GuiControl,	Choose,	@usuarios_ddl,	1
 		}
 	Else	{
 		ano := SubStr( A_Now, 1, 4 )
@@ -201,10 +260,8 @@ _top_100:
 
 _busca_relatorio_individual:
 	Gui, Submit, NoHide
-
 	if ( StrLen( @busca_relatorios ) > 0 )
 		GuiControl, , @100, 0
-
 	if ( @last_data != SubStr( @data_relatorio, 1, 8 ) ) {
 		@100 = 0
 		GuiControl, , @100, 0
@@ -224,41 +281,69 @@ _busca_relatorio_individual:
 
 _carrega_relatorio_individual:
 	Gui, Submit, NoHide
+	visualizados := @vistos = 0
+							? ""
+							: "OR [visualizado] IS NOT NULL"
 	GuiControl, , @100, % @100 = 1 ? 1 : 0
 	Gui, ListView, lv_relatorios
 	LV_Delete()
-
+	top	:=	@100 = 1 ? "Top(100)" : ""
 	select =
 		(
-		SELECT	[data]
+		SELECT	%top%
+			[data]
 			,	[nome]
 			,	[relatorio]
 			,	[relatorio_pre_edit]
 			,	[user_ad]
 			,	[pkid]
+			,	[visualizado]
+			,	[usuario]
 		FROM
 			[ASM].[dbo].[_relatorios_individuais]
 		WHERE
 			[relatorio] like '`%`%'
 			%busca_usuario%
 			%busca_data%
+			AND ([visualizado] IS NULL
+			%visualizados%)
 		ORDER BY
 			1 DESC
 		)
-	relatorios := adosql( select, 3 )
-
+	if ( debug = 0 )
+		Clipboard:=select
+	relatorios := sql( select, 3 )
+	if ( debug = 1 )
+		OutputDebug % "Iniciou LV " SubStr( A_Now, -1 )
 	Loop,	% relatorios.Count()-1	{
+		if (	A_Index = 2 	
+			&&	StrLen( relatorios[A_Index,7] ) > 0 )
+			if ( StrLen( relatorios[A_Index,4] ) > 0 )
+				GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" relatorios[A_Index,8] "`nvisto em:`t" datetime( 2, relatorios[A_Index,7] ) "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre
+				Else
+					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" relatorios[A_Index,8] "`nvisto em:`t" datetime( 2, relatorios[A_Index,7] )
+			Else if ( A_Index = 2 )
+				if ( StrLen( relatorios[A_Index,4] ) > 0 )
+					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre
+					Else
+						GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio
+		
 		relatorio := Safe_Data.Decrypt( relatorios[A_Index+1,3], relatorios[A_Index+1,5] )
+		pre := Safe_Data.decrypt( relatorios[A_Index+1,4], relatorios[A_Index+1,5] )
 		if !InStr( relatorio, @busca_relatorios )
 			Continue
 		LV_Add(	""
 			,	SubStr( relatorios[A_Index+1,1] , 1, 10 )
-			,	formata_nomes( relatorios[A_Index+1,2] )
+			,	String.Name( relatorios[A_Index+1,2] )
 			,	relatorio
-			,	relatorios[A_Index+1,4]
+			,	pre
 			,	relatorios[A_Index+1,5]
-			,	relatorios[A_Index+1,6]	)
+			,	relatorios[A_Index+1,6]
+			,	relatorios[A_Index+1,7]
+			,	relatorios[A_Index+1,8]	)
 		}
+		if ( debug = 1 )
+			OutputDebug % "Finalizou LV " SubStr( A_Now, -1 )
 	if ( StrLen( usuarios_ddl ) = 0 )	{
 		s=
 			(
@@ -269,7 +354,7 @@ _carrega_relatorio_individual:
 			ORDER BY
 				1 ASC
 			)
-		users := adosql( s, 3 )
+		users := sql( s, 3 )
 		Loop, % users.Count()-1
 			usuarios_ddl .= users[A_Index+1,1] "|"
 		GuiControl, , @usuarios_ddl ,% "Todos||"	SubStr(usuarios_ddl,1,StrLen(usuarios_ddl)-1)
@@ -290,26 +375,91 @@ _exibe_relatorio_individual:
 		Return
 	keyboard = 0
 	is_k:
+		if ( A_GuiControl = "tab" )
+			Return
 		foi_busca = 0
 		Gui,	ListView,	lv_relatorios
 		Gui,	Submit,		NoHide
 		if ( keyboard = 0 )	{
+			LV_GetText( pkid_lv,			A_EventInfo	=	0
+														?	1
+														:	A_EventInfo, 6 )
 			LV_GetText( exibir_relatorio,	A_EventInfo	=	0
 														?	1
 														:	A_EventInfo, 3 )
 			LV_GetText( nome_user,			A_EventInfo	=	0
 														?	1
 														:	A_EventInfo, 2 )
+			LV_GetText( visto_as,			A_EventInfo	=	0
+														?	1
+														:	A_EventInfo, 7 )
+			LV_GetText( visto_por,			A_EventInfo	=	0
+														?	1
+														:	A_EventInfo, 8 )
+			LV_GetText( pre_edit,			A_EventInfo	=	0
+														?	1
+														:	A_EventInfo, 4 )
 			}
 			Else {
-				LV_GetText( exibir_relatorio,	LV_GetNext(), 3 )
-				LV_GetText( nome_user,			LV_GetNext(), 2 )
+				LV_GetText( pkid_lv,			LV_GetNext()	=	0
+															?	1
+															:	LV_GetNext(), 6 )
+				LV_GetText( exibir_relatorio,	LV_GetNext()	=	0
+															?	1
+															:	LV_GetNext(), 3 )
+				LV_GetText( nome_user,			LV_GetNext()	=	0
+															?	1
+															:	LV_GetNext(), 2 )
+				LV_GetText( visto_as,			LV_GetNext()	=	0
+															?	1
+															:	LV_GetNext(), 7 )
+				LV_GetText( visto_por,			LV_GetNext()	=	0
+															?	1
+															:	LV_GetNext(), 8 )
+				LV_GetText( pre_edit,			LV_GetNext()	=	0
+															?	1
+															:	LV_GetNext(), 4 )
 				}
-		GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio
+		if ( A_UserName = "Alberto" )	{
+			hora := datetime( 1 )
+			u =
+				(
+				DECLARE @check DATETIME
+				SELECT
+					@check = [visualizado]
+				FROM
+					[ASM].[dbo].[_relatorios_individuais]
+				WHERE
+					[pkid]	=	'%pkid_lv%'
+				IF @check IS NULL OR LEN(@check) = 0
+					UPDATE
+						[ASM].[dbo].[_relatorios_individuais]
+					SET
+						[usuario]		= 'Alberto',
+						[visualizado]	= '%hora%'
+					WHERE
+						[pkid]			= '%pkid_lv%'
+				)
+			sql( u, 3 )
+			}
+			if ( StrLen( visto_as ) > 0 )
+				if ( StrLen( pre_edit ) > 0 )
+					GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" visto_por "`nvisto em:`t" datetime( 2, visto_as ) "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre_edit
+					Else
+						GuiControl, , edb_relatorios ,% "`t`t`t" String.Name( relatorios[A_Index,2] ) "`n`n" relatorio "`n`n`n" visto_por "`nvisto em:`t" datetime( 2, visto_as )
+				Else
+					if ( StrLen( pre_edit ) > 0 )
+						GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio "`n`n`n_______________________________`nRELATÓRIO ANTERIOR A EDIÇÃO`n_______________________________`n" pre_edit
+						Else
+							GuiControl, , edb_relatorios ,% "`t`t`t" nome_user "`n`n" exibir_relatorio
 Return
 
 _relatorio_individual:
-	Run,	C:\Dguard Advanced\relatorio_individual.exe "agenda_user"
+	if !FileExist( "C:\Dguard Advanced\relatorio_individual.exe" )
+		FileCopy, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\relatorio_individual.exe, C:\Dguard Advanced\relatorio_individual.exe, 1
+	if ( StrLen( @usuario ) = 0 )
+		@usuario = liberar
+	Run, C:\Dguard Advanced\relatorio_individual.exe "%@Usuario%"
 Return
 
 Change:
@@ -360,156 +510,156 @@ return
 _date:
 	Gui, Submit, NoHide
 	if ( StrLen(Busca) > "0" )
-		b	=	AND	p.Mensagem	LIKE	'`%%Busca%`%'
-		else
-		b	=
+		_busca	=	AND	b.[Mensagem] LIKE '`%%Busca%`%'
+	Else
+		_busca	=
 	if ( periodo = 1 )	{
 		FormatTime,	diaAntes,	%mcall%,	YDay
 		FormatTime,	mcall,	%mcall%,	yyyy-MM-dd
 		FormatTime,	Today,	%A_Now%,	yyyy-MM-dd
 		periodox	:=	A_YDay - diaAntes
 		GuiControl,	+cYellow	+Redraw,	periodo
-		if ( operador = 1 )
-			GuiControl,	,	Periodo,	Filtrado o período de %mcall% a %Today% com TODOS os operadores
+		;	GuiControl's
+			if ( operador = 1 )
+				GuiControl,	,	Periodo,	Filtrado o período de %mcall% a %Today% com TODOS os operadores
 			else if ( operador = 2 )	{
 				op	:=	operador -1
 				GuiControl,	,	Periodo,	Filtrado o período de %mcall% a %Today% apenas eventos do OPERADOR %op%
-				}
+			}
 			else if ( operador = 3 )	{
 				op	:=	operador -1
 				GuiControl,	,	Periodo,	Filtrado o período de %mcall% a %Today% apenas eventos do OPERADOR %op%
-				}
+			}
 			else if ( operador = 4 )	{
 				op	:=	operador -1
 				GuiControl,	,	Periodo,	Filtrado o período de %mcall% a %Today% apenas eventos do OPERADOR %op%
-				}
+			}
 			else if ( operador = 5 )	{
 				op	:=	operador -1
 				GuiControl,	,	Periodo,	Filtrado o período de %mcall% a %Today% apenas eventos do OPERADOR %op%
-				}
+			}
 			else if ( operador = 6 )	{
 				op	:=	operador -1
 				GuiControl,	,	Periodo,	Filtrado o período de %mcall% a %Today% apenas eventos do OPERADOR %op%
-				}
+			}
 			else if ( operador = 7 )	{
 				op	:=	operador -1
 				GuiControl,	,	Periodo,	Filtrado o período de %mcall% a %Today% apenas eventos do Monitoramento
-				}
-		if ( periodox = 0 )	{
-			periodo	:=	"dias_entre_datas(DAY,p.QuandoAvisar,'"	mcall	"') = "	periodox
-			if ( operador = 1 )
-				GuiControl,	,	Periodo,	Filtrado a data de %mcall% com TODOS os operadores
+			}
+		;
+		;	Filtro por data definida
+			if ( periodox = 0 )	{
+				periodo	:=	"dias_entre_datas(DAY,a.[data_alerta],'"	mcall	"') = "	periodox
+				if ( operador = 1 )
+					GuiControl,	,	Periodo,	Filtrado a data de %mcall% com TODOS os operadores
 				else if ( operador = 2 )	{
 					op	:=	operador -1
 					GuiControl,	,	Periodo,	Filtrado a data de %mcall% apenas eventos do OPERADOR %op%
-					}
+				}
 				else if ( operador = 3 )	{
 					op	:=	operador -1
 					GuiControl,	,	Periodo,	Filtrado a data de %mcall% apenas eventos do OPERADOR %op%
-					}
+				}
 				else if ( operador = 4 )	{
 					op	:=	operador -1
 					GuiControl,	,	Periodo,	Filtrado a data de %mcall% apenas eventos do OPERADOR %op%
-					}
+				}
 				else if ( operador = 5 )	{
 					op	:=	operador -1
 					GuiControl,	,	Periodo,	Filtrado a data de %mcall% apenas eventos do OPERADOR %op%
-					}
+				}
 				else if ( operador = 6 )	{
 					op	:=	operador -1
 					GuiControl,	,	Periodo,	Filtrado a data de %mcall% apenas eventos do OPERADOR %op%
-					}
+				}
 			}
 			else
-				periodo	:=	"CAST(Quandoavisar AS DATE) >= '"	mcall	"'	and CAST(Quandoavisar AS DATE) <= '"	Today	"'"
-		}
-		else	{
-			GuiControl,	+cWhite +Redraw, periodo
-			FormatTime,	mcall,	%mcall%,	yyyy-MM-dd
-			periodo = CONVERT(VARCHAR(25), Quandoavisar, 126) like '%mcall%`%'
-			GuiControl,	,	Periodo,	Filtrado por dia
-			}
-	if ( operador = 1 )
-		operador=
-	if ( operador = 2 )
-		operador	= AND p.Assunto='1'
-	if ( operador = 3 )
-		operador	= AND p.Assunto='2'
-	if ( operador = 4 )
-		operador	= AND p.Assunto='3'
-	if ( operador = 5 )
-		operador	= AND p.Assunto='4'
-	if ( operador = 6 )
-		operador	= AND p.Assunto='5'
-	lastrow=
+				periodo	:=	"AND ( CAST(a.[data_alerta] AS DATE) >= '"	mcall	"' AND CAST(a.[data_alerta] AS DATE) <= '"	Today	"')"
+		;
+	}
+	Else	{	;	Data INDEFINIDA
+		GuiControl,	+cWhite +Redraw, periodo
+		FormatTime,	mcall,	%mcall%,	yyyy-MM-dd
+		periodo = AND CONVERT(VARCHAR(25), a.[data_alerta], 126) like '%mcall%`%'
+		GuiControl,	,	Periodo,	Filtrado por dia
+	}
+
+	;	Filtro por operador
+		operador := operador= 1
+							? ""
+							: operador-1
+	;
+
+	lastrow =
 	FormatTime,	yday,	%mcall%,	yyyy-MM-dd
-	selected=1
+	selected = 1
 	LV_Delete()
+;
+
 carrega_lv:
-	if ( StrLen(periodo) >= )
+	if ( StrLen( periodo ) >= )
 		Gui,	Submit,	NoHide
 	FormatTime,	mcall,	%mcall%,	yyyy-MM-dd
 	if ( periodo = 0 )
-		periodo	= CONVERT(VARCHAR(25), Quandoavisar, 126) like '%mcall%`%'
+		periodo	= AND CONVERT(VARCHAR(25), Quandoavisar, 126) like '%mcall%`%'
 	Gui, ListView, lv
 	LV_Delete()
 	data := SubStr(mcall,1,4)	"-"	SubStr(mcall,5,2)	"-"	SubStr(mcall,7,2)
-	sqlv=
+	sqlv =
 		(
-			SELECT	p.IdCliente
-				,	p.QuandoAvisar
-				,	p.Mensagem
-				,	p.Assunto
-				,	c.Nome
-				,	p.Idaviso
-			FROM
-				[IrisSQL].[dbo].[Agenda] p
-			LEFT JOIN
-				[IrisSQL].[dbo].[Clientes] c ON
-					p.IdCliente=c.IdUnico
-			WHERE
-				%periodo% AND
-				[Assunto] IN ('1','2','3','4','5')
-				%operador%
-				%b%
-			ORDER BY
-				6 DESC
+		SELECT	 a.[id_aviso]
+				,a.[data_alerta]
+				,a.[quem_avisar]
+				,c.[Nome]
+				,b.[mensagem]
+		FROM
+			[ASM].[ASM].[dbo].[_agenda_alertas]	a
+		LEFT JOIN
+			[ASM].[ASM].[dbo].[_agenda]			b
+			ON
+				a.[id_aviso] = b.[pkid]
+		LEFT JOIN
+			[IrisSQL].[dbo].[Clientes]			c
+			ON
+			b.[id_cliente] = c.[IdUnico]
+		WHERE
+			a.[quem_avisar] LIKE '`%%operador%`%'
+			%periodo%
+			%_busca%
+			AND b.[operador] <> '0'
+		ORDER BY
+			2
+		DESC
 		)
+		; Clipboard := sqlv
 	;	bloco de selecionar multi datas	POR FAZER
 		; s:="SELECT Fkidaviso FROM [IrisSQL].[dbo].[AvisoAgenda] WHERE (DATEPART(yy,Dataagendado)=" SubStr(yday,1,4) " AND DATEPART(mm,Dataagendado)=" SubStr(yday,5,2) " AND DATEPART(dd,Dataagendado)=" SubStr(yday,7,2) ") order by 1 desc"
-		; s:=adosql(s)
-	fill := adosql(sqlv)
-	Loop, % fill.Count()-1	{
+		; s:=sql(s)
+	fill := sql( sqlv )
+	Loop,% fill.Count()-1	{
 		hour :=	fill[A_Index+1,2]
 		oper :=	fill[A_Index+1,3]
-		oper :=	RegExReplace(oper,"(^|\R)\K\s+")
-		subj :=	fill[A_Index+1,4]
-		unit :=	fill[A_Index+1,5]
-		idav :=	fill[A_Index+1,6]
+		subj :=	fill[A_Index+1,5]
+		unit :=	fill[A_Index+1,4]
+		idav :=	fill[A_Index+1,1]
 		if ( A_Index = 1 )
 			last_id := idav
 		StringUpper, unit, unit, T
-		LV_Add( "", hour, oper, subj, unit, idav )
-		}
-		LV_ModifyCol(1,115)
-		LV_ModifyCol(1,Sort)
-		LV_ModifyCol(2,600)
-		LV_ModifyCol(3,60)
-		LV_ModifyCol(4,200)
-		LV_ModifyCol(5,0)
+		LV_Add( "", hour, subj, oper, unit, idav )
+	}
 	if ( selected = 1 )	{
 		row := LV_GetNext()
 		if ( row = 0 )
 			row = 1
-		LV_GetText(edb,row,2)
-		edb := RegExReplace(oper,"(^|\R)\K\s+")
+		LV_GetText( edb , row , 2 )
+		; edb := RegExReplace(oper,"(^|\R)\K\s+")	;?????
 		if ( StrLen(edb) < 6 )
 			edb =
 		Gui, Font, S11
 		GuiControl, Font, editbox
 		GuiControl, , editbox,% edb
-		selected=
-		}
+		selected =
+	}
 return
 
 registros:
@@ -524,7 +674,7 @@ registros:
 			LV_ModifyCol(A_Index,"Center")
 	if ( d1 != "" )	{	;	Contém filtro por nome
 		reg	 =	SELECT [login],[login2] FROM [Sistema_Monitoramento].[dbo].[Operadores]	WHERE nome = '%d1%'
-		reg	 :=	adosql(reg,3)
+		reg	 :=	sql(reg,3)
 		res1 :=	StrReplace(reg[2,1],"`r`n")
 		res2 :=	StrReplace(reg[2,2],"`r`n")
 		if ( StrLen(res2 ) = 0 )
@@ -560,7 +710,7 @@ registros:
 			%isd%
 		)
 	
-	r :=	adosql(r,3)
+	r :=	sql(r,3)
 	Loop,	%	r.Count()-1
 		LV_Add(	""
 			,	r[A_Index+1,1]
@@ -572,51 +722,6 @@ registros:
 			,	r[A_Index+1,5])
 		LV_ModifyCol(4,100)
 		LV_ModifyCol(1,100)
-return
-
-deteccao:
-	Gui, Submit,	NoHide
-	Gui, ListView,	lv8
-	if ( d4 != "" )	;	Contém filtro por tipo
-		whered4 =	WHERE [Ocorrido] like '%d4%`%'
-		else
-		whered4	=
-	dete=
-		(
-		SELECT	TOP(500) [detect_id]
-			,	[Camera]
-			,	[Gerado]
-			,	[Exibido]
-			,	[Finalizado]
-			,	[Computador]
-			,	[Ocorrido]
-			,	[Descricao]
-			,	[IP]
-		FROM
-			[MotionDetection].[dbo].[Encerrados]
-		%whered4%
-		ORDER BY
-			1 DESC
-		)
-	dete:=adosql(dete,3)
-	LV_Delete()
-		LV_ModifyCol(1,115)
-		LV_ModifyCol(2,120)
-		LV_ModifyCol(3,120)
-		LV_ModifyCol(4,120)
-		LV_ModifyCol(5,80)
-		LV_ModifyCol(6,120)
-		LV_ModifyCol(7,600)
-	Loop,	%	dete.Count()-1
-		LV_Add(	""
-			,	dete[A_Index+1,2]
-			,	dete[A_Index+1,3]
-			,	dete[A_Index+1,4]
-			,	dete[A_Index+1,5]
-			,	dete[A_Index+1,6]
-			,	dete[A_Index+1,7]
-			,	dete[A_Index+1,8]	)
-		LV_ModifyCol(1,Sort)
 return
 
 _agenda:
@@ -761,17 +866,62 @@ _detection:
 	GuiControl,	,	editbox8,%	edb
 return
 
+deteccao:
+	Gui, Submit,	NoHide
+	Gui, ListView,	lv8
+	if ( d4 != "" )	;	Contém filtro por tipo
+		whered4 =	WHERE [Ocorrido] like '%d4%`%'
+		else
+		whered4	=
+	dete=
+		(
+		SELECT	TOP(500) [detect_id]
+			,	[Camera]
+			,	[Gerado]
+			,	[Exibido]
+			,	[Finalizado]
+			,	[Computador]
+			,	[Ocorrido]
+			,	[Descricao]
+			,	[IP]
+		FROM
+			[MotionDetection].[dbo].[Encerrados]
+		%whered4%
+		ORDER BY
+			1 DESC
+		)
+	dete:=sql(dete,3)
+	LV_Delete()
+		LV_ModifyCol(1,115)
+		LV_ModifyCol(2,120)
+		LV_ModifyCol(3,120)
+		LV_ModifyCol(4,120)
+		LV_ModifyCol(5,80)
+		LV_ModifyCol(6,120)
+		LV_ModifyCol(7,600)
+	Loop,	%	dete.Count()-1
+		LV_Add(	""
+			,	dete[A_Index+1,2]
+			,	dete[A_Index+1,3]
+			,	dete[A_Index+1,4]
+			,	dete[A_Index+1,5]
+			,	dete[A_Index+1,6]
+			,	dete[A_Index+1,7]
+			,	dete[A_Index+1,8]	)
+		LV_ModifyCol(1,Sort)
+return
+
 OnTabSelect:
 	Gui, Submit, NoHide
-	if ( tab = 1 )	{
+	if ( tab = 1 )	{	;	Agenda
 		GuiControl,	,	filtro2
 		GuiControl,	,	filtro3
 		GuiControl,	,	filtro4
 		GuiControl,	,	filtro6
 		GuiControl,	,	filtro7
 		GuiControl,	Focus,	lv
-		}
-	if ( tab = 2 )	{
+	}
+	if ( tab = 2 )	{	;	Avisos
 		GuiControl,	,	filtro3
 		GuiControl,	,	filtro4
 		GuiControl,	,	filtro6
@@ -780,37 +930,35 @@ OnTabSelect:
 		if ( filtro2 = "" )
 			filtrar =
 			else
-			filtrar	:=	" AND p.Mensagem like '%" filtro2 "%'"
+			filtrar	:=	" AND a.[Mensagem] like '%" filtro2 "%'"
 		LV_Delete()
 		sqlv =
 			(
-			SELECT	p.IdCliente
-				,	p.QuandoAvisar
-				,	p.Mensagem
-				,	p.Assunto
-				,	c.Nome
+			SELECT	a.[Inserido]
+				,	a.[Mensagem]
 			FROM
-				[IrisSQL].[dbo].[Agenda] p
+				[ASM].[ASM].[dbo].[_Agenda] a
 			LEFT JOIN
 				[IrisSQL].[dbo].[Clientes] c ON
-					p.IdCliente = c.IdUnico
+					a.[Id_Cliente] = c.[IdUnico]
 			WHERE
 				c.[Nome]='Avisos Monitoramento'
 				%filtrar%
 			ORDER BY
-				2 DESC
+				1 DESC
 			)
-		fill := adosql( sqlv )
+			; Clipboard := sqlv
+		fill := sql( sqlv )
 		LV_ModifyCol(1,115)
 		LV_ModifyCol(2,1100)
 		Loop, % fill.Count()-1
 			LV_Add(	""
-				,	fill[A_Index+1,2]
-				,	fill[A_Index+1,3]	)
+				,	fill[A_Index+1,1]
+				,	fill[A_Index+1,2]	)
 		LV_ModifyCol(1,Sort)
 		GuiControl,	Focus,	lv2
-		}
-	if ( tab = 3 )	{
+	}
+	if ( tab = 3 )	{	;	Ocomon
 		Gui,	ListView,	lv3
 		GuiControl,	,	filtro2
 		GuiControl,	,	filtro4
@@ -818,36 +966,34 @@ OnTabSelect:
 		GuiControl,	,	filtro7
 		if ( filtro3 = "" )
 			filtrar	=
-			else
-			filtrar := " AND p.Mensagem like '%" filtro3 "%'"
+		else
+			filtrar := " AND a.[Mensagem] like '%" filtro3 "%'"
 		LV_Delete()
 		sqlv =
 			(
-			SELECT	p.IdCliente
-				,	p.QuandoAvisar
-				,	p.Mensagem
-				,	p.Assunto
-				,	c.Nome
+			SELECT	a.[Inserido]
+				,	a.[Mensagem]
 			FROM
-				[IrisSQL].[dbo].[Agenda] p
+				[ASM].[ASM].[dbo].[_Agenda] a
 			LEFT JOIN
 				[IrisSQL].[dbo].[Clientes] c ON
-					p.IdCliente = c.IdUnico
+					a.[Id_Cliente] = c.[IdUnico]
 			WHERE
 				c.[Nome]='Ocomon'
 				%filtrar%
 			ORDER BY
-				2 DESC
+				1 DESC
 			)
-		fill := adosql( sqlv )
+			; Clipboard := sqlv
+		fill := sql( sqlv )
 		Loop, % fill.Count()-1
-			LV_Add("",	fill[A_Index+1,2],	fill[A_Index+1,3])
+			LV_Add("",	fill[A_Index+1,1],	fill[A_Index+1,2])
 			LV_ModifyCol(1,Sort)
 			LV_ModifyCol(1,115)
 			LV_ModifyCol(2,1100)
 		GuiControl	Focus,	lv3
-		}
-	if ( tab = 4 )	{
+	}
+	if ( tab = 4 )	{	;	Frota
 		Gui,	ListView,	lv4
 		GuiControl,	,	filtro2
 		GuiControl,	,	filtro3
@@ -856,35 +1002,33 @@ OnTabSelect:
 		if ( filtro4 = "" )
 			filtrar	=
 			else
-			filtrar	:=	" AND p.Mensagem like '%" filtro4 "%'"
+			filtrar	:=	" AND a.[Mensagem] like '%" filtro4 "%'"
 		LV_Delete()
 		sqlv =
 			(
-			SELECT	p.IdCliente
-				,	p.QuandoAvisar
-				,	p.Mensagem
-				,	p.Assunto
-				,	c.Nome
+			SELECT	a.[Inserido]
+				,	a.[Mensagem]
 			FROM
-				[IrisSQL].[dbo].[Agenda] p
+				[ASM].[ASM].[dbo].[_Agenda] a
 			LEFT JOIN
 				[IrisSQL].[dbo].[Clientes] c ON
-					p.IdCliente = c.IdUnico
+					a.[Id_Cliente] = c.[IdUnico]
 			WHERE
 				c.[Nome]='Caminhoes'
 				%filtrar%
 			ORDER BY
-				2 DESC
+				1 DESC
 			)
-		fill := adosql( sqlv )
+			Clipboard := sqlv
+		fill := sql( sqlv )
 		Loop, % fill.Count()-1
-			LV_Add("",	fill[A_Index+1,2],	fill[A_Index+1,3])
+			LV_Add("",	fill[A_Index+1,1],	fill[A_Index+1,2])
 			LV_ModifyCol(1,Sort)
 			LV_ModifyCol(1,115)
 			LV_ModifyCol(2,1100)
 		GuiControl	Focus,	lv4
-		}
-	if ( tab = 5 )	{
+	}
+	if ( tab = 5 )	{	;	registros
 		u =
 			(
 			SELECT	TOP(1) [LOG~USUARIO]
@@ -892,12 +1036,12 @@ OnTabSelect:
 			FROM
 				[BdIrisLog].[dbo].[SYS~Log]
 			WHERE
-				[LOG~DADOS]='Login no Painel de Monitoramento.' AND
-				[LOG~ESTACAO]='%A_ComputerName%'
+				[LOG~DADOS] = 'Login no Painel de Monitoramento.' AND
+				[LOG~ESTACAO] = '%A_ComputerName%'
 			ORDER BY
 				2	DESC
 			)
-		u := adosql( u )
+		u := sql( u )
 		usuarioatual := u[2,1]
 		if ( StrLen( u[2,1] ) < 3 )
 			usuarioatual := A_IPAddress1
@@ -914,13 +1058,13 @@ OnTabSelect:
 			ORDER BY
 				1
 			)
-		login := adosql( login, 3 )
+		login := sql( login, 3 )
 		Loop,	%	login.Count()-1
 			l1 .= "|" login[A_Index+1,1] 
 		GuiControl,	,	d1,% "|" l1
 		SetTimer,	Checagem,	500
-		}
-	if ( tab = 6 )	{
+	}
+	if ( tab = 6 )	{	;	Vigilantes
 		Gui,	ListView,	lv6
 		GuiControl,	,	filtro2
 		GuiControl,	,	filtro3
@@ -941,19 +1085,22 @@ OnTabSelect:
 			ORDER BY
 				1 DESC
 			)
-		fill := adosql( sqlv, 3 )
-		Loop, % fill.Count()-1	{
+		fill := sql( sqlv, 3 )
+		Loop, % fill.Count()-1
 			LV_Add(	""
 				,	fill[A_Index+1,1]
 				,	Safe_Data.Decrypt( fill[A_Index+1,2], "vigilante" )
-				,	Formata_nomes( fill[A_Index+1,3] )	)
-			}
+				,	String.Name( fill[A_Index+1,3] )	)
 			LV_ModifyCol(1,Sort)
 		GuiControl	Focus,	lv6
-		}
-	if ( tab = 7 )
-		goto _exibe_relatorio_individual
-	if ( tab = 8 )	{
+	}
+	if ( tab = 7 )	{	;	Relatórios Individuais
+		vistos = 0
+		Gosub, _carrega_relatorio_individual
+			if ( debug = 1 )
+				OutputDebug % "Carregou Relatórios Individuais "  SubStr( A_Now, -1 )
+	}
+	if ( tab = 8 )	{	;	detecção de movimento - DESATIVADO
 		Gui,	ListView,	lv8
 		eventos	=
 			(
@@ -971,7 +1118,7 @@ OnTabSelect:
 			ORDER BY
 				1 DESC
 			)
-		eventos := adosql( eventos )
+		eventos := sql( eventos )
 		LV_Delete()
 		Loop,	%	eventos.Count()-1
 			LV_Add(	""
@@ -991,8 +1138,8 @@ OnTabSelect:
 			LV_ModifyCol(6,120)
 			LV_ModifyCol(7,600)
 		GuiControl	Focus,	lv8
-		}
-	if ( tab = 9 )	{
+	}
+	if ( tab = 9 )	{	;	Sinistros - DESATIVADO
 		Gui,	ListView,	lv9
 		eventos =
 			(
@@ -1008,7 +1155,7 @@ OnTabSelect:
 			ORDER BY
 				1 DESC
 			)
-		eventos := adosql( eventos )
+		eventos := sql( eventos )
 		LV_Delete()
 		Loop, % eventos.Count()-1
 			LV_Add(	""
@@ -1028,7 +1175,7 @@ OnTabSelect:
 			LV_ModifyCol(5,100)
 			LV_ModifyCol(6,120)
 		GuiControl	Focus,	lv9
-		}
+	}
 return
 
 ~Enter::
@@ -1044,10 +1191,11 @@ return
 
 Esc::
 	GuiClose:
+	LoginGuiClose:
 ExitApp
 
 GeraRelatorio:
-	GuiConfig.Cores("relatorio")
+	Gui.Cores("relatorio")
 		Gui,	relatorio:Font, cWhite Bold
 	Gui,	relatorio:Add,	Text,			x5		y0		w110	h20		0x1000								,	Operador
 	Gui,	relatorio:Add,	Text,			x5		y30		w110	h20		0x1000								,	Motivo
@@ -1077,33 +1225,26 @@ GeraRelatorio:
 return
 
 _intervalo:
-	if (SubStr( A_Now , 9 ) < "070000"
-	||	SubStr( A_Now , 9 ) > "200000" )	{
-		hoje := SubStr( formata_data( A_Now ) , 1 , 10 )
+	if (	SubStr( A_Now, 9 ) < "070000"
+		||	SubStr(A_Now,9) > "200000" )	{
+		hoje := SubStr( Date.Format( A_Now ), 1, 10 )
 		horav = 20:00:00
-	}
-	else {
-		hoje := SubStr( formata_data( A_Now ) , 1 , 10 )
-		horav = 07:00:00
-	}
-	verifica_uso =	;	Verifica se alguém do TURNO ATUAL está com o intervalo marcado
+		}
+		else {
+			hoje := SubStr( Date.Format( A_Now ), 1, 10 )
+			horav = 07:00:00
+			}
+	verifica_uso=	;	Verifica se alguém do TURNO ATUAL está com o intervalo marcado
 		(
-		SELECT TOP 1
-				[nome]
-			,	[saida]
-			,	[retorno]
-			,	[duracao]
-			,	[motivo]
-		FROM
-			[ASM].[dbo].[_registro_saidas]
+		SELECT TOP 1 * FROM [ASM].[dbo].[_registro_saidas]
 		WHERE
-			[saida] BETWEEN '%hoje% %horav%' AND GETDATE()
-			AND	[retorno] IS NULL
-			AND	[nome] <> '%usuarioatual%'
+			saida BETWEEN '%hoje% %horav%' AND GETDATE()
+			AND	retorno is null
+			AND	nome<>'%usuarioatual%'
 		ORDER BY
 			[SAIDA] DESC
 		)
-	em_uso := adosql( verifica_uso , 3 )
+	em_uso := sql( verifica_uso, 3 )
 	if ( em_uso.Count()-1 > 0 )	{
 		uso_user := em_uso[2,2]
 		saida_user := SubStr( em_uso[2,3],12 )
@@ -1121,29 +1262,29 @@ _intervalo:
 		GuiControl,	,	_l_volta
 		GuiControl,	,	_b_sai
 		GuiControl,	,	_b_volta
-		botao 			=		Registrar Retorno do Intervalo
-		GuiControl,	,	_l_sai,	%	"Saída: " agora()
-		atualiza		=		INSERT INTO [ASM].[dbo].[_registro_saidas] ([nome],[motivo]) VALUES ('%usuarioatual%','Intervalo')
-		atualiza		:=	adosql(atualiza,3)
-		}
-		else	{					;	ao retornar
-			GuiControl,	Disable,	_snack
-			GuiControl,	,	_l_volta,	% "Retorno: " agora()
-			botao = Registrar Saída Para Intervalo
-			atualiza =
-				(
-				UPDATE
-					[ASM].[dbo].[_registro_saidas]
-				SET
-					[retorno] = GetDate(),
-					[duracao] = DATEDIFF(SECOND, [saida], GetDate())
-				WHERE
-					pkid = (SELECT TOP 1 [pkid] FROM [ASM].[dbo].[_registro_saidas] WHERE [retorno] IS NULL AND
-					[nome] = '%usuarioatual%' AND [motivo] = 'Intervalo');
-				)
-			atualiza := adosql(atualiza,3)
+		botao 		=	Registrar Retorno do Intervalo
+		GuiControl,	,	_l_sai,	%	"Saída: " datetime()
+		atualiza	=	INSERT INTO [ASM].[dbo].[_registro_saidas] ( [nome] , [motivo] ) VALUES ( '%usuarioatual%' , 'Intervalo' )
+		atualiza	:=	sql( atualiza, 3 )
+	}
+	else	{					;	ao retornar
+		GuiControl,	Disable,	_snack
+		GuiControl,	,	_l_volta,	% "Retorno: " datetime()
+		botao = Registrar Saída Para Intervalo
+		atualiza =
+			(
+			UPDATE
+				[ASM].[dbo].[_registro_saidas]
+			SET
+				[retorno] = GetDate(),
+				[duracao] = DATEDIFF(SECOND, [saida], GetDate())
+			WHERE
+				pkid = (SELECT TOP 1 [pkid] FROM [ASM].[dbo].[_registro_saidas] WHERE [retorno] IS NULL AND
+				[nome] = '%usuarioatual%' AND [motivo] = 'Intervalo');
+			)
+		atualiza := sql(atualiza,3)
 			GuiControl,	Enable,	_bath
-			}
+	}
 	Sleep,	2000
 	GuiControl,	Enable,	_snack
 	GuiControl,	,	_snack,	%botao%
@@ -1151,14 +1292,14 @@ return
 
 _banheiro:
 	if ( SubStr(A_Now,9)<"070000" OR SubStr(A_Now,9) > "200000" )	{
-		hoje := SubStr(formata_data(A_Now),1,10)
+		hoje := SubStr( Date.Format( A_Now ), 1, 10 )
 		horav = 20:00:00
 		}
 		else	{
-		hoje := SubStr(formata_data(A_Now),1,10)
-		horav = 07:00:00
-		}
-	verifica_uso=	;	Verifica se alguém do TURNO ATUAL está com o banheiro marcado
+			hoje := SubStr( Date.Format( A_Now ), 1, 10 )
+			horav = 07:00:00
+			}
+	verifica_uso =	;	Verifica se alguém do TURNO ATUAL está com o banheiro marcado
 		(
 		SELECT
 			*
@@ -1173,11 +1314,15 @@ _banheiro:
 		ORDER BY
 			[SAIDA] DESC
 		)
-	em_uso := adosql(verifica_uso,3)
+	em_uso := sql( verifica_uso, 3 )
 	if ( em_uso.Count()-1 > 0 )	{
 		uso_user := em_uso[2,2]
-		saida_user := SubStr(em_uso[2,3],12)
-		MsgBox,	0x40030,	%	(em_uso[2,6]="Banheiro")?("Banheiro em Uso"):("Intervalo em Andamento"), %	(em_uso[2,6]="Banheiro")?("Aguarde o colaborador`n`t" uso_user "`nretornar do banheiro.`n`n`nEm uso desde as:`n`t" saida_user):("Aguarde o colaborador`n`t" uso_user "`nretornar do Intervalo.`n`n`nEm Intervalo desde as:`n`t "saida_user)
+		saida_user := SubStr( em_uso[2,3], 12 )
+		MsgBox,	0x40030,	%	em_uso[2,6]="Banheiro"
+												?	"Banheiro em Uso"
+												:	"Intervalo em Andamento", %	em_uso[2,6] =	"Banheiro"
+																							?	"Aguarde o colaborador`n`t" uso_user "`nretornar do banheiro.`n`n`nEm uso desde as:`n`t" saida_user
+																							:	"Aguarde o colaborador`n`t" uso_user "`nretornar do Intervalo.`n`n`nEm Intervalo desde as:`n`t "saida_user
 		return
 		}
 	bath := !bath
@@ -1192,13 +1337,13 @@ _banheiro:
 		GuiControl,	,	_b_sai
 		GuiControl,	,	_b_volta
 		botao 			=		Registrar Retorno do Banheiro
-		GuiControl,	,	_b_sai,	%	"Saída: " agora()
+		GuiControl,	,	_b_sai,	%	"Saída: " datetime()
 		atualiza		=		INSERT INTO [ASM].[dbo].[_registro_saidas]	([nome],[motivo])	VALUES ('%usuarioatual%','Banheiro')
-		atualiza		:=	adosql(atualiza,3)
+		atualiza		:=	sql(atualiza,3)
 	}
 	else	{
 		GuiControl,	Disable,	_bath
-		GuiControl,	,	_b_volta,	% "Retorno: " agora()
+		GuiControl,	,	_b_volta,	% "Retorno: " datetime()
 		botao			= Registrar Saída Para Banheiro
 		atualiza		=
 			(
@@ -1208,7 +1353,7 @@ _banheiro:
 			[duracao]			=	DATEDIFF(SECOND, [saida], GetDate())
 			WHERE	pkid	=	(SELECT TOP 1 [pkid] FROM [ASM].[dbo].[_registro_saidas] WHERE [retorno] IS NULL AND [nome] = '%usuarioatual%' AND [motivo] = 'Banheiro');
 			)
-		atualiza		:= adosql(atualiza,3)
+		atualiza		:= sql(atualiza,3)
 		GuiControl,	Enable,	_snack
 		}
 	Sleep,	2000
@@ -1233,12 +1378,12 @@ verifica:	;{	Verifica ao reiniciar o software os estados de banheiro e intervalo
 	if ( A_UserName = "DSANTOS" )
 		usuarioatual = DIEISSON
 	h_null	=	SELECT TOP(1) [pkid],[nome],[saida],[Retorno],[duracao],[motivo] FROM [ASM].[dbo].[_registro_saidas] WHERE [nome] = '%usuarioatual%' ORDER BY [saida] DESC
-	h_null	:=	adosql(h_null,3)
+	h_null	:=	sql(h_null,3)
 	if ( StrLen(h_null[2,4]) = 0 && h_null[2,6] = "Intervalo" )	{
 		botao 		=	Registrar Retorno do Intervalo
 		GuiControl,	,	_snack,	%botao%
 		GuiControl,	Disable,	_bath
-		GuiControl,	,	_l_sai,	%	"Saída: " formata_data(h_null[2,3],"dmy","ymd")
+		GuiControl,	,	_l_sai,	%	"Saída: " Date.Format( h_null[2,3], "dmy", "ymd" )
 		GuiControl,	,	_l_volta
 		GuiControl,	,	_b_sai
 		GuiControl,	,	_b_volta
@@ -1250,13 +1395,13 @@ verifica:	;{	Verifica ao reiniciar o software os estados de banheiro e intervalo
 			GuiControl,	Disable,	_snack
 			GuiControl,	,	_l_sai
 			GuiControl,	,	_l_volta
-			GuiControl,	,	_b_sai,	%	"Saída: " formata_data(h_null[2,3],"dmy","ymd")
+			GuiControl,	,	_b_sai,	%	"Saída: " Date.Format( h_null[2,3], "dmy", "ymd" )
 			GuiControl,	,	_b_volta
 			bath			=	1
 			}
 return
 
-Checagem:	;{	Verifica se o usuário do Iris mudou
+Checagem:	;{	Verifica se o Usuário do Iris mudou
 	u=	;	user logado
 		(
 		SELECT	TOP(1)	[LOG~USUARIO],[LOG~ORDEM]
@@ -1265,7 +1410,7 @@ Checagem:	;{	Verifica se o usuário do Iris mudou
 		AND		[LOG~ESTACAO]	=	'%A_ComputerName%'
 		ORDER	BY	2	DESC
 		)
-	u	:=	adosql(u)
+	u	:=	sql(u)
 	usuarioa := u[2,1]
 	;{	usuarios admins e normais
 	if ( usuarioatual = "dsantos" && usuarioa = "dieisson" )
@@ -1280,65 +1425,48 @@ Checagem:	;{	Verifica se o usuário do Iris mudou
 		return
 	if ( usuarioa = "ddiel" && usuarioatual = "djeison" )
 		return	;}
-	if ( usuarioa != usuarioatual )	;{	Se mudou o usuário, reinicia
+	if ( usuarioa != usuarioatual )	;{	Se mudou o Usuário, reinicia
 		if ( A_UserName = "alberto" || A_UserName = "dsantos" )
 			return
 			else
 			Reload
 return
 
-FormatSeconds(Second)	{
-	time	=	19990101
-	time	+=	%Second%,	seconds
-	FormatTime,	mmss,	%time%,	mm:ss
-	dias:=Floor(Second//86400)
-	dias_:=dias*86400
-	; MsgBox % dias "|"	(Second-dias_)//3600	":"	mmss "
-	if ( dias < 1 )
-		return	Second//3600	":"	mmss
-		else
-		return	dias "|"	(Second-dias_)//3600	":"	mmss
-}
-
 gerar:
 	Gui,	relatorio:Submit,	NoHide
 	if ( r1 = 1)
 		radio = 2
-		else if ( r2 = 1 )
+	else if ( r2 = 1 )
 		radio = 3
-		else if ( r3 = 1 )
+	else if ( r3 = 1 )
 		radio = 5
-		else if ( r4 = 1 )
+	else if ( r4 = 1 )
 		radio = 6
-		else if ( r1 = 0 && r2 = 0 && r3 = 0 && r4 = 0 )
+	else if ( r1 = 0 && r2 = 0 && r3 = 0 && r4 = 0 )
 		radio = 1
 	if ( operador != "" )	{	;	Contém filtro por nome
-		reg = SELECT [login],[login2] FROM [Sistema_Monitoramento].[dbo].[Operadores]	WHERE nome = '%operador%'
-		reg	:=	adosql(reg,3)
+		reg = SELECT [login],[login2] FROM [Sistema_Monitoramento].[dbo].[Operadores] WHERE nome = '%operador%'
+		reg	:=	sql(reg,3)
 		res1	:=	StrReplace(reg[2,1],"`r`n")
 		res2	:=	StrReplace(reg[2,2],"`r`n")
-		}
-	if ( StrLen(operador) > 0 )	{
-		operador:=StrReplace(operador,"`r`n")
-		if ( StrLen(res2) = 0 )
-			nome=AND nome = '%res1%'
-			else
-			nome=AND (nome = '%res1%' OR nome = '%res2%')
-		}
-		else	{
-		nome=
-		operador=	
-		}
-	if(StrLen(motivo)>0)	{
-		why= AND motivo = '%motivo%'
-		motivox= pelo motivo `"%motivo%`"
-		}
-		else	{
-		why=
-		motivox=	
-		}
-	d_inicio := SubStr(d_inicio,1,8)
-	d_final := SubStr(d_final,1,8)
+	}
+	if ( StrLen( operador ) > 0 )	{
+		operador := StrReplace( operador , "`r`n" )
+		if ( StrLen( res2 ) = 0 )
+			nome = AND nome = '%res1%'
+		else
+			nome = AND ( nome = '%res1%' OR nome = '%res2%')
+	}
+	else
+		nome:=operador:=""
+	if ( StrLen ( motivo ) > 0 )	{
+		why = AND motivo = '%motivo%'
+		motivox = pelo motivo `"%motivo%`"
+	}
+	else
+		why:=motivox:=""
+	d_inicio := SubStr( d_inicio , 1 , 8 )
+	d_final := SubStr( d_final , 1 , 8 )
 	if ( d_inicio <= d_final )	{
 		FormatTime,	hoje,		%A_Now%,	yyy-MM-dd
 		FormatTime,	year,		%A_Now%,	yyy
@@ -1348,112 +1476,124 @@ gerar:
 		FormatTime,	d_final1,	%d_final%,	yyy-MM-dd
 		if ( d_inicio = d_final )	{
 			data=	 no dia	`"%d_inicio1%`".
-			periodo= (DATEPART(YEAR,saida)=%year% and DATEPART(MONTH,saida)=%month% and DATEPART(DAY,saida)=%day%) 
+			periodo= ( DATEPART( YEAR , saida ) = %year% and DATEPART( MONTH , saida ) = %month% and DATEPART( DAY , saida ) = %day% )
 			}
-			else	{
-			data			=	no período de `"%d_inicio1%`" a `"%d_final1%`"
-			periodo					=	saida >=  '%d_inicio%'	and saida <= DATEADD(DD,1,'%d_final%')
-			}
-		}
 		else	{
+			data	=	no período de `"%d_inicio1%`" a `"%d_final1%`"
+			periodo	=	saida >=  '%d_inicio%'	and saida <= DATEADD(DD,1,'%d_final%')
+		}
+	}
+	else	{
 		MsgBox	A data FINAL não pode ser INFERIOR a data INICIAL.
 		return
-		}
-	if ( StrLen(operador) = 0 )
+	}
+	if ( StrLen( operador ) = 0 )
 		texto	:=	"Consulta buscando dados:`n`n" motivox "`n" data
-	if ( StrLen(motivox) = 0 )
+	if ( StrLen( motivox ) = 0 )
 		texto	:=	"Consulta buscando dados:`n`n" operador "`n" data
-	if ( StrLen(motivox) = 0 && StrLen(operador) = 0 )
+	if ( StrLen( motivox ) = 0 && StrLen( operador ) = 0 )
 		texto	:=	"Consulta buscando dados:`n`n" data
-	if ( StrLen(motivox) != 0 && StrLen(operador) != 0 )
+	if ( StrLen( motivox ) != 0 && StrLen( operador ) != 0 )
 		texto	:=	"Consulta buscando dados:`n`n" operador "`n" motivox "`n" data
 	GuiControl,	relatorio:,	query,	%texto%
-	sql_r = SELECT[pkid],[nome],[saida],[Retorno],[duracao],[motivo] FROM [ASM].[dbo].[_registro_saidas] WHERE %periodo% %nome% %why% ORDER BY %radio%
-	adosql_le=
-	sql_r := adosql(sql_r,3)
+	sql_r =
+		(
+		SELECT
+			 [pkid]
+			,[nome]
+			,[saida]
+			,[Retorno]
+			,[duracao]
+			,[motivo]
+		FROM
+			[ASM].[dbo].[_registro_saidas]
+		WHERE
+			%periodo%
+			%nome%
+			%why%
+		ORDER BY
+			%radio%
+		)
+		sql_le=
+		sql_r := sql( sql_r , 3 )
 		r=
-		Gosub CreateNewCalc
+		Gosub, CreateNewCalc
 	IfWinExist,	Relatório de erros
 		WinClose,	Relatório de erros
-	oSheet	:=	oSheets.getByIndex(0)
-	if ( StrLen(operador) = 0 )
+	oSheet	:=	oSheets.getByIndex( 0 )
+	if ( StrLen( operador ) = 0 )
 		operador := "Todos - " d_inicio " a " d_final
 	sPath		:=	A_Desktop
 	sFileName	=	Controle Horarios %operador%.ods
-	SheetName	:=	oSheets.getByIndex(0).Name
+	SheetName	:=	oSheets.getByIndex( 0 ).Name
 	;	CALC properties
-		Column = A
-			oColumns := oSheet.getColumns()
-			oColumn := oColumns.getByName( Column )
-			oColumn.Width := 3000
-		Column = B
-			oColumns := oSheet.getColumns()
-			oColumn := oColumns.getByName( Column )
-			oColumn.Width := 4000
-		Column = C
-			oColumns := oSheet.getColumns()
-			oColumn := oColumns.getByName( Column )
-			oColumn.Width := 4000
-		Column = D
-			oColumns := oSheet.getColumns()
-			oColumn := oColumns.getByName( Column )
-			oColumn.Width := 3000
-		Column = E
-			oColumns := oSheet.getColumns()
-			oColumn := oColumns.getByName( Column )
-			oColumn.Width := 3000
-		Column = F
-			oColumns := oSheet.getColumns()
-			oColumn := oColumns.getByName( Column )
+		oColumns	:= oSheet.getColumns()
+		oColumn	:= oColumns.getByName( "A" )
+		MsgBox % oColumn.Width
+			oColumn.Width	:= 3000
+			oColumns		:= oSheet.getColumns()
+		oColumn	:= oColumns.getByName( "B" )
+			oColumn.Width	:= 4000
+			oColumns		:= oSheet.getColumns()
+		oColumn	:= oColumns.getByName( "C" )
+			oColumn.Width	:= 4000
+			oColumns		:= oSheet.getColumns()
+		oColumn	:= oColumns.getByName( "D" )
+			oColumn.Width	:= 3000
+			oColumns		:= oSheet.getColumns()
+		oColumn	:= oColumns.getByName( "E" )
+			oColumn.Width	:= 3000
+			oColumns		:= oSheet.getColumns()
+		oColumn	:= oColumns.getByName( "F" )
 			oColumn.Width := 3000
 	nFormat := oFormats.getStandardFormat( "4", oLocale )	; com.sun.star.util.NumberFormat.CURRENCY
 	Loop,	%	sql_r.Count()	{
 		if ( A_Index = 1 )	{
 			oCell := oSheet.getCellRangeByName( "A"A_Index )
-			oCell.setString("Nome")
+				oCell.setString("Nome")
 			oCell := oSheet.getCellRangeByName( "B"A_Index )
-			oCell.setString("Horário de Saída")
+				oCell.setString("Horário de Saída")
 			oCell := oSheet.getCellRangeByName( "C"A_Index )
-			oCell.setString("Horário de Retorno")
+				oCell.setString("Horário de Retorno")
 			oCell := oSheet.getCellRangeByName( "D"A_Index )
-			oCell.setString("Dias Fora")
+				oCell.setString("Dias Fora")
 			oCell := oSheet.getCellRangeByName( "E"A_Index )
-			oCell.setString("Tempo Fora")
+				oCell.setString("Tempo Fora")
 			oCell := oSheet.getCellRangeByName( "F"A_Index )
-			oCell.setString("Tipo de Saída")
+				oCell.setString("Tipo de Saída")
 			}
-			else	{
+		else	{
 				oCell := oSheet.getCellRangeByName( "A"A_Index )
-				oCell.setString(sql_r[A_Index,2])	
+					oCell.setString(sql_r[A_Index,2])	
 				oCell := oSheet.getCellRangeByName( "B"A_Index )
-				oCell.setString(sql_r[A_Index,3])	
+					oCell.setString(sql_r[A_Index,3])	
 				oCell := oSheet.getCellRangeByName( "C"A_Index )
-				oCell.setString(sql_r[A_Index,4])	
+					oCell.setString(sql_r[A_Index,4])	
 				if ( InStr( dia := FormatSeconds(sql_r[A_Index,5]),"|") > 0 )	{
 					oCell := oSheet.getCellRangeByName( "D"A_Index )
-					dias:=StrSplit(dia,"|")
-					oCell.setString(dias[1])
-					oCell.NumberFormat := nFormat
+						dias:=StrSplit(dia,"|")
+						oCell.setString(dias[1])
+						oCell.NumberFormat := nFormat
 					oCell := oSheet.getCellRangeByName( "E"A_Index )
-					oCell.setString(dias[2])
-					oCell.NumberFormat := nFormat
-					}
-					else	{
-						oCell := oSheet.getCellRangeByName( "D"A_Index )
+						oCell.setString(dias[2])
+						oCell.NumberFormat := nFormat
+				}
+				else	{
+					oCell := oSheet.getCellRangeByName( "D"A_Index )
 						oCell.setString(0)
 						oCell.NumberFormat := nFormat
-						oCell := oSheet.getCellRangeByName( "E"A_Index )
+					oCell := oSheet.getCellRangeByName( "E"A_Index )
 						oCell.setString(FormatSeconds(sql_r[A_Index,5]))
 						oCell.NumberFormat := nFormat
-						}
-				oCell := oSheet.getCellRangeByName( "F"A_Index )
-				oCell.setString(sql_r[A_Index,6])	
 				}
+				oCell := oSheet.getCellRangeByName( "F"A_Index )
+					oCell.setString(sql_r[A_Index,6])	
+		}
 		oCell	:=	oSheet.getCellRangeByName( "D" sql_R.MaxIndex()+1 )
 		oCell.NumberFormat := nFormat
 		}
 	If !sPath
-		sPath:=A_Desktop
+		sPath := A_Desktop
 	If !( SubStr(sPath, StrLen(sPath)-1, 1) = "\" )
 		sPath := sPath "\"
 	FileNameOut := sPath sFileName
@@ -1496,20 +1636,50 @@ CreateNewCalc:
 	oLocale.Country	:=	"BR"
 Return
 
-MakePropertyValue(oSM, cName, uValue)	{	
-	oPropertyValue					:=	oSM.Bridge_GetStruct("com.sun.star.beans.PropertyValue")
+MakePropertyValue( oSM, cName, uValue )	{	
+	oPropertyValue	:=	oSM.Bridge_GetStruct( "com.sun.star.beans.PropertyValue" )
 	If	cName
 		oPropertyValue.Name	:=	cName
 	If	uValue
-		oPropertyValue.Value	:=	uValue
+		oPropertyValue.Value:=	uValue
 	Return	oPropertyValue
 }
 
 FileURL( File )	{
 	Local v, INTERNET_MAX_URL_LENGTH := 2048   
-	VarSetCapacity(v,4200,0)
-	DllCall( "Shlwapi.dll" ( SubStr(File,1,5)="file:" ? "\PathCreateFromUrl" : "\UrlCreateFromPath" )
-			, "Str",File, "Str",v, "UIntP",INTERNET_MAX_URL_LENGTH, "UInt",0 )
+	VarSetCapacity( v , 4200 , 0 )
+	DllCall( "Shlwapi.dll" ( SubStr(File,1,5) = "file:" ? "\PathCreateFromUrl" : "\UrlCreateFromPath" )
+			, "Str",File , "Str" , v , "UIntP" , INTERNET_MAX_URL_LENGTH , "UInt" , 0 )
 	Return v
 }
 
+Login:
+	#IfWinActive, Login Cotrijal
+	Gui.Cores("login","9BACC0","374658")
+		Gui, login:Font,	Bold	S10 cWhite
+	Gui, login:Add, Text,	x10	y10		w80		h20									, Usuário
+	Gui, login:Add, Text,	x10	y30		w80		h20									, Senha
+		Gui, login:Font
+		Gui, login:Font, Bold S10
+	Gui, login:Add, Edit,	x90	y10		w140	h20		v@usuario
+	Gui, login:Add, Edit,	x90	y30		w140	h20		v@senha		Password
+	Gui, login:Add, Button,	x10	y55		w221	h25		vAutentica	g_Autenticar	, Ok
+		Gui, login:Font
+	Gui, login: +AlwaysOnTop	-MinimizeBox
+	Gui, login:Show,																, Login Cotrijal
+	Sleep, 500
+	Gui, login:+LastFound
+	Guicontrol, login:Focus, @usuario
+	Return
+
+	_Autenticar:
+		Gui,	Login:Submit,	NoHide
+		is_login := Login( @usuario, @senha )
+		if	( logou = "interface" )
+			Return
+		goto,%	logou := Login( @usuario, @senha ) =	0
+													?	"GuiClose"
+													:	"Interface"
+	Return
+
+return

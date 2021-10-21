@@ -5,8 +5,9 @@
 		; MsgBox % get_status( server[9] )
 	; server	:= StrSplit( pslist( "192.9.100.183" , "cotrijal\srv.dguard" , "M0n_DG20" , "dguard" ) , "`n" )
 		; MsgBox % get_status( server[9] )
-	server	:= get_status( pslist( "192.9.100.187" , "dguard" , "cotrijal\srv.dguard" , "M0n_DG20" ) , "C:\Seventh\dguardCenter\dguard.exe"  , "cotrijal\srv.dguard" , "M0n_DG20"  )
+	; server	:= get_status( pslist( "192.9.100.187" , "dguard" , "cotrijal\srv.dguard" , "M0n_DG20" ) , "C:\Seventh\dguardCenter\dguard.exe"  , "cotrijal\srv.dguard" , "M0n_DG20"  )
 	; server	:= StrSplit( pslist( "192.9.100.187" , "cotrijal\srv.dguard" , "M0n_DG20" , "dguard" ) , "`n" )
+	server	:= pslist( "192.9.100.187" , "cotrijal\srv.dguard" , "M0n_DG20" , "dguard" ) 
 		; MsgBox % get_status( server[9] )
 		MsgBox % server
 ;

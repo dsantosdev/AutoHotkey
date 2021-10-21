@@ -29,7 +29,7 @@ Icon_1=C:\Dih\zIco\mail.ico
 */
 
 
-/*
+/*	teste ocomon
 	102225
 	Área Responsável:	
 	TI - Infraestrutura
@@ -40,7 +40,7 @@ Icon_1=C:\Dih\zIco\mail.ico
 	Descrição:	Chamado aberto para validação do sistema monitoramento.
 */
 
-/*
+/*	Teste email
 	Bom dia,
 	No dia de hoje a unidade de Caseiros, vai estar  com movimentação de pessoal,  mas não vão acessar o escritório e depósitos. O proprietário do imóvel  com a prefeitura, estarão cascalhando o pátio. 
 	Qualquer coisa me avisa que lhe ligo ligo para o proprietário. 
@@ -64,11 +64,12 @@ Icon_1=C:\Dih\zIco\mail.ico
 	; #Include ..\class\safedata.ahk
 	; #Include ..\class\string.ahk
 	#Include ..\class\sql.ahk
-	; #Include ..\class\windows.ahk
+	#Include ..\class\windows.ahk
 ;
 
-;	Variáveis
+;	Variáveis e Arrays
 	istest = 0
+	multidatas := []
 ;
 
 ;	Autenticação
@@ -84,6 +85,9 @@ Icon_1=C:\Dih\zIco\mail.ico
 ;
 
 ;	Bloco de login
+	;	Necessita de:
+		;	#Include ..\class\functions.ahk
+		;	#Include ..\class\windows.ahk
 	Login:
 		gui.Cores( "login" , "9BACC0" , "374658" )
 			Gui.Font( "login:" , "Bold" , "S10" , "cWhite" )
@@ -93,7 +97,6 @@ Icon_1=C:\Dih\zIco\mail.ico
 			Gui.Font( "login:" , "Bold" , "S10" )
 		Gui, login:Add, Edit,	x90	y10		w140	h25		v@usuario
 		Gui, login:Add, Edit,	x90	y40		w140	h25		v@senha		Password
-		; Gui, login:Add, Button,	x10	y55		w221	h25					g_Autenticar	, Ok
 			Gui.Font( "login:" )
 		Gui, login:+AlwaysOnTop	-MinimizeBox
 		Gui, login:Show,																, Login Cotrijal
@@ -119,17 +122,18 @@ Icon_1=C:\Dih\zIco\mail.ico
 	Return
 
 	GuiClose:
+		if ( logou = "GuiClose" )	{
+			Gui, Login:Destroy
+			MsgBox % Windows.Status( @usuario )
+		}
 		loginGuiCLose:
 			ExitApp
-; return
-
 ;
 
 interface:
 	Gui, Login:Destroy
 	gui:
 		Gui, Destroy
-		t_dias = 1
 		Gui.Cores()
 			Gui.Font( "S10" , "Bold" , "CWhite" )
 		Gui,	Add,	Text,			x10		y0		w410	h30													0x1201	Section	,	ADICIONAR E-MAIL
@@ -141,9 +145,9 @@ interface:
 			Gui.Font( "S10" , "Bold" )
 		Gui,	Add,	Edit,			x10		yp+30	w410	h280				v_text				g_inserido	+WantTab
 			Gui.Font( "CWhite" )
-		Gui,	Add,	CheckBox,		x10		yp+280	w190	h30		Checked		v_notify										,	Notificar operador
+		; Gui,	Add,	CheckBox,		x10		yp+280	w190	h30		Checked		v_notify										,	Notificar operador
 			Gui.Font( )
-		Gui,	Add,	Button,			x220	yp		w200	h30										g_add						,	Adicionar
+		Gui,	Add,	Button,			x220	yp+280	w200	h30										g_add						,	Adicionar
 			Gui.Font( "S10" )
 		Gui,	Add,	ListView,				ys		w600	h220	AltSubmit	v_lv				g_lv2						,	Unidade|Mensagem|Inserido|ID
 			Gui.Font( "Bold" )
@@ -157,7 +161,7 @@ interface:
 			gosub	ddl
 return
 
-cl:				;{	Usado em debug apenas
+cl:				;	Usado em debug apenas
 	Gui,	Submit,	NoHide
 	; MsgBox % _multidate
 	; Clipboard:=_uni
@@ -198,10 +202,10 @@ _inserido:
 			_text := StrReplace( _text , "**" , "`t" )
 			_text := StrReplace( _text , "--" , "`r" )
 			_text := StrReplace( _text , "++" , "`n" )
-				OutputDebug % _text ; Na integra
+				; OutputDebug % _text ; Na integra
 			texto_ := SubStr( _text , 1 , 6 )
 					. "`n"	SubStr( _text , Instr( _text , "Descrição:" ) +11 )
-				OutputDebug % texto_
+				; OutputDebug % texto_
 			split := strsplit( _text , "`n" )
 			abertura =
 			Loop,% split.Count()
@@ -214,11 +218,7 @@ _inserido:
 	Else
 		GuiControl,	Choose,	_uni,% unidade_
 	;	Se há data e hora no texto, tenta fazer um autoparse dos valores
-	tem_hora=
-	tem_data=
-	data_agenda=
-	hora_agenda=
-	saida=
+	tem_hora:=tem_data:=data_agenda:=hora_agenda:=saida:=""
 	Loop,	24	;	Verifica se existe formato de horário no corpo do texto
 		if ( StrLen( A_Index ) = 1 )
 			if ( InStr( _text , "0" A_Index ":" ) > 0 )
@@ -386,9 +386,7 @@ Exclude:		;{	Menu de exclusão
 		Gosub, Interface
 		Gui, Submit, NoHide
 		GuiControl, Focus, _lv
-			OutputDebug % mensagem
 		LV_GetText( mensagem, lastline, 2 )
-			OutputDebug % mensagem
 		LV_Modify( lastline , "Select" )
 		GuiControl, , showbox,% mensagem
 	Return
@@ -404,7 +402,7 @@ _add:
 		MsgBox Você precisa selecionar uma unidade para poder salvar!
 		return
 	}
-	Loop	{
+	Loop	{	;	Remove blank lines
 		_text := RegExReplace( _text , "\R+\R" , "`r`n " )
 		if ErrorLevel = 0
 			break
@@ -423,106 +421,132 @@ _add:
 				op		:=	iduni[4] = "1;2;3;4;5" ? 0 : iduni[4]
 				cli		:=	iduni[5]
 			}
-	FormatTime, dataagendado	, % _date, yyyy-MM-dd HH:mm:ss.000
-	FormatTime, inserido		, %A_Now%, yyyy-MM-dd HH:mm:ss.000
+	FormatTime, dataagendado	,% _date, yyyy-MM-dd HH:mm:ss.000
+	FormatTime, inserido		,% A_Now, yyyy-MM-dd HH:mm:ss.000
 	dataagendado_ := _date
-	if ( multidatas.Count() != "" )	{
-		t_dias := t_dias + multidatas.Count()
-		Dataagendado_ := datetime( 3 , StrReplace( StrReplace( StrReplace( dataagendado_ , " " ) , "-" ) , ":" ) )
-		Loop,%	multidatas.Count()	{
-			if ( A_Index = 1 )
-				Dataagendado_ .= "`n`t" datetime( 3, multidatas[A_Index] )
-			else
-				Dataagendado_ .= "`n`t" datetime( 3, multidatas[A_Index] )
+	;	Message Box
+		if ( multidatas.Count() != "" )	{	;	Para exibição na msgbox apenas
+			dataagendado_ := datetime( 3 , RegExReplace( dataagendado_ , "\D" ) )
+			Loop,%	multidatas.Count()	{
+				if ( A_Index = 1 )
+					dataagendado_ .= "`n`t" datetime( 3, multidatas[A_Index] )
+				else
+					dataagendado_ .= "`n`t" datetime( 3, multidatas[A_Index] )
+			}
 		}
-	}
-	else
-		dataagendado_ := Dataagendado
-	If ( InStr( _text , "'" ) > 0 )
-		_text := StrReplace( _text , "'" , "’" )
-	if ( StrLen( user ) = 0 )
-		user := A_IPAddress1
-	MsgBox,	0x1, Confirmar inserção de E-Mail,%	"`tConfirma adicionar os seguintes dados no sistema?"
-		.	"`n`nOperador:	" op
-		.	"`nMensagem:`n---------`n`t" _text "`n---------"
-		.	"`nInserido por:`t" user
-		.	"`nInserido em:	" agora
-		.	"`nCliente:`t`t" cli
-		.	"`nAgendado em`t" t_dias "`tdia(s)."
-		.	"`nAgendado para:`n`t" dataagendado_
-	IfMsgBox Cancel
-	{
-		GuiControl, Focus, _text
-		return
-	}
-	alerta := _notify
-	Ins =	;	Insere a mensagem na tabela Agenda
-		(
-		INSERT INTO
-			[ASM].[dbo].[_Agenda]
-			(	[Mensagem]
-			,	[Inserido]
-			,	[Alerta]
-			,	[Gerado_Por]
-			,	[Id_Cliente]
-			,	[Estacao] )
-		VALUES
-			(	'%_text%'
-			,	'%inserido%'
-			,	'%alerta%'
-			,	'%@usuario%'
-			,	'%idu%'
-			,	'%A_ComputerName%'	)
-		)
-		sql( ins , 3 )
-	top_1 =	;	Seleciona o ID da mensagem
-		(
-		SELECT TOP 1
-			[pkid]
-		FROM
-			[ASM].[dbo].[_Agenda]
-		ORDER BY
-			1
-		DESC
-		)
+		else
+			dataagendado_ := Dataagendado
+		If ( InStr( _text , "'" ) > 0 )
+			_text := StrReplace( _text , "'" , "’" )
+		if ( StrLen( user ) = 0 )
+			user := A_IPAddress1
+		quantos_dias := _multidate = 1 ? multidatas.Count()+1 : 1
+		MsgBox,	0x1, Confirmar inserção de E-Mail,%	"`tConfirma adicionar os seguintes dados no sistema?"
+			.	"`n`nOperador:	"				op
+			.	"`nMensagem:`n---------`n`t"	_text "`n---------"
+			.	"`nInserido por:`t"				user
+			.	"`nInserido em:	"				agora
+			.	"`nCliente:`t`t"				cli
+			.	"`nAgendado para`t"				quantos_dias "`tdia(s)."
+			.	"`nAgendado para:`n`t"			dataagendado_
+		IfMsgBox Cancel
+		{
+			GuiControl, Focus, _text
+			return
+		}
+	;
+
+	;	Insere a mensagem na tabela Agenda
+		Ins =
+			(
+			INSERT INTO
+				[ASM].[dbo].[_Agenda]
+				(	[Mensagem]
+				,	[Inserido]
+				,	[Gerado_Por]
+				,	[Id_Cliente]
+				,	[Estacao]
+				,	[operador] )
+			VALUES
+				(	'%_text%'
+				,	'%inserido%'
+				,	'%user%'
+				,	'%idu%'
+				,	'%A_ComputerName%'
+				,	'%op%'	)
+			)
+			sql( ins , 3 )
+	;
+
+	;	Seleciona o ID da mensagem para os Alertas
+		top_1 =
+			(
+			SELECT TOP 1
+				[pkid]
+			FROM
+				[ASM].[dbo].[_Agenda]
+			ORDER BY
+				1
+			DESC
+			)
 		id	:= sql( top_1 , 3 )
 		id	:= id[ 2 , 1 ] = "" ? "1" : id[ 2 , 1 ]
-	if ( _multidate = 1 )
-		Loop,  % multidatas.Count()	{
-			FormatTime, _add_day ,% multidatas[A_Index] , yyyy-MM-dd HH:mm:ss.000
-			if (A_Index = multidatas.Count()
-			&&	multidatas.Count() > 1 )
-				notificacao .= "('" id "'`n,`tCast( '" _add_day "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL )"
-			else if ( A_Index = 1 )	{
-				primeiran := "('" id "'`n,`tCast( '" _add_day "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL ),`n"
-				notificacao.= primeiran "('" id "'`n,`tCast( '" dataagendado "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL ),`n"
-				if ( multidatas.Count() = 1 )	{
-					notificacao := SubStr( notificacao , 1 , StrLen( notificacao )-2 )
-					break
+	;
+
+	;	Datas de agendamento de alertas
+		OutputDebug % "contagem " multidatas.Count()
+		if ( _multidate = 1 )	;	mais de 1 dia
+			Loop,% multidatas.Count()	{
+				FormatTime, _add_day ,% multidatas[A_Index] , yyyy-MM-dd HH:mm:ss.000
+				if (	A_Index = multidatas.Count()	;	Último
+					&&	multidatas.Count() > 1 )	{
+					OutputDebug % "index = último"
+					notificacao .= "('" id "'`n,`t'" _add_day "'`n,`t'" op "'`n,`tNULL`n,`tNULL )"
+				}
+				else if (	A_Index = 1					;	Primeiro com mais de 2 dias
+						&&	multidatas.Count() != 1 )	{
+					OutputDebug % "index 1 e mais de 2 dias"
+					_visualizado		:= RegExReplace( dataagendado, "\D") > RegExReplace( datetime(1) , "\D") ? "NULL" : "'1'"
+					_data_visualizado	:= RegExReplace( dataagendado, "\D") > RegExReplace( datetime(1) , "\D") ? "NULL" : "'" dataagendado "'"
+					notificacao :=	"('" id "'`n,`t'" dataagendado "'`n,`t'" op "'`n,`t" _visualizado "`n,`t" _data_visualizado " ),`n"
+								.	"('" id "'`n,`t'" _add_day "'`n,`t'" op "'`n,`tNULL`n,`tNULL ),`n"
+				}
+				else if (	A_Index = 1					;	Primeiro com apenas 2 dias
+						&&	multidatas.Count() = 1 )	{
+					OutputDebug % "index 1 e 2 dias apenas"
+					_visualizado		:= RegExReplace( dataagendado, "\D") > RegExReplace( datetime(1) , "\D") ? "NULL" : "'1'"
+					_data_visualizado	:= RegExReplace( dataagendado, "\D") > RegExReplace( datetime(1) , "\D") ? "NULL" : "'" dataagendado "'"
+					notificacao :=	"('" id "'`n,`t'" dataagendado "'`n,`t'" op "'`n,`t" _visualizado "`n,`t" _data_visualizado " )"
+								.	",`n('" id "'`n,`t'" _add_day "'`n,`t'" op "'`n,`tNULL`n,`tNULL )"
+				}
+				else	{								;	Datas entre meio primeira e última
+					OutputDebug % "Entre meio datas"
+					notificacao .= "('" id "'`n,`t'" _add_day "'`n,`t'" op "'`n,`tNULL`n,`tNULL ),`n"
 				}
 			}
-			else
-				notificacao .= "('" id "'`n,`tCast( '" dataagendado "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL ),`n"
+		else	{	;	1 dia apenas
+			_visualizado		:= RegExReplace( dataagendado, "\D") > RegExReplace( datetime(1) , "\D") ? "NULL" : "'1'"
+			_data_visualizado	:= RegExReplace( dataagendado, "\D") > RegExReplace( datetime(1) , "\D") ? "NULL" :  "'" dataagendado "'"
+			notificacao			:= "('" id "'`n,`t'" dataagendado "'`n,`t'" op "'`n,`t" _visualizado "`n,`t" _data_visualizado " )"
 		}
-	else
-		notificacao := "('" id "'`n,`tCast( '" dataagendado "' as DateTime )`n,`t'" op "'`n,`tNULL`n,`tNULL )"
-	ins =
-		(
-		INSERT INTO
-			[ASM].[dbo].[_Agenda_Alertas]
-				(	[id_aviso]
-				,	[data_alerta]
-				,	[quem_avisar]
-				,	[visualizado]
-				,	[data_visualizado]	)
-			VALUES
-				`n%notificacao%
-		)
-		sql( ins , 3 )
+		ins =
+			(
+			INSERT INTO
+				[ASM].[dbo].[_Agenda_Alertas]
+					(	[id_aviso]
+					,	[data_alerta]
+					,	[quem_avisar]
+					,	[visualizado]
+					,	[data_visualizado]	)
+				VALUES
+					`n%notificacao%
+			)
+			sql( ins , 3 )
+	;
 	Gui, Destroy	;	rever para carregar sem destruir
-	_multidate = 0
-	Dataagendado = dataagendado_ = ""
-	multidatas := []
+	_multidate	= 0
+	Dataagendado= dataagendado_ = ""
+	multidatas	:= []
 	Goto, gui
 ;
 
@@ -572,46 +596,39 @@ return
 
 Multi_data:				;{	Email para mais de um dia
 	Gui,	Submit,	NoHide
-	if ( _multidate = 0 )	{
+	if ( _multidate = 0 )	{	;	Limpar o array caso for desmarcado
 		multidatas := []
-		Datas =
 		return
 	}
-	Gui, 1: +Disabled
 	InputBox, dias,	Multi Datas, E-Mail válido para mais quantos dias?, ,,130, , , , , 1
 	numeros = 0123456789
-	if (InStr( numeros , dias ) = 0
-	||	ErrorLevel = 1 )	{
-		Gui,	1:	-Disabled
-		WinActivate,	Adicionar E-Mail
+	if ( InStr( numeros , dias ) = 0
+	||	ErrorLevel = 1 )
 		return
-	}
+	pre_date	:= _date	;	data autal
+	_date		+= 1 , Days	;	mais um dia na data atual
+	ndate		:= _date	;	data nova
 	Gui.Cores( "Multi" )
-		; OutputDebug % _date
-	multidatas := []
-	_date += 1 , Days
-		; OutputDebug % _date
-	ndate := _date
-	Gui, multi:Add,	DateTime,	x10	w200	h30	hwndHdate	Choose%_date%	v_date1,	dd/MM/yyyy HH:mm:ss
-	Loop,%	dias-1	{
+	Gui, multi:Add,	DateTime,	x10	w200	h30	hwndHdate	Choose%_date%						v_date1				gDC,	dd/MM/yyyy HH:mm:ss
+		Loop,%	dias-1	{
 			ndate += 1 ,	Days
-		Gui, multi:Add,	DateTime,	%	"x10	w200	h30	hwndHdate	Choose"	ndate	"	v_date"	A_Index+1	,	dd/MM/yyyy HH:mm:ss
-	}
-	Gui, multi:Add,	Button,	x10	W200	gOkDatas,	Finalizar
-	Gui, multi:Show,	w220,	Mais Dias
+			Gui, multi:Add,	DateTime,	%	"x10	w200	h30	hwndHdate	Choose"	ndate	"	v_date"	A_Index+1 "	gDC",	dd/MM/yyyy HH:mm:ss
+		}
+	Gui, multi:Add,	Button,		x10	W200																		gOkDatas,	Finalizar
+	Gui, multi:Show,				w220																				,	Mais Dias
 	Gui, multi:+AlwaysOnTop
 return
 
-OkDatas:					;{	parser de mais de um dia
-	Gui,	multi:Submit,	NoHide
-	Datas=
-	multidatas := []
-	Loop,%	dias	{
-		multidatas.push( _date%A_Index% )
-	}
+OkDatas:
+	Gui, multi:Submit,	NoHide
 	_date += -1 ,	Days
-	MultiGuiClose:
-		Gui,	multi:Destroy
-		Gui, 1: -Disabled
-		WinActivate,	Adicionar E-Mail
+	; multidatas.push( _date )
+	Loop,%	dias
+		multidatas.push( _date%A_Index% )
+	Gui,	multi:Destroy
+Return
+
+MultiGuiClose:
+	multidatas := []
+	Gui,	multi:Destroy
 return

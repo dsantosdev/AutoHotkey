@@ -23,9 +23,10 @@ debug	=
 
 if ( A_IsCompiled )	{
 	usuario_logado := a_args[1]
-	if ( usuario_logado = "liberar" )
+	if (usuario_logado = "liberar"
+	||	usuario_logado = "agenda_user")
 		goto	skip
-	if ( usuario_logado = "" )
+	else if ( usuario_logado = "" )
 		ExitApp
 	Else	{
 		nome_user := Windows.Users( usuario_logado )
@@ -40,7 +41,7 @@ if ( A_IsCompiled )	{
 			)
 		s := sql( s, 3 )
 		if ( InStr(s[2,1], "Agente de monitoramento") = 0 )	{
-			MsgBox, , Finalizando,% "Seu cargo (" S[2,1] ") não tem autorização para acessar esse sistema."
+			MsgBox, , Finalizando,% "O cargo (" S[2,1] ") de " usuario_logado " não tem autorização para acessar esse sistema."
 			ExitApp
 			}
 	}
@@ -387,63 +388,63 @@ GuiClose:
 		login_in := Login(@usuario,@senha) = 0 ? 0 : 1
 		if ( login_in = 0 )	{
 			Gui,	Login:Destroy
-			s = SELECT TOP(1) [falhas] FROM [ASM].[dbo].[_login_fail] WHERE [user] = '%@usuario%' AND [falhas] < 3 ORDER BY [pkid] DESC
-				s := sql( s , 3 )
-				fails := Strlen( s[2 , 1] )
-				falhas := fails+1
-				if ( fails >= 3 ) {	;	Bloqueio
-					s =
-						(
-						UPDATE [ASM].[dbo].[_login_fail]
-						SET
-							 [data] = GETDATE()
-							,[libera] = DATEADD( mi, 30,getdate())
-							,[falhas] = '%falhas%'
-						WHERE
-							[user] = '%@usuario%'
-						)
-					sql( s , 3 )
-				}
-				Else if ( fails < 3 AND fails > 0 )	{	;	1 a 3
-					s =
-						(
-						UPDATE [ASM].[dbo].[_login_fail]
-						SET [falhas] = '%falhas%'
-						WHERE
-							[user] = '%@usuario%'
-						)
-					sql( s , 3 )
-				}
-				Else {	;	0
-					s =
-						(
-						INSERT INTO [ASM].[dbo].[_login_fail]
-						SET [falhas] = '%falhas%'
-						WHERE
-							[user] = '%@usuario%'
-						)
-					sql( s , 3 )
-				}
-			MsgBox,,Falha de Login,% "Usuário ou Senha inválido!`nVerifique se o NUMLOCK do teclado está ativado e se a tecla CAPSLOCK está ou não ativada!" fails = 0 ? "" : "`nSeu login falhou " fails+1 " vezes, na terceira falha o usuário " @usuario " será bloqueado por 30 minutos.
-			s =
-				(
-				IF NOT EXISTS (SELECT TOP(1) [falhas] FROM [ASM].[dbo].[_login_fail] WHERE [user] = '%@usuario%' and [falhas] < 3 ORDER BY [pkid] DESC)
-					INSERT INTO
-					[ASM].[dbo].[_login_fail]
-						(	 [user]
-							,[data]
-							,[libera]
-							,[falhas]	)
-					VALUES
-						(	 '@usuario'
-							,''
-							,''
-							,''	)
-				ELSE
-					UPDATE [ASM].[dbo].[_login_fail]
-						SET Col1 = Val1, Col2 = Val2, ...., ColN = ValN
-					WHERE ID = @SomeID
-				)
+			; s = SELECT TOP(1) [falhas] FROM [ASM].[dbo].[_login_fail] WHERE [user] = '%@usuario%' AND [falhas] < 3 ORDER BY [pkid] DESC
+			; 	s := sql( s , 3 )
+			; 	fails := Strlen( s[2 , 1] )
+			; 	falhas := fails+1
+			; 	if ( fails >= 3 ) {	;	Bloqueio
+			; 		s =
+			; 			(
+			; 			UPDATE [ASM].[dbo].[_login_fail]
+			; 			SET
+			; 				 [data] = GETDATE()
+			; 				,[libera] = DATEADD( mi, 30,getdate())
+			; 				,[falhas] = '%falhas%'
+			; 			WHERE
+			; 				[user] = '%@usuario%'
+			; 			)
+			; 		sql( s , 3 )
+			; 	}
+			; 	Else if ( fails < 3 AND fails > 0 )	{	;	1 a 3
+			; 		s =
+			; 			(
+			; 			UPDATE [ASM].[dbo].[_login_fail]
+			; 			SET [falhas] = '%falhas%'
+			; 			WHERE
+			; 				[user] = '%@usuario%'
+			; 			)
+			; 		sql( s , 3 )
+			; 	}
+			; 	Else {	;	0
+			; 		s =
+			; 			(
+			; 			INSERT INTO [ASM].[dbo].[_login_fail]
+			; 			SET [falhas] = '%falhas%'
+			; 			WHERE
+			; 				[user] = '%@usuario%'
+			; 			)
+			; 		sql( s , 3 )
+			; 	}
+			; MsgBox,,Falha de Login,% "Usuário ou Senha inválido!`nVerifique se o NUMLOCK do teclado está ativado e se a tecla CAPSLOCK está ou não ativada!" fails = 0 ? "" : "`nSeu login falhou " fails+1 " vezes, na terceira falha o usuário " @usuario " será bloqueado por 30 minutos.
+			; s =
+				; (
+				; IF NOT EXISTS (SELECT TOP(1) [falhas] FROM [ASM].[dbo].[_login_fail] WHERE [user] = '%@usuario%' and [falhas] < 3 ORDER BY [pkid] DESC)
+					; INSERT INTO
+					; [ASM].[dbo].[_login_fail]
+						; (	 [user]
+							; ,[data]
+							; ,[libera]
+							; ,[falhas]	)
+					; VALUES
+						; (	 '@usuario'
+							; ,''
+							; ,''
+							; ,''	)
+				; ELSE
+					; UPDATE [ASM].[dbo].[_login_fail]
+						; SET Col1 = Val1, Col2 = Val2, ...., ColN = ValN
+					; WHERE ID = @SomeID
+				; )
 			}
 		}
 		OnExit, Relatorio_Temporario

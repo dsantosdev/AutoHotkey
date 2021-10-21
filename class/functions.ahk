@@ -1,39 +1,4 @@
-﻿
-Base64Dec( ByRef B64, ByRef Bin ) {  ; By SKAN / 18-Aug-2017
-	Local Rqd := 0, BLen := StrLen(B64)                 ; CRYPT_STRING_BASE64 := 0x1
-	DllCall( "Crypt32.dll\CryptStringToBinary", "Str",B64, "UInt",BLen, "UInt",0x1
-			, "UInt",0, "UIntP",Rqd, "Int",0, "Int",0 )
-	VarSetCapacity( Bin, 128 ), VarSetCapacity( Bin, 0 ),  VarSetCapacity( Bin, Rqd, 0 )
-	DllCall( "Crypt32.dll\CryptStringToBinary", "Str",B64, "UInt",BLen, "UInt",0x1
-			, "Ptr",&Bin, "UIntP",Rqd, "Int",0, "Int",0 )
-	Return Rqd
-}
-
-Base64Enc( ByRef Bin, bytes, lenght := 64, l_spaces := 0 ) { ; By SKAN / 18-Aug-2017
-	Local Rqd := 0, B64, B := "", N := 0 - lenght + 1  ; CRYPT_STRING_BASE64 := 0x1
-	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin ,"UInt",bytes, "UInt",0x1, "Ptr",0,   "UIntP",Rqd )
-	VarSetCapacity( B64, Rqd * ( A_Isunicode ? 2 : 1 ), 0 )
-	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin, "UInt",bytes, "UInt",0x1, "Str",B64, "UIntP",Rqd )
-	If ( lenght = 64 and ! l_spaces )
-		Return B64
-	B64 := StrReplace( B64, "`r`n" )        
-	Loop % Ceil( StrLen(B64) / lenght )
-		B .= Format("{1:" l_spaces "s}","" ) . SubStr( B64, N += lenght, lenght ) . "`n" 
-	Return RTrim( B,"`n" )    
-}
-
-b64_file_enc(FileName) {
-	FileGetSize, nBytes, %FileName%
-	FileRead, Bin, *c %FileName%
-	return Base64Enc(Bin, nBytes)
-}
-
-b64_file_dec(ByRef B64, FileName) {
-	nBytes := Base64Dec(B64, Bin)
-	FileOpen(FileName, "w").RawWrite(Bin, nBytes)
-}
-
-chrome_history() {	;	Bloqueia a exclusao de historico
+﻿chrome_history() {	;	Bloqueia a exclusao de historico
 	RegRead,	history,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
 	if ( history != 0 )	{
 		RegWrite, REG_DWORD,	HKEY_LOCAL_MACHINE, SOFTWARE\Policies\Google\Chrome,	AllowDeletingBrowserHistory,	0
@@ -63,7 +28,51 @@ datetime( sql = "0", date = "" ) {
 		date := RegExReplace(date, "\D")
 		Return SubStr( date, 5, 4 ) "-"  SubStr( date, 3, 2 ) "-"  SubStr( date, 1, 2 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
 		}
+	else If ( sql = 3 && date !="" )	{	;	valor passado junto
+		date := RegExReplace(date, "\D")
+		Return SubStr( date, 1, 4 ) "-"  SubStr( date, 5, 2 ) "-"  SubStr( date, 7, 2 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
+		}
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
+}
+
+email_notificador()	{
+	Global last_id
+	s =
+		(
+		SELECT TOP(1)
+			 p.[Mensagem]
+			,p.[operador]
+			,c.[Nome]
+			,p.[pkid]
+		FROM
+			[ASM].[dbo].[_Agenda] p
+		LEFT JOIN
+			[Iris].[IrisSQL].[dbo].[Clientes] c
+		ON
+			p.[id_cliente] = c.[IdUnico]
+		ORDER BY
+			4
+		DESC
+		)
+		email := sql( s , 3 )
+	If ( StrLen( last_id ) = 0 ) {
+		OutputDebug % "Last_ID = 0"
+		last_id := email[2,4]
+		return	last_id
+	}
+	Else if ( last_id < email[2,4] ) {
+		OutputDebug	% "Novo e-mail"
+		operador	:= email[2,2]
+		last_id		:= email[2,4]
+		SoundPlay,	\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\car.wav
+		TrayTip,%	email[2,3] "`nNOVO E-MAIL - " datetime(), % email[2,1]
+	}
+	if ( last_id > email[2,4] )	{
+		OutputDebug % "Maior que o identificador"
+		last_id := email[2,4]
+	}
+		OutputDebug % "id igual"
+	return	last_id
 }
 
 formatseconds( Seconds ) {
@@ -73,7 +82,7 @@ formatseconds( Seconds ) {
 	return Seconds//3600 ":" mmss
 }
 
-json(ByRef src, args*) {
+json( ByRef src , args* ) {
 	static q := Chr(34)
 	
 	key := "", is_key := false
@@ -316,4 +325,3 @@ update( comando = "" ) {
 		return 0
 	return sql_le
 }
-

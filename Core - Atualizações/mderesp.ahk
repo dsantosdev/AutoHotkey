@@ -1,5 +1,4 @@
-﻿
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2resp.ico
+﻿;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2resp.ico
 
 ;	include
 	#Include, ..\class\array.ahk
