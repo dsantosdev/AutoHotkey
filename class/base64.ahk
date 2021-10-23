@@ -1,4 +1,9 @@
 ﻿Class Base64 {
+	/*
+		Para encondar em b64, chamar o fileEnc e passar o path do arquivo
+		Para decodar de b64, chamar o filedec passando o bin e o path de saída do arquivo
+	*/
+
 	Dec( ByRef B64, ByRef Bin ) {  ; By SKAN / 18-Aug-2017
 		Local Rqd := 0, BLen := StrLen(B64)                 ; CRYPT_STRING_BASE64 := 0x1
 		DllCall("Crypt32.dll\CryptStringToBinary"
