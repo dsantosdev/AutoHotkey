@@ -53,9 +53,15 @@ Icon_1=C:\Dih\zico\compiler.ico
 		(
 		INSERT INTO
 			[ASM].[dbo].[Softwares]
-			([name],[bin],[version],[obs])
+			([name]
+			,[bin]
+			,[version]
+			,[obs])
 		VALUES
-			('%sistema%','%b64%','%version%','%obs%')
+			('%sistema%'
+			,'%b64%'
+			,'%version%'
+			,'%obs%')
 		)
 	sql( i, 3 )
 	if ( sql_le <> "" )
