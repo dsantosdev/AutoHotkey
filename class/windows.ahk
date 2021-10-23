@@ -34,4 +34,8 @@
 			Return property[ "Lockout" ] = "-1" ? "Usuário bloqueado ou senha expirada" : "Usuário ou senha inválidos.`nVerifique sua senha, se a tecla CAPSLOCK não está ativada.`nE se atecla NUMLOCK está ativada!"
 	}
 
+	ProcessExist( processName )	{
+		Process, Exist,% processName
+		return Errorlevel
+	}
 }
