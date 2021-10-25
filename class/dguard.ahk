@@ -24,7 +24,7 @@
 		return exec.StdOut.ReadAll()
 	}
 
-	get_image( guid_da_camera , token = "" )									{
+	get_image( guid_da_camera , token = "" )									{	;	não está pronto
 		horario := A_Now 
 		static req := ComObjCreate( "Msxml2.XMLHTTP" )
 		req.open(	"GET"
@@ -59,6 +59,71 @@
 			MsgBox Arquivo não existe
 	}
 
+	http( url , token )															{
+		static req := ComObjCreate( "Msxml2.XMLHTTP" )
+		req.open( "GET", url, false )
+		req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
+		req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
+		req.send()
+		return	% req.responseText
+	}
+
+	layouts( server , token )													{
+		/*	utilização do retorno em loop, var.layouts.count()
+			var.layouts[A_Index].guid
+			var.layouts[A_Index].name
+			var.layouts[A_Index].readOnly
+			var.layouts[A_Index].status
+			var.layouts[A_Index].camerasCount
+			var.layouts[A_Index].firstCameraId
+			var.layouts[A_Index].mosaicGuid
+			*/
+		/*	Usado pelos sistemas abaixo
+			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
+			*/
+		
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+
+		url		:=	"http://" server ":8081/api/layouts"
+
+		retorno	:=	Dguard.http( url , token )
+
+		return	json( retorno )
+	}
+
+	lista_cameras_layout( server , token , layoutGuid )							{
+		;	var.servers[A_Index].CAMPO
+		/*	Usado pelos sistemas abaixo
+			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
+			*/
+
+		layoutGuid := RegExReplace(  layoutGuid , "[{}]" )
+
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+
+		url		:= "http://" server ":8081/api/layouts/%7B" layoutGuid "%7D/cameras"
+		
+		retorno := Dguard.http( url , token )
+		
+		return	json( retorno )
+	}
+
+	lista_cameras_operador( server , token )									{
+		;	var.servers[A_Index].CAMPO
+		/*	Usado pelos sistemas abaixo
+			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
+		*/
+		server	:=	StrLen( server )	=	0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+		; url := 
+		return	json( Dguard.http( "http://" server ":8081/api/servers" , token ) )
+	}
+
 	Mover( win_id := "", win_title := "A" )										{
 		if ( StrLen( win_id  ) = 0 )	{
 			if ( StrLen( win_title ) > 1 )
@@ -71,42 +136,6 @@
 		OutputDebug % "Monitor:`t" MonitorPrimary "`n`nName:`t" MonitorName "`nX:`t" MonitorLeft "`nY:`t" MonitorTop "`nW:`t" MonitorRight-MonitorLeft "`nH`t" MonitorBottom-MonitorTop
 		WinMove, ahk_id %win_id%, ,% MonitorLeft,% MonitorTop  ;,% MonitorRight-MonitorLeft,% MonitorBottom-MonitorTop
 		return
-	}
-
-	token( server = "" , pass = "" , user = "" )								{
-		ip_s = 160									;	Prepara var com os ips do monitoramento
-			Loop, 20
-				monitoramento .= ip_s+A_Index ","
-				monitoramento .= "184"
-				ip := StrSplit( A_IpAddress1 , "." )
-		if (user = "conceitto"
-		&&	StrLen( pass ) = 0 )					;	Específico para o sistema da conceitto
-			pass = cjal2021
-		server	:=	StrLen( server )		=	0	;	parâmetro de servidor não enviado
-				?	"localhost"
-				:	server
-		user	:=	StrLen( user )			=	0	;	parâmetro de usuário não enviado
-									?	"admin"
-									:	user
-		pass	:=	InStr( server , "vdm" )	>	0	;	se o parâmetro de servidor conter "vdm", define a senha padrão
-											?	StrLen( pass ) = 0
-												?	InStr( monitoramento , ip[4] )
-													?	"admin"	:	pass
-												:	pass
-											:	pass
-		url	=	"http://%server%:8081/api/login" -H "accept: application/json"  -H "Content-Type: application/json" -d "{ \"username\": \"%user%\", \"password\": \"%pass%\"}"
-		retorno	:=	StrReplace(	Dguard.curl( url , server , "POST" ) , """" )
-		retorno	:=	SubStr( StrReplace( retorno , "{login:{") , 1 , InStr( retorno , ",serverDate")-9 )
-		return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
-	}
-
-	http( url , token )															{
-		static req := ComObjCreate( "Msxml2.XMLHTTP" )
-		req.open( "GET", url, false )
-		req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
-		req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
-		req.send()
-		return	% req.responseText
 	}
 
 	select_server( haystack_obj , value , key , return_key = "" , warn = 0 )	{
@@ -131,5 +160,40 @@
 		return	json( retorno )
 	}
 
-}
+	token( server = "" , pass = "" , user = "" )								{
+		/*	Usado pelos sistemas abaixo
+			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
 
+		*/
+		ip_s = 160									;	Prepara var com os ips do monitoramento
+			Loop, 20
+				monitoramento .= ip_s+A_Index ","
+			monitoramento .= "184"
+		ip := StrSplit( server , "." )				;	Verifica no ip[4] qual servidor foi requisitado as informações para ajustar a senha de requisição
+		if (user = "conceitto"
+		&&	StrLen( pass ) = 0 )					;	Específico para o sistema da conceitto
+			pass = cjal2021
+		server	:=	StrLen( server )		=	0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+		user	:=	StrLen( user )			=	0	;	parâmetro de usuário não enviado
+									?	"admin"
+									:	user
+		pass	:=	InStr( server , "vdm" )	>	0	;	se o parâmetro de servidor conter "vdm", define a senha padrão
+											?	StrLen( pass ) = 0
+												?	InStr( monitoramento , ip[4] )
+													?	"admin"	:	pass
+												:	pass
+											:	pass
+		if (ip[4] > 160
+		&&	ip[4] < 181 )							;	Se o servidor solicitado for coluna de operador define a senha de administrador
+			pass := "@dm1n"
+		if ( debug >=2 )							;	Debug output
+			OutputDebug % server "`n" user "`n" pass "`n" ip[4]
+		url	=	"http://%server%:8081/api/login" -H "accept: application/json"  -H "Content-Type: application/json" -d "{ \"username\": \"%user%\", \"password\": \"%pass%\"}"
+		retorno	:=	StrReplace(	Dguard.curl( url , server , "POST" ) , """" )
+		retorno	:=	SubStr( StrReplace( retorno , "{login:{") , 1 , InStr( retorno , ",serverDate")-9 )
+		return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
+	}
+
+}
