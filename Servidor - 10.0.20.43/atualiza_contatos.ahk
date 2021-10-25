@@ -99,7 +99,7 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 		mail			:=	contatos_oracle[ A_Index+1 , 4 ]
 		tel1			:=	contatos_oracle[ A_Index+1 , 5 ]
 		tel2			:=	contatos_oracle[ A_Index+1 , 6 ]
-		ramal			:=	StrLen( contatos_oracle[ A_Index+1 , 7 ] < 3 ) ? "" : contatos_oracle[ A_Index+1 , 7 ]
+		ramal			:=	StrLen( contatos_oracle[ A_Index+1 , 7 ] ) < 3 ? "" : contatos_oracle[ A_Index+1 , 7 ]
 		sexo			:=	contatos_oracle[ A_Index+1 , 8 ]
 		ccus			:=	String.Remove_accents( Format( "{:T}" , contatos_oracle[ A_Index+1 , 9 ] ) )
 		setor			:=	String.Remove_accents( Format( "{:T}" , contatos_oracle[ A_Index+1 , 10 ] ) )
@@ -174,6 +174,7 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 					,'%admissao%'		)
 			)
 			; Clipboard:= atualiza_dados
+			; MsgBox
 		atualiza_dados := sql( atualiza_dados , 3 )
 	}
 ;
