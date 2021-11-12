@@ -122,7 +122,7 @@ Class	String		{
 		return	%	Retorno
 	}
 
-	Case( word, type )				{
+	Case( word, type )				{	;	usar format?
 		StringUpper, word, word ,% type
 		Return word
 	}
