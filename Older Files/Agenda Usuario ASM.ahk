@@ -311,7 +311,7 @@ _carrega_relatorio_individual:
 			1 DESC
 		)
 	if ( debug = 0 )
-		Clipboard:=select
+		; Clipboard:=select
 	relatorios := sql( select, 3 )
 	if ( debug = 1 )
 		OutputDebug % "Iniciou LV " SubStr( A_Now, -1 )
@@ -1019,11 +1019,11 @@ OnTabSelect:
 			ORDER BY
 				1 DESC
 			)
-			Clipboard := sqlv
+			; Clipboard := sqlv
 		fill := sql( sqlv )
 		Loop, % fill.Count()-1
 			LV_Add("",	fill[A_Index+1,1],	fill[A_Index+1,2])
-			LV_ModifyCol(1,Sort)
+			; LV_ModifyCol(1,Sort)
 			LV_ModifyCol(1,115)
 			LV_ModifyCol(2,1100)
 		GuiControl	Focus,	lv4
