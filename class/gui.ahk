@@ -1,7 +1,7 @@
 ﻿
 Class	Gui	{
 
-	Cores( id = "", cor1 = "", cor2 = "" )	{
+	Cores( id = "", cor1 = "", cor2 = "" )												{
 		if ( StrLen( cor1 ) = 0 )
 			cor1 = 9BACC0
 		if ( StrLen( cor2 ) = 0 )
@@ -16,7 +16,7 @@ Class	Gui	{
 		}
 	}
 
-	Font( params* )							{
+	Font( params* )																		{
 		Loop, % params.count()	{
 			if ( InStr( params[ A_Index ], ":") > 0 )	{
 				if ( debug => 4 )
@@ -25,11 +25,17 @@ Class	Gui	{
 				}
 				Else
 					config .= " " params[ A_index ]
-				}
+		}
 		Gui,% named "Font",% config
 	}
 
-	Menu( params* )							{	;	VALIDAR
+	GroupBox( Text, GroupBoxOptions = "", Font = "", FontOptions = "" , Named = "" )	{
+		Named := Named != "" ? Named ":" : Named
+		Gui, %Named%Font,%	FontOptions,%	Font
+		Gui, %Named%Add,	GroupBox,%		GroupBoxOptions,%	Text
+	}
+
+	Menu( params* )																		{	;	VALIDAR
 		Loop, % params.count()	{
 			if ( debug => 4 )
 				OutputDebug % "(Class gui.menu)`n`tGui params[%A_Index%] = " params[ A_index ]
