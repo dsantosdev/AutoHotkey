@@ -4,12 +4,11 @@
 [AHK2EXE]
 Exe_File=C:\users\dsantos\desktop\executáveis\atualiza_contatos.exe
 Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "atualiza_contatos" "0.0.0.4" """
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "atualiza_contatos" "0.0.0.14" """
 [VERSION]
 Set_Version_Info=1
 Company_Name=Heimdall
-File_Description=
-File_Version=0.0.0.5
+File_Version=0.0.0.14
 Inc_File_Version=1
 Product_Name=atualiza_contatos
 Product_Version=1.1.33.2
@@ -19,16 +18,12 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 
 * * * Compile_AHK SETTINGS END * * *
 */
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\fun\low.ico
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\fun\low.ico
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\fun\low.ico
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\fun\low.ico
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\fun\low.ico
 
+;@Ahk2Exe-SetMainIcon C:\Dih\zIco\fun\low.ico
 
 ;	Includes
 	;#Include ..\class\array.ahk
-	;#Include ..\class\base64.ahk
+	#Include ..\class\base64.ahk
 	;#Include ..\class\convert.ahk
 	;#Include ..\class\cor.ahk
 	;#Include ..\class\dguard.ahk
@@ -43,12 +38,19 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 
 ;	Variáveis
 	show_tooltip	:=	A_Args[1]
+	update_server	:=	A_Args[2]
+	if ( update_server = 1 )
+		Goto, update
 	if ( A_UserName = "dsantos" )
 		show_tooltip = 1
 ;
 
+;	Configuração
+	CoordMode, ToolTip, Screen
+	#NoTrayIcon
+;
+
 ;	Arrays
-	
 	funcionarios := []
 ;
 
@@ -72,7 +74,8 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 			f.cd_estab,
 			f.cd_entreposto,
 			f.cd_unidade,
-			f.dt_admissao_colaborador
+			f.dt_admissao_colaborador,
+			f.cd_local
 		FROM
 			cad_funcionarios	f
 		RIGHT OUTER JOIN
@@ -84,7 +87,7 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 		)
 		contatos_oracle	:=	sql( contatos_oracle , 2 )
 		OutputDebug % contatos_oracle.Count()-1 " contatos encontrados no oracle"
-		if ( strlen( sql_le ) > 0 )				;	Se der erro na consulta, retorna sem atualizar e sem gerar erro
+		if ( strlen( sql_le ) > 0 )			;	Se der erro na consulta, retorna sem atualizar e sem gerar erro
 		Return								;	criar sistema para notificar o módulo principal do erro
 ;
 
@@ -112,6 +115,7 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 		admissao		:=	SubStr( contatos_oracle[ A_Index+1 , 17 ] , 7 , 4 )
 						.	"/" SubStr( contatos_oracle[ A_Index+1 , 17 ] , 4 , 2 )
 						.	"/" SubStr( contatos_oracle[ A_Index+1 , 17 ] , 1 , 2 )
+		id_local		:=	contatos_oracle[ A_Index+1 , 18 ]
 		Funcionarios.push( mat )
 		atualiza_dados =					;	Usado na atualização do _colaboradores	-	19/06/2021 - admissao
 			(
@@ -132,7 +136,8 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 						[cd_estab]		= '%cdestab%',
 						[cd_entreposto]	= '%cdentreposto%',
 						[cd_unidade]	= '%cdunidade%',
-						[admissao]		='%admissao%'
+						[admissao]		= '%admissao%',
+						[id_local]		= '%id_local%'
 					WHERE
 						[matricula]		= '%mat%'
 			ELSE
@@ -153,7 +158,8 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 					,[cd_entreposto]
 					,[cd_unidade]
 					,[responsavel]
-					,[admissao]			)
+					,[admissao]
+					,[id_local]			)
 				VALUES
 					(LTRIM(RTRIM('%nome%'))
 					,'%mat%'
@@ -171,7 +177,8 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 					,'%cdentreposto%'
 					,'%cdunidade%'
 					,'99'
-					,'%admissao%'		)
+					,'%admissao%'
+					,'%id_local%'		)
 			)
 			; Clipboard:= atualiza_dados
 			; MsgBox
@@ -195,5 +202,38 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 		)
 		sql( limpa_demitidos , 3 )
 	ToolTip
+	ExitApp
+;
+
+;	Update
+	update:
+		s =
+			(
+			SELECT	TOP (1)
+					[Name]
+					,[Bin]
+					,[Version]
+					,[Obs]
+			FROM
+				[ASM].[dbo].[Softwares]
+			WHERE
+				[Name] = 'servidor'
+			AND
+				[Obs] = ''
+			ORDER BY
+				3
+			DESC
+			)
+			bins := sql( s, 3 )
+		FileGetVersion, exe_version , C:\Dieisson\Motion Detection\servidor.exe
+		if ( exe_version != bins[ 2 , 3 ] )
+			FileDelete, C:\Dieisson\Motion Detection\servidor.exe
+		if (FileExist( "C:\Dieisson\Motion Detection\atualiza_contatos.exe") = ""				;	Garante a existência do executável
+		||	exe_version != bins[ 2 , 3 ] ) 	
+			Base64.FileDec( bins[2, 2] , "C:\Dieisson\Motion Detection\" bins[ 2 , 1 ] ".exe" )	;	transforma o arquivo bas64 em executável
+		Loop
+			If ( FileExist( "C:\Dieisson\Motion Detection\" bins[ 2 , 1 ] ".exe" ) != "" )
+				Break
+		Run, C:\Dieisson\Motion Detection\servidor.exe "1"
 	ExitApp
 ;
