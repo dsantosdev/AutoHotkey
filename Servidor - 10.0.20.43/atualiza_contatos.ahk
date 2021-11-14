@@ -38,9 +38,6 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 
 ;	Variáveis
 	show_tooltip	:=	A_Args[1]
-	update_server	:=	A_Args[2]
-	if ( update_server = 1 )
-		Goto, update
 	if ( A_UserName = "dsantos" )
 		show_tooltip = 1
 ;
@@ -90,7 +87,6 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 		if ( strlen( sql_le ) > 0 )			;	Se der erro na consulta, retorna sem atualizar e sem gerar erro
 		Return								;	criar sistema para notificar o módulo principal do erro
 ;
-
 
 ;	Prepara contatos e atualiza o banco do monitoramento
 	Loop,%	contatos_oracle.Count()-1	{	;	Loop de atualização de contatos
@@ -202,38 +198,5 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 		)
 		sql( limpa_demitidos , 3 )
 	ToolTip
-	ExitApp
-;
-
-;	Update
-	update:
-		s =
-			(
-			SELECT	TOP (1)
-					[Name]
-					,[Bin]
-					,[Version]
-					,[Obs]
-			FROM
-				[ASM].[dbo].[Softwares]
-			WHERE
-				[Name] = 'servidor'
-			AND
-				[Obs] = ''
-			ORDER BY
-				3
-			DESC
-			)
-			bins := sql( s, 3 )
-		FileGetVersion, exe_version , C:\Dieisson\Motion Detection\servidor.exe
-		if ( exe_version != bins[ 2 , 3 ] )
-			FileDelete, C:\Dieisson\Motion Detection\servidor.exe
-		if (FileExist( "C:\Dieisson\Motion Detection\atualiza_contatos.exe") = ""				;	Garante a existência do executável
-		||	exe_version != bins[ 2 , 3 ] ) 	
-			Base64.FileDec( bins[2, 2] , "C:\Dieisson\Motion Detection\" bins[ 2 , 1 ] ".exe" )	;	transforma o arquivo bas64 em executável
-		Loop
-			If ( FileExist( "C:\Dieisson\Motion Detection\" bins[ 2 , 1 ] ".exe" ) != "" )
-				Break
-		Run, C:\Dieisson\Motion Detection\servidor.exe "1"
 	ExitApp
 ;
