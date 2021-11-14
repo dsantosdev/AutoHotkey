@@ -424,6 +424,10 @@ _copyURL:
 	LV_GetText( id_unidade	,	LV_GetNext() , 6 )
 	LV_GetText( server		,	LV_GetNext() , 7 )
 	LV_GetText( api			,	LV_GetNext() , 8 )
+	receptora	:=	RegExReplace( receptora, "\D")
+	conta		:=	RegExReplace( conta, "\D")
+	id_unidade	:=	RegExReplace( id_unidade, "\D")
+	server		:=	RegExReplace( server, "\D")
 	if (receptora = "10001"
 	||	receptora = "" )
 		Gosub, Cadastra
@@ -456,6 +460,7 @@ cadastra:
 		new_contact := 1
 	Else
 		new_contact := contacts[2,1] + 1
+	
 	id_unidade := LTrim( RTrim( id_unidade ) )
 	OutputDebug % "New Contact-ID = " new_contact "`n" id_unidade
 	OutputDebug % "Iniciando cadastro"
