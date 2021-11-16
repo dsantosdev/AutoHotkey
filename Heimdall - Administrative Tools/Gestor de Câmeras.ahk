@@ -1,4 +1,23 @@
-﻿;@Ahk2Exe-SetMainIcon	C:\Seventh\Backup\ico\2LembEdit.ico
+﻿/*
+ * * * Compile_AHK SETTINGS BEGIN * * *
+
+[AHK2EXE]
+Exe_File=C:\users\dsantos\desktop\executáveis\Gestor de Câmeras.exe
+Created_Date=1
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "" "..." """
+[VERSION]
+Set_Version_Info=1
+Company_Name=Heimdall
+Inc_File_Version=1
+Product_Version=1.1.33.2
+Set_AHK_Version=1
+[ICONS]
+Icon_1=C:\Dih\zIco\2LembEdit.ico
+
+* * * Compile_AHK SETTINGS END * * *
+*/
+
+;@Ahk2Exe-SetMainIcon	C:\Seventh\Backup\ico\2LembEdit.ico
 ;	Inicio Header Principal
 global	debug
 	,	is_test
