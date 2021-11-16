@@ -318,6 +318,22 @@ ping( address )	{
 		Return ( ( oS := ( objStatus.StatusCode = "" or objStatus.StatusCode <> 0 ) ) ? "0" : "1" )
 }
 
+StrRep( haystack , separator = ":" , needles* )	{
+	for i, v in needles
+	{
+		if ( InStr( v , separator ) = 1 )	{
+			SearchText	:= SubStr( v, 1 , InStr( v , separator )-1 )	
+			ReplaceText := SubStr( v,InStr( v , separator )+1 )
+		}
+		Else	{
+			SearchText	:=	v
+			ReplaceText	:=	""
+		}
+		haystack := StrReplace( haystack, SearchText , ReplaceText )
+	}
+	Return haystack
+
+}
 update( comando = "" ) {
 	q = UPDATE [ASM].[dbo].[_gestao_sistema] SET [complemento1] = '%up%' WHERE [descricao] = '%ip%'
 	sql(q, 3)
