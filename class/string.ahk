@@ -184,11 +184,9 @@ Class	String		{
 		||	ddd = "051"
 		||	ddd = "053" )
 			numero_telefone	:=	SubStr( numero_telefone, 2 )
-		numero_final_a := SubStr( numero_telefone, -7 )
-		numero_final_b := SubStr( numero_telefone, -3 )
 		if ( StrLen( numero_telefone ) = 11 )	;	verifica se é celular ou fixo
-			return "0(" SubStr( numero_telefone , 1 , 3 ) ") " SubStr( numero_telefone , 3 , 4 ) " - " SubStr( numero_telefone , -3 )
+			return "0(0" SubStr( numero_telefone , 1 , 3 ) ") " SubStr( numero_telefone , 4 , 4 ) " - " SubStr( numero_telefone , -3 )
 		else
-			return "0(" SubStr( numero_telefone , 1 , 2 ) ") " SubStr( numero_telefone , 3 , 4 ) " - " SubStr( numero_telefone , -3 )
+			return "0(0" SubStr( numero_telefone , 1 , 2 ) ") " SubStr( numero_telefone , 4 , 4 ) " - " SubStr( numero_telefone , -3 )
 	}
 }
