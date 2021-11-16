@@ -19,9 +19,7 @@ Icon_1=C:\Dih\zico\heimdall blue\mail.ico
 * * * Compile_AHK SETTINGS END * * *
 */
 ;@Ahk2Exe-SetMainIcon C:\Dih\zico\heimdall blue\mail.ico
-;@Ahk2Exe-SetMainIcon C:\Dih\zico\heimdall blue\mail.ico
-;@Ahk2Exe-SetMainIcon C:\Dih\zico\heimdall blue\mail.ico
-;@Ahk2Exe-SetMainIcon C:\Dih\zico\heimdall blue\mail.ico
+
 ; #Include ..\class\classes.ahk
 	#Include ..\class\sql.ahk
 	#Include ..\class\array.ahk
@@ -323,7 +321,7 @@ return
 	return
 ;
 
-;	-	Funções de Importantes
+;	-	Funções
 	_importantes:	;	Seleciona para exibir
 		Gui, Submit, NoHide
 		Gui, ListView,	importantes
