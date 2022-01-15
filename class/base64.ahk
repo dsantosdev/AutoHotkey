@@ -1,4 +1,6 @@
-﻿Class Base64 {
+﻿Global inc_base64 = 1
+
+Class Base64 {
 	/*
 		Para encondar em b64, chamar o fileEnc e passar o path do arquivo
 		Para decodar de b64, chamar o filedec passando o bin e o path de saída do arquivo

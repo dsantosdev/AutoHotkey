@@ -1,4 +1,22 @@
-﻿;@Ahk2Exe-SetMainIcon \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\ico\rel.ico
+﻿/*
+ * * * Compile_AHK SETTINGS BEGIN * * *
+
+[AHK2EXE]
+Exe_File=C:\users\dsantos\desktop\executáveis\Relatorio Individual.exe
+Created_Date=1
+[VERSION]
+Set_Version_Info=1
+Company_Name=Heimdall
+File_Version=0.0.0.1
+Inc_File_Version=1
+Internal_Name=Relatorio Individual
+Product_Version=1.1.33.2
+Set_AHK_Version=1
+
+* * * Compile_AHK SETTINGS END * * *
+*/
+
+;@Ahk2Exe-SetMainIcon \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\ico\rel.ico
 
 global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core e classes = 5, funções e classes = 6, tudo = 7
 	,	edit_row			;	guicontext
@@ -128,19 +146,24 @@ Interface:
 		gui.Font()
 	Gui, Add, ListView,%		"x255					y60		w430					h260	v@lv AltSubmit	g_s_relatorio	Grid					",	Data|Relatório|Nome|id|pre|edicoes|ip
 		gui.Font( "S10", "Bold" )
-	Gui, Add, Edit,%			"x405					y20		w" A_ScreenWidth-530 "	h25		v@b_relatorios	g_busca"
+	Gui, Add, Edit,%			"x405					y20		w" A_ScreenWidth-730 "	h25		v@b_relatorios	g_busca"
 		gui.Font()
 		gui.Font( "S10", "cWhite" )
 	Gui, Add, Edit,%			"x690					y60		w" A_ScreenWidth-715 "	h260	v@e_relatorios	g_e_relatorio	+ReadOnly	+WantTab"
 		gui.Font()
 		gui.Font( "S10" )
-	Gui, Add, Edit,%			"x20					y350	w" A_ScreenWidth-45 "	h260	v@n_relatorio								+WantTab"
+	Gui, Add, Edit,%			"x20					y350	w" A_ScreenWidth-45 "	h260	v@n_relatorio	gRelatorio_Temporario		+WantTab"
 	Gui, Add, Button,%			"x" A_ScreenWidth-225 "	y625	w200					h30						g_i_relatorio							",	INSERIR
 		Gui, Add, GroupBox,%	"x10					y0		w" A_ScreenWidth-25 "	h620	vb_geral"
 		Gui, Add, GroupBox,%	"x10					y330	w" A_ScreenWidth-25 "	h290	vb_inserir"
 		Gui, Add, GroupBox,%	"x" A_ScreenWidth-235 "	y612	w220					h50		vb_botoes"
-	Gui, Add, Button,%			"x" A_ScreenWidth-115 "	y20								h25						g_informacoes							",	Informações
-		Gosub, Carrega_Relatorios
+		Gui.Font( "cWhite" , "S10")
+	Gui, Add, Text,%			"x" A_ScreenWidth-315 "	y20		w300					h25		vlast_save"												,	Salvo em:`t
+		Gui.Font()
+	; Gui, Add, Button,%			"x" A_ScreenWidth-115 "	y20								h25						g_informacoes							",	Informações
+	
+	Gosub, Carrega_Relatorios
+
 	Gui, Show,%					"x-2					y0		w" A_ScreenWidth "																		",	Relatório Individual
 	OutputDebug % "Show"
 return
@@ -301,7 +324,7 @@ _i_relatorio:
 	if ( strlen(@n_relatorio) < 9 ) {
 		MsgBox,,Texto insuficiente, Seu relatório necessita ter pelo menos 10 caractéres para poder ser salvo.
 		Return
-		}
+	}
 	@n_relatorio_ := Safe_Data.Encrypt( @n_relatorio, @usuario)
 	; OutputDebug % "Insere Novo Relatório:`n`t" user_ad "`n_____"
 	insert=
@@ -345,6 +368,15 @@ _i_relatorio:
 				LV_ModifyCol(A_index+2,0)
 		GuiControl,	,@n_relatorio
 	GuiControl, , @e_relatorios ,% @n_relatorio
+	delete =
+		(
+		DELETE FROM
+			[ASM].[dbo].[_relatorios_individuais]
+		WHERE
+			[user_ad] = '%@Usuario%' and
+			[relatorio_temporario] is not NULL
+		)
+	sql( delete, 3 )
 Return
 
 Login:
@@ -389,42 +421,42 @@ GuiClose:
 		if ( login_in = 0 )	{
 			Gui,	Login:Destroy
 			; s = SELECT TOP(1) [falhas] FROM [ASM].[dbo].[_login_fail] WHERE [user] = '%@usuario%' AND [falhas] < 3 ORDER BY [pkid] DESC
-			; 	s := sql( s , 3 )
-			; 	fails := Strlen( s[2 , 1] )
-			; 	falhas := fails+1
-			; 	if ( fails >= 3 ) {	;	Bloqueio
-			; 		s =
-			; 			(
-			; 			UPDATE [ASM].[dbo].[_login_fail]
-			; 			SET
-			; 				 [data] = GETDATE()
-			; 				,[libera] = DATEADD( mi, 30,getdate())
-			; 				,[falhas] = '%falhas%'
-			; 			WHERE
-			; 				[user] = '%@usuario%'
-			; 			)
-			; 		sql( s , 3 )
-			; 	}
-			; 	Else if ( fails < 3 AND fails > 0 )	{	;	1 a 3
-			; 		s =
-			; 			(
-			; 			UPDATE [ASM].[dbo].[_login_fail]
-			; 			SET [falhas] = '%falhas%'
-			; 			WHERE
-			; 				[user] = '%@usuario%'
-			; 			)
-			; 		sql( s , 3 )
-			; 	}
-			; 	Else {	;	0
-			; 		s =
-			; 			(
-			; 			INSERT INTO [ASM].[dbo].[_login_fail]
-			; 			SET [falhas] = '%falhas%'
-			; 			WHERE
-			; 				[user] = '%@usuario%'
-			; 			)
-			; 		sql( s , 3 )
-			; 	}
+				; s := sql( s , 3 )
+				; fails := Strlen( s[2 , 1] )
+				; falhas := fails+1
+				; if ( fails >= 3 ) {	;	Bloqueio
+					; s =
+						; (
+						; UPDATE [ASM].[dbo].[_login_fail]
+						; SET
+							;  [data] = GETDATE()
+							; ,[libera] = DATEADD( mi, 30,getdate())
+							; ,[falhas] = '%falhas%'
+						; WHERE
+							; [user] = '%@usuario%'
+						; )
+					; sql( s , 3 )
+				; }
+				; Else if ( fails < 3 AND fails > 0 )	{	;	1 a 3
+					; s =
+						; (
+						; UPDATE [ASM].[dbo].[_login_fail]
+						; SET [falhas] = '%falhas%'
+						; WHERE
+							; [user] = '%@usuario%'
+						; )
+					; sql( s , 3 )
+				; }
+				; Else {	;	0
+					; s =
+						; (
+						; INSERT INTO [ASM].[dbo].[_login_fail]
+						; SET [falhas] = '%falhas%'
+						; WHERE
+							; [user] = '%@usuario%'
+						; )
+					; sql( s , 3 )
+				; }
 			; MsgBox,,Falha de Login,% "Usuário ou Senha inválido!`nVerifique se o NUMLOCK do teclado está ativado e se a tecla CAPSLOCK está ou não ativada!" fails = 0 ? "" : "`nSeu login falhou " fails+1 " vezes, na terceira falha o usuário " @usuario " será bloqueado por 30 minutos.
 			; s =
 				; (
@@ -447,15 +479,20 @@ GuiClose:
 				; )
 			}
 		}
+		is_exit = 1
 		OnExit, Relatorio_Temporario
 ; return
 
 Relatorio_Temporario:
 	Gui,	Submit, NoHide
+
+	search_delay( "1000" )
+
+	Gui,	Submit, NoHide
 	if ( debug = 1 )
 		OutputDebug % StrLen(@n_relatorio)
-	if ( StrLen(@n_relatorio) > 0 ) {
-		; OutputDebug % "Temp Save: " @n_relatorio "`n`t" user_ad "`n_____"
+	if (StrLen(@n_relatorio) > 0
+	&&	@n_relatorio != @old_relatorio) {	;	 se o relatório não está em branco
 		insert=
 			(
 			IF NOT EXISTS (SELECT [relatorio_temporario] FROM [ASM].[dbo].[_relatorios_individuais] WHERE [user_ad] = '%@Usuario%' and [relatorio_temporario] is not NULL)
@@ -473,59 +510,19 @@ Relatorio_Temporario:
 					[user_ad] = '%@Usuario%' AND
 					[relatorio_temporario] is not NULL
 			)
-		; Clipboard:=insert
-		insert:=sql(insert,3)
-		}
-	Else	{
-		if ( login_in = 1 ) {
-			delete =
-				(
-				DELETE FROM
-					[ASM].[dbo].[_relatorios_individuais]
-				WHERE
-					[user_ad] = '%@Usuario%' and
-					[relatorio_temporario] is not NULL
-				)
-			sql( delete, 3 )
-			if ( debug = 1 )
-				OutputDebug % "sai normal COM login"
-			}
-			if ( debug = 1 )
-				OutputDebug % "sai normal SEM login"
-		}
+		insert := sql( insert , 3 )
+		if ( StrLen( sql_le ) = 0 )
+			GuiControl, , last_save, Salvo em:`t %A_DD%/%A_MM%/%A_YYYY% %A_Hour%:%A_Min%:%A_Sec%
+		Else
+			GuiControl, , last_save,% "ERRO!`n`n" Clipboard := sql_le
+		@old_relatorio := @n_relatorio
+		if ( is_exit != 1 )
+			Return
+	}
+	Else
+		if ( is_exit != 1 )
+			Return
 ExitApp
-
-_informacoes:
-	WinHide,	Relatório Individual
-	dicas=
-		(
-		> Utilize o filtro de CALENDÁRIO para buscar um dia específico
-		> Busque relatórios com palavras específicas pelo campo BUSCAR
-		> O relatório necessita ter pelo menos 10 caracteres para poder ser inserido.
-		> Lembre-se de FECHAR o programa de Relatórios Individuais após inserir ou visualizar a informação que necessita.
-		> Você pode editar um relatório de até 2 dias atrás.
-		> Cada relatório só pode ser editado UMA vez e seu coordenador será notificado que o mesmo foi editado.
-		> Para editar um relatório, basta clicar com o botão direito no mesmo na lista de exibição e selecionar a opção "EDITAR RELATÓRIO".
-		)
-	dicas := StrReplace( dicas, "`t" )
-	gui.Cores( "info", "9BACC0", "374658" )
-	Gui,	info:+AlwaysOnTop
-	Gui,	info:-Caption -Border +AlwaysOnTop +OwnDialogs
-	gui.Font( "info:", "cWhite", "Bold" )
-	Gui,	info:Add,	Text,%		"x10						y10		w" A_ScreenWidth-250 "	h20		0x1000"			,	Versão:	%version%
-	Gui,	info:Add,	Text,%		"x10						y40		w" A_ScreenWidth-250 "	h20		0x1000"			,%	"Atualizado em " c[2,3]
-	Gui,	info:Add,	Text,%		"x10						y250	w" A_ScreenWidth-20  "	h130	0x1000"			,%	dicas
-	Gui,	info:Add,	Text,%		"xm							y390	w" A_ScreenWidth-20  "	h60		Right"			,	`nDieisson S. Santos`ndsantos@cotrijal.com.br`n( 54 ) 3332 2524`t( 549 ) 9202 8091
-	Gui,	info:Add,	Edit,%		"x10						y70		w" A_ScreenWidth-20  "	h170	ReadOnly"		,%	c[2,2]
-	Gui,	info:Add,	Button,%	"x"	A_ScreenWidth-230	"	y10		w220					h50	ginfoGuiClose vfoco",	Fechar
-	Gui,	info:Show,				x0							y0														,	Informações
-	GuiControl, info:Focus, foco
-return
-
-infoGuiClose:
-	Gui,	Info:Destroy
-	WinShow,	Relatório Individual
-Return
 
 GuiContextMenu()	{
 	Gui, Submit, NoHide

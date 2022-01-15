@@ -68,15 +68,16 @@ if ( A_UserName = "monitoramento" )	{
 
 ;	Pre load
 	gosub	sql
+	gosub	atualizaIris
 ;
 
 ;	interface
-	Gui.Cores()
-	Gui,	Add,	DropDownList,			y10			w630			Section	gsql			vu	,% unidades
-	Gui,	Add,	ListView,		xs					w630	h410	Grid						, Unidade|ID Iris|ID Usuario|Nome|Matricula|Cargo|Senha
-	Gui,	Add,	Button,			xs					w310	h30				gatualizaIris	v_a	, Atualizar usuarios do Iris
-	Gui,	Add,	Button,			x332	yp	w310	h30						gGuiCLose		v_e	, Encerrar
-	Gui,	Show
+	; Gui.Cores()
+	; Gui,	Add,	DropDownList,			y10			w630			Section	gsql			vu	,% unidades
+	; Gui,	Add,	ListView,		xs					w630	h410	Grid						, Unidade|ID Iris|ID Usuario|Nome|Matricula|Cargo|Senha
+	; Gui,	Add,	Button,			xs					w310	h30				gatualizaIris	v_a	, Atualizar usuarios do Iris
+	; Gui,	Add,	Button,			x332	yp	w310	h30						gGuiCLose		v_e	, Encerrar
+	; Gui,	Show
 return
 
 sql:
@@ -87,7 +88,7 @@ sql:
 		todos := "and d.[Cliente] = '" u "'"
 		LV_Delete()
 	}
-	s =												;	Busca os nomes dos clientes que estão configurados  com a matrícula na senha.
+	s =												;	Busca os nomes dos clientes que estão configurados com a matrícula na senha.
 		(
 		SELECT
 			DISTINCT 	'1' + e.[valor]																				AS Cliente_Iris
@@ -126,23 +127,23 @@ sql:
 	unidades	=
 	ids			:=	[]
 	Loop, % q.Count()-1	{							;	Monta um array associativo com os dados dos usuários para inserir no banco do iris
-		if ( inicia = 0 )	{
+		; if ( inicia = 0 )	{	;	APENAS EM MODO GUI
 			; OutputDebug % q[A_Index+1, 8]
-			LV_Add(""								;	Adiciona os dados na listview
-				,		q[A_Index+1, 8]
-				,		q[A_Index+1, 2]
-				,		q[A_Index+1, 3]
-				,		String.Name( q[A_Index+1, 5] )
-				,		q[A_Index+1, 4]
-				,		String.Cargo(q[A_Index+1, 6])
-				,		q[A_Index+1, 7]					)
-		}
-		if ( Array.InDict( ids, q[A_Index+1, 2] ) = 0 )		{	;	faz a dropdownlist
-			if ( inicia = 1 )
-				ids.Push( q[A_Index+1, 2] )
-			If ( InStr( unidades, lv_nomes := StrReplace( q[A_Index+1, 1], "|", "-" ) ) = 0 )
-				unidades .= lv_nomes "|"
-		}
+			; LV_Add(""								;	Adiciona os dados na listview(desnecessário no servidor)
+				; ,		q[A_Index+1, 8]
+				; ,		q[A_Index+1, 2]
+				; ,		q[A_Index+1, 3]
+				; ,		String.Name( q[A_Index+1, 5] )
+				; ,		q[A_Index+1, 4]
+				; ,		String.Cargo(q[A_Index+1, 6])
+				; ,		q[A_Index+1, 7]					)
+		; }
+		; if ( Array.InDict( ids, q[A_Index+1, 2] ) = 0 )		{	;	faz a dropdownlist
+			; if ( inicia = 1 )
+				; ids.Push( q[A_Index+1, 2] )
+			; If ( InStr( unidades, lv_nomes := StrReplace( q[A_Index+1, 1], "|", "-" ) ) = 0 )
+				; unidades .= lv_nomes "|"
+		; }
 		if ( inicia = 1 )	{
 			; Clipboard .= q[A_Index+1, 1] "`t" q[A_Index+1, 2] "`t" q[A_Index+1, 3] "`t" q[A_Index+1, 4] "`t" q[A_Index+1, 5] "`t" q[A_Index+1, 6] "`t" q[A_Index+1, 8] "`t" "Operador " SubStr( q[A_Index+1, 9], -1 ) "`t" q[A_Index+1, 10] "`t" q[A_Index+1, 11] "`t" q[A_Index+1, 12] "`t" q[A_Index+1, 13] "`n"
 			vw.push({	cliente		:	q[A_Index+1, 1]
@@ -158,19 +159,20 @@ sql:
 					,	id_vw		:	q[A_Index+1, 12]	})
 		}
 	}
-	LV_ModifyCol()
-		LV_ModifyCol( 2, "Center 50" )
-		LV_ModifyCol( 3, "Center 65" )
-		LV_ModifyCol( 5, "Center 65" )
-		LV_ModifyCol( 7, "Center 50" )
-		LV_ModifyCol( 8, 0 )
+	;	Apenas modo GUI
+		; LV_ModifyCol()
+			; LV_ModifyCol( 2, "Center 50" )
+			; LV_ModifyCol( 3, "Center 65" )
+			; LV_ModifyCol( 5, "Center 65" )
+			; LV_ModifyCol( 7, "Center 50" )
+			; LV_ModifyCol( 8, 0 )
 	inicia = 0
 return
 
 atualizaIris:
-	GuiControl, Disable	,	_e
-	GuiControl, Disable	,	_a
-	limpa =
+	; GuiControl, Disable	,	_e
+	; GuiControl, Disable	,	_a
+	limpa =	;	Limpa os usuários(pessoas com senha) do Iris para reincerir a frente
 		(
 		DELETE
 		FROM	[IrisSQL].[dbo].[Usuarios]
@@ -178,7 +180,7 @@ atualizaIris:
 		sql( limpa )
 	;
 
-	Usuarios_Padrão =
+	Usuarios_Padrão =	;	Seleciona os clientes do iris para inserir os usuários padrões
 		(
 		SELECT DISTINCT [Cliente]
 			,			[idUnico]
@@ -188,7 +190,7 @@ atualizaIris:
 		)
 		Clientes := sql( Usuarios_Padrão )
 		GuiControl, , _a,	Atualizando Padrão | Restantes:
-		Loop,%	Clientes.Count()-1	{
+		Loop,%	Clientes.Count()-1	{	;	Insere os usuários padrão
 			GuiControl, , _e,%	( Clientes.Count()-1 ) - A_index
 			cliente	:= Clientes[A_index+1, 1]
 			id_unico:= Clientes[A_index+1, 2]
@@ -231,7 +233,7 @@ atualizaIris:
 	partilha := sql( com_partilha )
 
 	; OutputDebug % "Senhas id's padrões=`t" vw.Count() "`nClientes com Partilha=`t" partilha.Count()-1
-	GuiControl, , _a,	Atualizando Usuários | Restantes:
+	; GuiControl, , _a,	Atualizando Usuários | Restantes:
 
 	; for i in vw
 		; saida .= vw[i].cliente "`n"
@@ -257,10 +259,11 @@ atualizaIris:
 				tel2 =
 		;
 
-		if (	StrLen( nome ) = 0 )	{	;	cria dictionary com os colaboradores demitidos para enviar email posteriormente
+		if ( StrLen( nome ) = 0 )	{	;	cria dictionary com os colaboradores demitidos para enviar email posteriormente
 			remover.Push({	user_id		:	user_id
 						,	local		:	vw[i].unidade
-						,	matricula	:	vw[i].matricula	})
+						,	matricula	:	vw[i].matricula
+						,	cliente		:	vw[i].cliente	})
 			Continue
 		}
 
@@ -290,6 +293,7 @@ atualizaIris:
 				VALUES
 					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'	,'%tel1%'	,'%tel2%'	)
 			)
+
 		if (cliente < 10002
 		||	cliente > 10999 )
 			MsgBox % Clipboard:=sql_update
@@ -297,7 +301,7 @@ atualizaIris:
 
 		; OutputDebug % "Inserindo informações:`nIndex = " i "`n`tid_iris= " id_iris "`n`tcliente= " cliente "`n`tnome= " nome "`n`toperador= " operador "`n`tid_vw= " id_vw
 		old_client	:= cliente
-		GuiControl, , _e,%	restantes := ( vw.Count() + partilha.Count()-1 ) - i
+		; GuiControl, , _e,%	restantes := ( vw.Count() + partilha.Count()-1 ) - i
 	}
 
 	for i in partilha
@@ -331,36 +335,36 @@ atualizaIris:
 					WHERE
 						[codigo_usuario]= '%user_id%' AND
 						[idcliente]		= '%id_iris%') 
-				Begin
-					UPDATE [IrisSQL].[dbo].[Usuarios]
-					SET
-						[Nome_Usuario]		=	'%nome%'
-						,[Cargo]			=	'%cargo%'
-						,[IdCliente]		=	'%id_iris%'
-						,[Fone]				=	'%tel1%'
-						,[FCelular]			=	'%tel2%'
-					WHERE
-						[Cliente]			=	'%cliente%' AND
-						[Codigo_Usuario]	=	'%user_id%'
-				END
-			ELSE
-				INSERT INTO [IrisSQL].[dbo].[Usuarios]
-					(	[Cliente]	,[Particao]	,[Codigo_Usuario]	,[Nome_Usuario]	,[Cargo]	,[PrioridadeLigar]	,[IdCliente]	,[Fone]		,[FCelular]	)
-				VALUES
-					(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'	,'%tel1%'	,'%tel2%'	)
+					Begin
+						UPDATE [IrisSQL].[dbo].[Usuarios]
+						SET
+							[Nome_Usuario]		=	'%nome%'
+							,[Cargo]			=	'%cargo%'
+							,[IdCliente]		=	'%id_iris%'
+							,[Fone]				=	'%tel1%'
+							,[FCelular]			=	'%tel2%'
+						WHERE
+							[Cliente]			=	'%cliente%' AND
+							[Codigo_Usuario]	=	'%user_id%'
+					END
+				ELSE
+					INSERT INTO [IrisSQL].[dbo].[Usuarios]
+						(	[Cliente]	,[Particao]	,[Codigo_Usuario]	,[Nome_Usuario]	,[Cargo]	,[PrioridadeLigar]	,[IdCliente]	,[Fone]		,[FCelular]	)
+					VALUES
+						(	'%cliente%'	,'000'		,'%user_id%'		,'%nome%'		,'%cargo%'	,'1'				,'%id_iris%'	,'%tel1%'	,'%tel2%'	)
 				)
 				sql_le =
 			sql( insere_usuarios )
-			if ( StrLen(sql_le) > 0 )
+			if ( StrLen( sql_le ) > 0 )
 				MsgBox % sql_le "`n" Clipboard := sql_lq
-		GuiControl, , _e,%	restantes - i
+		; GuiControl, , _e,%	restantes - i
 		}
 	}
 
-	GuiControl, , _a,	Atualizar usuarios do Iris
-	GuiControl, enable, _e
-	GuiControl, , _e,	Encerrar
-	GuiControl, enable, _a
+	; GuiControl, , _a,	Atualizar usuarios do Iris
+	; GuiControl, enable, _e
+	; GuiControl, , _e,	Encerrar
+	; GuiControl, enable, _a
 
 	;	notificar por e-mail os usuários inexistentes
 		if ( remover.Count() > 0 )	{

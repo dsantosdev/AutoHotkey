@@ -1,4 +1,5 @@
-﻿
+﻿Global inc_string = 1
+
 Class	String		{
 
 	Name( name )					{
@@ -184,8 +185,10 @@ Class	String		{
 		||	ddd = "051"
 		||	ddd = "053" )
 			numero_telefone	:=	SubStr( numero_telefone, 2 )
-		if ( StrLen( numero_telefone ) = 11 )	;	verifica se é celular ou fixo
-			return "0(0" SubStr( numero_telefone , 1 , 3 ) ") " SubStr( numero_telefone , 4 , 4 ) " - " SubStr( numero_telefone , -3 )
+		; if ( StrLen( numero_telefone ) = 11 )	;	verifica se é celular ou fixo
+		if (SubStr( numero_telefone , -7 , 1 ) = 9
+		||	SubStr( numero_telefone , -7 , 1 ) = 8 )
+			return "0(0" SubStr( numero_telefone , 1 , 3 ) ") " SubStr( numero_telefone , -7 , 4 ) " - " SubStr( numero_telefone , -3 )
 		else
 			return "0(0" SubStr( numero_telefone , 1 , 2 ) ") " SubStr( numero_telefone , 4 , 4 ) " - " SubStr( numero_telefone , -3 )
 	}

@@ -20,18 +20,19 @@ Set_AHK_Version=1
 ;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2Agenda.ico
 
 ; #Include ..\class\classes.ahk
-#Include ..\class\sql.ahk
-#Include ..\class\array.ahk
-#Include ..\class\safedata.ahk
-#Include ..\class\gui.ahk
-#Include ..\class\windows.ahk
-#Include ..\class\string.ahk
-#Include ..\class\functions.ahk
-#SingleInstance,	Force
-#IfWinActive		Agenda - Avisos - Ocomon - Frota
-#NoTrayIcon
-Menu,	Tray,	Icon
-Menu,	Tray,	Tip,	Agenda - Avisos - Ocomon - Frota
+	#Include ..\class\sql.ahk
+	#Include ..\class\array.ahk
+	#Include ..\class\safedata.ahk
+	#Include ..\class\gui.ahk
+	#Include ..\class\windows.ahk
+	#Include ..\class\string.ahk
+	#Include ..\class\functions.ahk
+	#SingleInstance,	Force
+	#IfWinActive		Agenda - Avisos - Ocomon - Frota
+	#NoTrayIcon
+	Menu,	Tray,	Icon
+	Menu,	Tray,	Tip,	Agenda - Avisos - Ocomon - Frota
+;
 
 ;Goto, Login
 interface:
@@ -1365,16 +1366,16 @@ return
 
 verifica:	;{	Verifica ao reiniciar o software os estados de banheiro e intervalo
 	usuarioatual := usuarioatual="DSANTOS"
-						?	"DIEISSON"
-						:	usuarioatual="DDIEL"
-							?	"DJEISON"
-							:	usuarioatual="ARSILVA"
-								?	"ANDERSON"
-								:	usuarioatual="AKAIPERS"
-									?	"ALISSON"
-									:	usuarioatual="JCSILVA"
-										?	"JOAO"
-										:	usuarioatual
+								?	"DIEISSON"
+								:	usuarioatual="DDIEL"
+												?	"DJEISON"
+												:	usuarioatual="ARSILVA"
+																?	"ANDERSON"
+																:	usuarioatual="AKAIPERS"
+																				?	"ALISSON"
+																				:	usuarioatual="JCSILVA"
+																								?	"JOAO"
+																								:	usuarioatual
 	if ( A_UserName = "ARSILVA" )
 		usuarioatual = ANDERSON
 	if ( A_UserName = "DSANTOS" )

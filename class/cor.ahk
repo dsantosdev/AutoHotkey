@@ -150,6 +150,7 @@
 							,	"0x4d5d6f"
 							,	"0x425164"
 							,	"0x374658"	]
+	,	inc_cor = 1
 ;	END of GLOBALS
 
 Class	Cor	{

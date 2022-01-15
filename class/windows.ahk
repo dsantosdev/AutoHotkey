@@ -1,4 +1,6 @@
-﻿Class	Windows	{
+﻿Global inc_windows = 1
+
+Class	Windows	{
 
 	Run( software )	{
 		path = C:\Dguard Advanced\

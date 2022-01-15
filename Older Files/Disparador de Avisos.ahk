@@ -2,24 +2,24 @@
  * * * Compile_AHK SETTINGS BEGIN * * *
 
 [AHK2EXE]
-Exe_File=\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\mdage.exe
+Exe_File=C:\users\dsantos\desktop\executáveis\mdage.exe
 Created_Date=1
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "mdage" "0.0.0.5" """
 [VERSION]
 Set_Version_Info=1
 Company_Name=Heimdall
-File_Version=0.0.0.3
+File_Version=0.0.0.5
 Inc_File_Version=1
 Legal_Copyright=WTFL
 Product_Name=mdage
 Product_Version=1.1.33.2
 Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\Dih\zIco\compiler.ico
 
 * * * Compile_AHK SETTINGS END * * *
 */
 
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2agenda.ico
+
+;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2agenda.ico
 ; #Include ..\class\classes.ahk
 	#Include ..\class\sql.ahk
 	; #Include ..\class\array.ahk
@@ -30,7 +30,8 @@ Icon_1=C:\Dih\zIco\compiler.ico
 	#Include ..\class\functions.ahk
 ;
 
-; #NoTrayIcon
+#NoTrayIcon
+#SingleInstance, Force
 	maquina := SubStr( A_IPAddress1 , -2 )	= 162
 				?	1
 				:	SubStr( A_IPAddress1 , -2 )	= 166
@@ -108,13 +109,13 @@ agendados:
 				AND	DATEPART(hh, c.[data_alerta]) = %hora%
 				AND	DATEPART(mi, c.[data_alerta]) = %min% )
 				)
-				op := sql( op )
-			operador	:= op[2,1]
+				op	:= sql( op )
+			operador:= op[2,1]
 			_texto	:= op[2,2]
 			qnd		:= op[2,3]
-			qnda		:= op[2,4]
+			qnda	:= op[2,4]
 			cliente	:= op[2,5]
-			pkid		:= op[2,6]
+			pkid	:= op[2,6]
 			if (operador != 0
 			&&	operador != maquina )
 				return

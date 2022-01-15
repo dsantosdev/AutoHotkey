@@ -1,5 +1,7 @@
-﻿Class Array	{
+﻿
+Global inc_array = 1
 
+Class Array	{
 	InArray(Array, SearchText, Partial="0")					{
 		; OutputDebug % searchtext
 		if ( debug > 2 )
@@ -113,41 +115,48 @@
 		Array2 := Temp := ""
 	}
 
-	Sort( Array, Order = "ASC", Is_Array = "0" )			{
+	Sort( Array, Order = "ASC", Is_Map = "0" , Delimiter = "`n" , Sort_Position = "1" )			{	;	Para MAP's precisa ser atualizado
 		index	:=	[]
-		If ( is_array = 0 )	{	;	Retorna um array SIMPLES com a ordem do dictionary
+		If ( Is_Map = 1 )	{	;	Retorna um array SIMPLES com a ordem do dictionary
 			for Key in Array
 				For Key2, Value in Array[Key]
-					list .= value "|" key "+"
+					list .=  StrReplace( value , "`n" , "§" ) "|" key Delimiter
 			list	:=	SubStr( list, 1, -1 )
 
 			if ( Order = "desc" )
-				Sort, list, R N D+
+				Sort, list, R N D%Delimiter%
 			else
-				Sort, list, N D+
+				Sort, list, N D%Delimiter%
 
-			Split_list := StrSplit( list, "+" )
+			Split_list := StrSplit( list, Delimiter )
 			Loop,	% Split_list.Count()	{
+				
+				; OutputDebug % Split_list[ A_index ]
 				Split_index := StrSplit( Split_list[ A_index ], "|" )
 				index.Push( Split_index[2] )
 			}
-
 			Return	index
 			}
-		Else	{				;	Retorna o array completo reordenado
+		Else	{				;	Retorna o array simples completo reordenado(necessita um objeto para receber as informações)
 			For key, value in Array
-				list .= value "+"
+				list .= StrReplace( value , "`n" , "§" ) Delimiter
 
 			list := SubStr( list, 1, -1 )
+			; MsgBox % clipboard := list
+			pre_list := list	;	for debug
 
-			if ( Order = "desc" )
-				Sort, list, R N D+
-				Else
-					Sort, list, N D+
+			if ( Order = "DESC" )
+				Sort, list, R N D%Delimiter% P%Sort_Position%
+			Else
+				Sort, list, N D%Delimiter% P%Sort_Position%
 
-			Split_list := StrSplit( list, "+" )
-			Loop,	% Split_list.Count()
-				index.Push( Split_list[ A_index ] )
+			; MsgBox % clipboard := list "`n`n" pre_list
+
+			Split_list := StrSplit( list, Delimiter )
+			Loop,% Split_list.Count()	{
+				; OutputDebug % Split_list[ A_index ]
+				index.Push(  StrReplace( Split_list[ A_index ] , "§" , "`n" ) )
+			}
 
 			Return	index
 			}

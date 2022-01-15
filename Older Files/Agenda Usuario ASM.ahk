@@ -2,12 +2,13 @@
  * * * Compile_AHK SETTINGS BEGIN * * *
 
 [AHK2EXE]
-Exe_File=\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\agenda_user.exe
+Exe_File=C:\users\dsantos\desktop\executáveis\agenda_user.exe
 Created_Date=1
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "agenda_user" "0.0.0.5" "sem enter""
 [VERSION]
 Set_Version_Info=1
 Company_Name=Heimdall
-File_Version=0.0.0.4
+File_Version=0.0.0.5
 Inc_File_Version=1
 Product_Name=agenda_user
 Product_Version=1.1.33.2
@@ -16,16 +17,16 @@ Set_AHK_Version=1
 * * * Compile_AHK SETTINGS END * * *
 */
 
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\2Agenda.ico
+;@Ahk2Exe-SetMainIcon C:\AHK\ico\Agenda.ico
 
 ; #Include ..\class\classes.ahk
-	#Include ..\class\sql.ahk
 	#Include ..\class\array.ahk
-	#Include ..\class\safedata.ahk
-	#Include ..\class\gui.ahk
-	#Include ..\class\windows.ahk
-	#Include ..\class\string.ahk
 	#Include ..\class\functions.ahk
+	#Include ..\class\gui.ahk
+	#Include ..\class\safedata.ahk
+	#Include ..\class\sql.ahk
+	#Include ..\class\string.ahk
+	#Include ..\class\windows.ahk
 	#SingleInstance,	Force
 	#IfWinActive		Agenda - Avisos - Ocomon - Frota
 	#NoTrayIcon
@@ -58,10 +59,10 @@ Set_AHK_Version=1
 	;	Configurações
 		if ( admin = 1 )	;	Header
 			header=Agenda|Avisos|Ocomon|Frota|Registro|Vigilantes
-			else if ( admin = 2 )
+		else if ( admin = 2 )
 			header=Agenda|Avisos|Ocomon|Frota|Registro|Vigilantes|Relatórios Monitoramento ;|Detecções de Imagem|Sinistros em Andamento
-			else
-				header=Agenda|Avisos|Ocomon|Frota|Registro
+		else
+			header=Agenda|Avisos|Ocomon|Frota|Registro
 		Gui.Cores()
 	;	Tab	1	-	Agenda
 		Gui,	Font,		S11	cWhite	Bold
@@ -75,7 +76,7 @@ Set_AHK_Version=1
 			Gui,	Add, Checkbox,		x500	y40		w550			vPeriodo	g_date								,	Filtrado por dia
 			Gui,	Add, Text,			x1055	y40		w60																,	Contendo:
 			Gui,	Font
-			Gui,	Add, Edit	,		x1120	y40		w100			vBusca
+			Gui,	Add, Edit	,		x1120	y40		w100			vBusca		g_date
 			Gui,	Font
 		Gui,	Add,		ListView,	x245	y65		w1000			vlv			g_agenda		AltSubmit	Grid	R6			,	Data|Mensagem|Operador|Unidade|IdAviso
 			Gui,	Font, S11 cWhite Bold
@@ -88,7 +89,7 @@ Set_AHK_Version=1
 			LV_ModifyCol(3,60)
 			LV_ModifyCol(4,200)
 			LV_ModifyCol(5,0)
-			Gosub, carrega_lv 
+		; Gosub, carrega_lv 
 			if ( debug = 1 )
 				OutputDebug % "Agenda carregada " SubStr( A_Now, -1 )
 	;	Tab	2	-	Avisos
@@ -96,8 +97,8 @@ Set_AHK_Version=1
 			Gui,	Font,		S11	cWhite	Bold
 		Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
 			Gui,	Font
-		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro2
-		Gui,	Add,		Button,		x385	y36		w250	h22					gOnTabSelect									,	Filtrar
+		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro2	gOnTabSelect
+		; Gui,	Add,		Button,		x385	y36		w250	h22					gOnTabSelect									,	Filtrar
 		Gui,	Add,		ListView,	x10		y60		w1235			vlv2		g_avisos		AltSubmit	Grid	R7	NoSort	,	Agendado para:|Mensagem
 			Gui,	Font,		S11	cWhite	Bold	
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
@@ -110,8 +111,8 @@ Set_AHK_Version=1
 			Gui,	Font,		S11	cWhite	Bold
 		Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
 			Gui,	Font
-		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro3
-		Gui,	Add,		Button,		x385	y36		w250	h22					gOnTabSelect									,	Filtrar
+		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro3	gOnTabSelect
+		; Gui,	Add,		Button,		x385	y36		w250	h22					gOnTabSelect									,	Filtrar
 		Gui,	Add,		ListView,	x10		y60		w1235			vlv3		g_ocomon		AltSubmit	Grid	R7	NoSort	,	Data|Mensagem
 			Gui,	Font,		S11	cWhite	Bold	
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
@@ -124,8 +125,8 @@ Set_AHK_Version=1
 			Gui,	Font,		S11	cWhite	Bold
 		Gui,	Add,		Text,		x10		y38																					,	Buscar contendo:
 			Gui,	Font
-		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro4
-		Gui,	Add,		Button,		x385	y36		w250	h22					gOnTabSelect									,	Filtrar
+		Gui,	Add,		Edit,		x135	y35		w250	h24		vfiltro4	gOnTabSelect
+		; Gui,	Add,		Button,		x385	y36		w250	h22					gOnTabSelect									,	Filtrar
 		Gui,	Add,		ListView,	x10		y60		w1235			vlv4		g_frota			AltSubmit	Grid	R7	NoSort	,	Data|Mensagem
 			Gui,	Font,		S11	cWhite	Bold	
 		Gui,	Add,		Text,		x10		y210	w1235	h20									Center	0x1000					,	Conteúdo
@@ -180,8 +181,8 @@ Set_AHK_Version=1
 			Gui,	Font,	S11	cWhite	Bold
 		Gui,	Add,	Text,			x10		y38																																	,	Buscar contendo:
 			Gui,	Font
-		Gui,	Add,	Edit,			x135	y35		w250	h24		vfiltro6
-		Gui,	Add,	Button,			x385	y36		w250	h22					gOnTabSelect																				,	Filtrar
+		Gui,	Add,	Edit,			x135	y35		w250	h24		vfiltro6	gOnTabSelect
+		; Gui,	Add,	Button,			x385	y36		w250	h22					gOnTabSelect																				,	Filtrar
 		Gui,	Add,	ListView,		x10		y60		w1235			vlv6		g_vigilantes	AltSubmit	Grid	R7	NoSort	,	Data|Mensagem|Vigilante
 			Gui,	Font,	S11	cWhite	Bold	
 		Gui,	Add,	Text,			x10		y210	w1235	h20									Center		0x1000				,	Conteúdo
@@ -232,12 +233,12 @@ Set_AHK_Version=1
 		Gui,	Add,	ListView,	x10		y35		w1235	vlv9	AltSubmit	Grid	R28	NoSort	,	Operador|Usuário do Iris|Hora Inicial do Sinistro|Hora Final do Sinistro|Verificou Imagens|Ocorrências
 			if ( debug = 1 )
 				OutputDebug % "Sinistros " SubStr( A_Now, -1 )
-	Gui,	Show,						x0		y0																									,	Agenda - Avisos - Ocomon - Frota
+	Gui,	Show,						x0		y0																					,	Agenda - Avisos - Ocomon - Frota
 		Send,	{Down}
 		if ( trocou = 1 )	{
 			trocou	=
 			GuiControl,	Choose,	tab,	5
-			}
+		}
 return
 
 _top_100:
@@ -310,8 +311,9 @@ _carrega_relatorio_individual:
 		ORDER BY
 			1 DESC
 		)
-	if ( debug = 0 )
-		; Clipboard:=select
+	if ( A_IsCompiled = "" )
+		Clipboard := select
+
 	relatorios := sql( select, 3 )
 	if ( debug = 1 )
 		OutputDebug % "Iniciou LV " SubStr( A_Now, -1 )
@@ -508,6 +510,7 @@ Change:
 return
 
 _date:
+	search_delay( "750" )
 	Gui, Submit, NoHide
 	if ( StrLen(Busca) > "0" )
 		_busca	=	AND	b.[Mensagem] LIKE '`%%Busca%`%'
@@ -610,18 +613,18 @@ carrega_lv:
 		SELECT	 a.[id_aviso]
 				,a.[data_alerta]
 				,a.[quem_avisar]
-				,c.[Nome]
 				,b.[mensagem]
+				,c.[nm_unidade]
 		FROM
-			[ASM].[ASM].[dbo].[_agenda_alertas]	a
+			[ASM].[dbo].[_agenda_alertas]	a
 		LEFT JOIN
-			[ASM].[ASM].[dbo].[_agenda]			b
+			[ASM].[dbo].[_agenda]			b
 			ON
 				a.[id_aviso] = b.[pkid]
 		LEFT JOIN
-			[IrisSQL].[dbo].[Clientes]			c
+			[ASM].[dbo].[_unidades]			c
 			ON
-			b.[id_cliente] = c.[IdUnico]
+			b.[id_cliente] = c.[id_unidade_iris]
 		WHERE
 			a.[quem_avisar] LIKE '`%%operador%`%'
 			%periodo%
@@ -631,16 +634,15 @@ carrega_lv:
 			2
 		DESC
 		)
-		; Clipboard := sqlv
-	;	bloco de selecionar multi datas	POR FAZER
-		; s:="SELECT Fkidaviso FROM [IrisSQL].[dbo].[AvisoAgenda] WHERE (DATEPART(yy,Dataagendado)=" SubStr(yday,1,4) " AND DATEPART(mm,Dataagendado)=" SubStr(yday,5,2) " AND DATEPART(dd,Dataagendado)=" SubStr(yday,7,2) ") order by 1 desc"
-		; s:=sql(s)
-	fill := sql( sqlv )
+	
+	if ( A_IsCompiled = "" ) 
+		Clipboard := sqlv
+	fill := sql( sqlv , 3 )
 	Loop,% fill.Count()-1	{
 		hour :=	fill[A_Index+1,2]
 		oper :=	fill[A_Index+1,3]
-		subj :=	fill[A_Index+1,5]
-		unit :=	fill[A_Index+1,4]
+		subj :=	fill[A_Index+1,4]
+		unit :=	fill[A_Index+1,5]
 		idav :=	fill[A_Index+1,1]
 		if ( A_Index = 1 )
 			last_id := idav
@@ -912,6 +914,7 @@ deteccao:
 return
 
 OnTabSelect:
+	search_delay( "750" )
 	Gui, Submit, NoHide
 	if ( tab = 1 )	{	;	Agenda
 		GuiControl,	,	filtro2
@@ -930,25 +933,23 @@ OnTabSelect:
 		if ( filtro2 = "" )
 			filtrar =
 			else
-			filtrar	:=	" AND a.[Mensagem] like '%" filtro2 "%'"
+			filtrar	:=	" AND [Mensagem] like '%" filtro2 "%'"
 		LV_Delete()
 		sqlv =
 			(
-			SELECT	a.[Inserido]
-				,	a.[Mensagem]
+			SELECT	[Inserido]
+				,	[Mensagem]
 			FROM
-				[ASM].[ASM].[dbo].[_Agenda] a
-			LEFT JOIN
-				[IrisSQL].[dbo].[Clientes] c ON
-					a.[Id_Cliente] = c.[IdUnico]
+				[ASM].[dbo].[_Agenda]
 			WHERE
-				c.[Nome]='Avisos Monitoramento'
+				[id_cliente]='232'
 				%filtrar%
 			ORDER BY
 				1 DESC
 			)
-			; Clipboard := sqlv
-		fill := sql( sqlv )
+		if ( A_IsCompiled = "" ) 
+			Clipboard := sqlv
+		fill := sql( sqlv , 3 )
 		LV_ModifyCol(1,115)
 		LV_ModifyCol(2,1100)
 		Loop, % fill.Count()-1
@@ -974,23 +975,27 @@ OnTabSelect:
 			SELECT	a.[Inserido]
 				,	a.[Mensagem]
 			FROM
-				[ASM].[ASM].[dbo].[_Agenda] a
+				[ASM].[dbo].[_Agenda] a
 			LEFT JOIN
-				[IrisSQL].[dbo].[Clientes] c ON
-					a.[Id_Cliente] = c.[IdUnico]
+				[ASM].[dbo].[_unidades] c ON
+					a.[Id_Cliente] = c.[id_unidade_iris]
 			WHERE
-				c.[Nome]='Ocomon'
+				c.[nm_unidade]='Ocomon'
 				%filtrar%
 			ORDER BY
 				1 DESC
 			)
-			; Clipboard := sqlv
-		fill := sql( sqlv )
-		Loop, % fill.Count()-1
-			LV_Add("",	fill[A_Index+1,1],	fill[A_Index+1,2])
-			LV_ModifyCol(1,Sort)
-			LV_ModifyCol(1,115)
-			LV_ModifyCol(2,1100)
+			if ( A_IsCompiled = "" ) 
+				Clipboard := sqlv
+		ocomon := sql( sqlv , 3 )
+		Loop, % ocomon.Count()-1
+			LV_Add(	""
+				,	ocomon[A_Index+1 , 1]
+				,	ocomon[A_Index+1 , 2]	)
+
+			LV_ModifyCol( 1 , Sort )
+			LV_ModifyCol( 1 , 115 )
+			LV_ModifyCol( 2 , 1100 )
 		GuiControl	Focus,	lv3
 	}
 	if ( tab = 4 )	{	;	Frota
@@ -1009,20 +1014,25 @@ OnTabSelect:
 			SELECT	a.[Inserido]
 				,	a.[Mensagem]
 			FROM
-				[ASM].[ASM].[dbo].[_Agenda] a
+				[ASM].[dbo].[_Agenda] a
 			LEFT JOIN
-				[IrisSQL].[dbo].[Clientes] c ON
-					a.[Id_Cliente] = c.[IdUnico]
+				[ASM].[dbo].[_unidades] c ON
+					a.[Id_Cliente] = c.[id_unidade_iris]
 			WHERE
-				c.[Nome]='Caminhoes'
+				c.[nm_unidade]='Frota'
 				%filtrar%
 			ORDER BY
 				1 DESC
 			)
-			; Clipboard := sqlv
-		fill := sql( sqlv )
-		Loop, % fill.Count()-1
-			LV_Add("",	fill[A_Index+1,1],	fill[A_Index+1,2])
+			if ( A_IsCompiled = "" ) 
+				Clipboard := sqlv
+		fill := sql( sqlv , 3 )
+
+		Loop,% fill.Count()-1
+			LV_Add(	""
+				,	fill[A_Index+1,1]
+				,	fill[A_Index+1,2]	)
+
 			; LV_ModifyCol(1,Sort)
 			LV_ModifyCol(1,115)
 			LV_ModifyCol(2,1100)
@@ -1120,7 +1130,7 @@ OnTabSelect:
 			)
 		eventos := sql( eventos )
 		LV_Delete()
-		Loop,	%	eventos.Count()-1
+		Loop,%	eventos.Count()-1
 			LV_Add(	""
 				,	eventos[A_Index+1,2]
 				,	eventos[A_Index+1,3]
@@ -1178,12 +1188,12 @@ OnTabSelect:
 	}
 return
 
-~Enter::
-	~NumpadEnter::
-	if ( tab != 1 )
-		return
-	Gui, Submit,	NoHide
-	goto _date
+; ~Enter::
+	; ~NumpadEnter::
+	; if ( tab != 1 )
+		; return
+	; Gui, Submit,	NoHide
+	; goto _date
 
 up:
 	comando.verificar("sistema")

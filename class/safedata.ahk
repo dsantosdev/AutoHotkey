@@ -1,6 +1,7 @@
 ﻿Global	Coded
 	,	Base_Key
 	,	Alfabeto:="abcdefghijklmnopqrstuvwxyz"
+	,	inc_safedata = 1
 ;end global
 
 Class Safe_Data	{

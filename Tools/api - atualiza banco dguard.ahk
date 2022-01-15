@@ -1,21 +1,21 @@
 ﻿/*
  * * * Compile_AHK SETTINGS BEGIN * * *
 
-[AHK2EXE]
-Exe_File=%In_Dir%\Câmeras Cadastradas.exe
-Created_Date=1
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Description=Atualizador de dados das câmeras no banco de dados
-File_Version=1.0.0.2
-Inc_File_Version=1
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\Dih\zIco\fun\conceitto.ico
+	[AHK2EXE]
+	Exe_File=%In_Dir%\Câmeras Cadastradas.exe
+	Created_Date=1
+	[VERSION]
+	Set_Version_Info=1
+	Company_Name=Heimdall
+	File_Description=Atualizador de dados das câmeras no banco de dados
+	File_Version=1.0.0.2
+	Inc_File_Version=1
+	Product_Version=1.1.33.2
+	Set_AHK_Version=1
+	[ICONS]
+	Icon_1=C:\Dih\zIco\fun\conceitto.ico
 
-* * * Compile_AHK SETTINGS END * * *
+	* * * Compile_AHK SETTINGS END * * *
 */
 
 inicio	:=	A_Now
@@ -53,8 +53,8 @@ inicio	:=	A_Now
 	dados_das_cameras_no_dguard := {}
 
 	json_return := json( Dguard.http( "http://vdm01:8081/api/servers", token_1 ) )
-		ToolTip,% "-Armazenando os dados das câmeras do servidor 1 do dguard em array.`nDados restantes = " json_return.servers.Count() "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count(), 50 , 50
 		Loop,% json_return.servers.Count()	{
+		ToolTip,% "-Armazenando os dados das câmeras do servidor 1 do dguard em array.`nDados restantes = " json_return.servers.Count() "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count(), 50 , 50
 			OutputDebug % qwer
 			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
 			receiver := json( http( "http://vdm01:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_1 ) )
@@ -86,8 +86,8 @@ inicio	:=	A_Now
 									? "NULL"
 									: "CAST('" SubStr( date_off , 7 , 4 ) "-" SubStr( date_off , 4 , 2 ) "-" SubStr( date_off , 1 , 2 ) " " SubStr( date_off , 12 ) "' as datetime)"
 			active		:=	json_camera.server.active = "true"
-													? "1"
-													: "0"
+														? "1"
+														: "0"
 			connected	:=	json_camera.server.connected = "true"
 														 ? "1"
 														 : "0"
@@ -114,8 +114,8 @@ inicio	:=	A_Now
 	}
 
 	json_return := json( Dguard.http( "http://vdm02:8081/api/servers", token_2 ) )
-		ToolTip,% "-Armazenando os dados das câmeras do servidor 2 do dguard em array.`nDados restantes = " json_return.servers.Count() "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count(), 50 , 50
 		Loop,% json_return.servers.Count() {
+			ToolTip,% "-Armazenando os dados das câmeras do servidor 2 do dguard em array.`nDados restantes = " json_return.servers.Count() "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count(), 50 , 50
 			OutputDebug % qwer
 			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
 			receiver := json( http( "http://vdm02:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_2 ) )
@@ -178,6 +178,7 @@ inicio	:=	A_Now
 		ToolTip,% "-Armazenando os dados das câmeras do servidor 3 do dguard em array." , 50 , 50
 		Loop,% json_return.servers.Count() {
 			ToolTip,% "-Armazenando os dados das câmeras do servidor 3 do dguard em array.`nDados restantes = " json_return.servers.Count() "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 50
+			OutputDebug % qwer
 			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
 			receiver := json( http( "http://vdm03:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_3 ) )
 			json_camera := Dguard.Server( "vdm03" , _guid , token_3 )

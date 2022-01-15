@@ -236,7 +236,7 @@ return
 			ORDER BY
 				6 DESC
 			)
-		Clipboard := s
+		; Clipboard := s
 		dados := sql( s )
 		if ( destaca_1 = 1 )
 			buscar := StrSplit( busca, " " )

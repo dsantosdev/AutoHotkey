@@ -1,9 +1,10 @@
-﻿
-Class	Gui	{
+﻿Global inc_gui = 1
 
+Class	Gui	{
+	
 	Cores( id = "", cor1 = "", cor2 = "" )												{
 		if ( StrLen( cor1 ) = 0 )
-			cor1 = 9BACC0
+			cor1 = 9BACC0	;	e33030 <--- vermelho
 		if ( StrLen( cor2 ) = 0 )
 			cor2 = 374658
 		if ( Strlen( id ) > 0 )	{

@@ -1,5 +1,10 @@
-﻿Class	dguard {
+﻿/*
+	Depende da instalação do cUrl e configuração do path do mesmo
+*/
+Global inc_dguard = 1
 
+Class	dguard {
+	
 	curl( comando , server = "" , tipo = "" )									{
 		comando	:=	StrReplace( comando , "`n" )
 		DetectHiddenWindows On
@@ -81,7 +86,9 @@
 		/*	Usado pelos sistemas abaixo
 			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
 			*/
-		
+		/*	Necessário
+				FUNCTIONS
+			*/
 		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
@@ -163,8 +170,8 @@
 	token( server = "" , pass = "" , user = "" )								{
 		/*	Usado pelos sistemas abaixo
 			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
-
 		*/
+
 		ip_s = 160									;	Prepara var com os ips do monitoramento
 			Loop, 20
 				monitoramento .= ip_s+A_Index ","
@@ -173,10 +180,10 @@
 		if (user = "conceitto"
 		&&	StrLen( pass ) = 0 )					;	Específico para o sistema da conceitto
 			pass = cjal2021
-		server	:=	StrLen( server )		=	0	;	parâmetro de servidor não enviado
+		server	:=	StrLen( server )	=	0		;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
-		user	:=	StrLen( user )			=	0	;	parâmetro de usuário não enviado
+		user	:=	StrLen( user )	=	0			;	parâmetro de usuário não enviado
 									?	"admin"
 									:	user
 		pass	:=	InStr( server , "vdm" )	>	0	;	se o parâmetro de servidor conter "vdm", define a senha padrão
@@ -192,6 +199,7 @@
 			OutputDebug % server "`n" user "`n" pass "`n" ip[4]
 		url	=	"http://%server%:8081/api/login" -H "accept: application/json"  -H "Content-Type: application/json" -d "{ \"username\": \"%user%\", \"password\": \"%pass%\"}"
 		retorno	:=	StrReplace(	Dguard.curl( url , server , "POST" ) , """" )
+		; MsgBox % "retorno " retorno "`nURL " url "`nServer " server
 		retorno	:=	SubStr( StrReplace( retorno , "{login:{") , 1 , InStr( retorno , ",serverDate")-9 )
 		return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
 	}

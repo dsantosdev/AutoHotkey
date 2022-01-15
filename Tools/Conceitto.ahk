@@ -2,24 +2,24 @@
  * * * Compile_AHK SETTINGS BEGIN * * *
 
 [AHK2EXE]
-Exe_File=%In_Dir%\Câmeras Cadastradas.exe
+Exe_File=C:\Documentos_importantes\Facilitador\Ferramentas\Conceitto.exe
 Created_Date=1
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "" "1.0.0.3" "Atualizador de dados das câmeras no banco de dados""
 [VERSION]
 Set_Version_Info=1
 Company_Name=Heimdall
 File_Description=Atualizador de dados das câmeras no banco de dados
-File_Version=1.0.0.2
+File_Version=1.0.0.3
 Inc_File_Version=1
 Product_Version=1.1.33.2
 Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\Dih\zIco\fun\conceitto.ico
 
 * * * Compile_AHK SETTINGS END * * *
 */
-#IfWinActive, Cadastro de Câmeras
-inicio	:=	A_Now
-;@Ahk2Exe-SetMainIcon	C:\Dih\zIco\fun\conceitto.ico
+
+;@Ahk2Exe-SetMainIcon	C:\AHK\icones\fun\conceitto.ico
+	#IfWinActive, Cadastro de Câmeras
+	inicio	:=	A_Now
 	#Persistent
 	#SingleInstance Force
 	#Include ..\class\array.ahk
@@ -382,7 +382,11 @@ preenche_listview:
 		LV_Add( ""
 			,	servers[A_Index+1,1]
 			,	servers[A_Index+1,2]
-			,	servers[A_Index+1,3] = "10001"	? "" : servers[A_Index+1,3]
+			,	servers[A_Index+1,3]	= "10001"
+										? ""
+										: servers[A_Index+1,3]	= "10000"
+																? ""
+																: servers[A_Index+1,3]
 			,	servers[A_Index+1,4] = "0000"	? "" : servers[A_Index+1,4]
 			,	servers[A_Index+1,5]
 			,	servers[A_Index+1,6]

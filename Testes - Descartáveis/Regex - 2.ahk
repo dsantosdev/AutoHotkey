@@ -287,7 +287,7 @@ MsgBox, % "done"
 ;digit (0-9), xdigit (hex digit), print, graph (print excluding space),
 ;punct, lower, upper, space (whitespace), word (same as \w).
 
-vText := "|123abc$£¥€v|"
+vText := "|123abc$ï¿½ï¿½ï¿½v|"
 MsgBox, % RegExReplace(vText,"[^[:ascii:]]")
 MsgBox, % RegExReplace(vText,"[[:ascii:]]")
 MsgBox, % RegExMatch(vText,"[[:ascii:]]")

@@ -1,4 +1,6 @@
-﻿chrome_history() {	;	Bloqueia a exclusao de historico
+﻿Global	inc_functions = 1
+
+chrome_history() {	;	Bloqueia a exclusao de historico
 	RegRead,	history,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
 	if ( history != 0 )	{
 		RegWrite, REG_DWORD,	HKEY_LOCAL_MACHINE, SOFTWARE\Policies\Google\Chrome,	AllowDeletingBrowserHistory,	0
@@ -203,9 +205,12 @@ json( ByRef src , args* ) {
 }
 
 search_delay( delay = "500", done = "0" ) {
+	/*
+		Inserir antes do Submit;
+		Não precisa de "if's", apenas a chamada ex: search_delay( "750" )
+	*/
 	if ( done = 0 )
-		Loop
-		{
+		Loop	{
 			; OutputDebug % A_TimeIdleKeyboard
 			if ( A_TimeIdleKeyboard > delay )	{
 				Return	done = 0
@@ -319,9 +324,13 @@ ping( address )	{
 }
 
 StrRep( haystack , separator = ":" , needles* )	{
+	/*
+		texto :=	"Nome da câmera alterado dê:[n]'a'[n][t]para:[n]'b'[n]"
+		MsgBox %  StrRep( texto , , "[n]:%0A", "[t]:%09" ) parametros
+	*/
 	for i, v in needles
 	{
-		if ( InStr( v , separator ) = 1 )	{
+		if ( InStr( v , separator ) > 0 )	{
 			SearchText	:= SubStr( v, 1 , InStr( v , separator )-1 )	
 			ReplaceText := SubStr( v,InStr( v , separator )+1 )
 		}
@@ -334,6 +343,7 @@ StrRep( haystack , separator = ":" , needles* )	{
 	Return haystack
 
 }
+
 update( comando = "" ) {
 	q = UPDATE [ASM].[dbo].[_gestao_sistema] SET [complemento1] = '%up%' WHERE [descricao] = '%ip%'
 	sql(q, 3)

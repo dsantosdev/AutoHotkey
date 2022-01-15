@@ -1,4 +1,7 @@
-﻿Class	Mail	{
+﻿
+Global inc_mail = 1
+
+Class	Mail	{
 
 	new( to, subject, body, from := "", attach := "" )	{
 		if ( StrLen( from ) = 0 )

@@ -21,20 +21,14 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\bat.ico
 
-;	Informações
-	; Base de dados usadas:
-		; asm._gestão_servidor		=	Contém as informações de path dos executáveis e executáveis que devem ser executados
-		; asm.softwares				=	Contém os binários do executáveis para conversão
-;
-
 ;	Config
 	#Persistent
 	#SingleInstance	Force
-	Menu,	Tray,	Tip,	Gestor de Serviços`nSistema Monitoramento
+	Menu,	Tray,	Tip,	Sincronizador MSSQL x ORACLE
 ;
 
 ;	Variáveis
-	for_timer	= 07	;	Horário das câmeras
+	for_timer	= 07	;	Horário câmeras
 	inicia		= 0000
 	finaliza	= 0010
 	tooltips	= 0
@@ -74,30 +68,9 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 	return
 
 	F3::	;	Atualiza horários e sistemas via query sql manualmente
-		for_timer	:=	A_Hour - 12 < 0 ? StrLen( 24 + ( for_timer - 12 ) ) = 1 ? : : A_Hour - 12	;	se passar da meia noite
-		; inicia		:=	0700
-		inicia		:=	A_Min A_Sec
-			Loop	;	Deal with zeros in minutes
-				if ( StrLen( inicia ) = 4 )
-					Break
-				Else
-					inicia := "0" inicia
-
+		for_timer	:=	A_Hour - 12 < 0 ? 24 + ( for_timer - 12 ) : A_Hour - 12
+		inicia		:=	SubStr( A_Now , 11 )
 		finaliza	:=	inicia + 10
-			if ( SubStr( finaliza , -1) >= 60 )		;	Segundos passam de 59
-				finaliza := finaliza + 40
-
-			if ( SubStr( finaliza , -3) >= 6000 )	;	Minutos passam de 59
-				finaliza := finaliza + 4000
-
-			if ( SubStr( finaliza , -5) >= 235959 )	;	Hora passa de 235959
-				finaliza := finaliza - 240000
-			Loop
-				if ( StrLen( finaliza ) = 4 )
-					Break
-				Else
-					finaliza := "0" finaliza
-		Gosub, executor
 	Return
 
 	End::	;	Encerra o aplicativo
@@ -124,46 +97,30 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 		;
 
 		;	Execução
-			Loop,%	sistemas.Count() {
-				SetTimer, executor, Off
-				sleep,	1000
-				if ( sistemas[ A_index ].lacuna = 1 )	{	;	Hora em hora
-					h_inicio_m	:= A_Hour . inicia
-					h_fim_m	 	:= A_Hour . finaliza
+			; tooltip, % sistemas.Count() "`n" time_now "`n" time_check
 
-					if ((time_now > h_inicio_m && time_now < h_fim_m)								;	horário
+			Loop,%	sistemas.Count() {
+				if ( sistemas[ A_index ].lacuna = 1 )	{	;	Hora em hora
+
+					ToolTip % "Horário Lacuna = 1`n" time_now "`t" A_Hour  inicia "`t" A_Hour  finaliza
+					Sleep, 3000
+					if ((time_now > A_Hour . inicia	&&	time_now < A_Hour . finaliza)				;	horário
 					&&	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" ) = 0)	;	processo não estiver rodando
 						Gosub, Run
 
 				}
 				Else	{									;	Intervalo Definido
-					inicio_t	:= for_timer + sistemas[ A_index ].lacuna . inicia
-					fim_t		:= for_timer + sistemas[ A_index ].lacuna . finaliza
-					m_inicio_m	:= for_timer . inicia
-					m_fim_m		:= for_timer . finaliza
 
-					manhã :=	time_now >= m_inicio_m && time_now	< m_fim_m
-																? "True"
-																: "False"
-					tarde :=	time_now >= inicio_t && time_now  < fim_t
-															 ? "True"
-															 : "False"
-					processo :=	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" )	= 0
-																								? "True"
-																								: "False"
-					; MsgBox,%	manhã " OU ( " tarde " E " processo " )`n"
-							; .	time_now " >= " m_inicio_m	" && " time_now " < " m_fim_m "`n"
-							; .	time_now " >= " inicio_t	" && " time_now " < " fim_t "`n"
-							; .	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" )
-					;
-
-					if ((manhã		= "true" )		;	manhã
-					||	(tarde		= "true" 		;	tarde e ↓
-					&&	 processo	= "true" ) ) {	;			processo não estiver rodando
-						; MsgBox 1
+					ToolTip, %	"Horário Lacuna != 1`n"
+					 		.	"manhã " for_timer . inicia
+					 		.	"`ntarde " for_timer + sistemas[ A_index ].lacuna . finaliza
+							.	"`n" A_Hour . time_check " || " A_Hour . time_check
+					sleep 10000
+					;	
+					if ((for_timer . inicia > A_Hour . time_check && for_timer . finaliza < A_Hour . time_check)
+					||	(for_timer + sistemas[ A_index ].lacuna . time_check > A_Hour . inicia	&&	for_timer + sistemas[ A_index ].lacuna . time_check < A_Hour . finaliza)	;	horário
+					&&	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" ) = 0)																				;	processo não estiver rodando
 						Gosub, Run
-					}
-					; MsgBox 2
 				}
 			}
 		;
@@ -172,7 +129,6 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 	Return
 
 	Run:
-		FileDelete,% path "\" software
 		for_sql := SubStr( software , 1 , -4 )
 
 		s =
@@ -188,6 +144,7 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 			)
 			bins := sql( s, 3 )
 			Sleep, 1000
+			FileDelete,% path "\" software
 		if (FileExist( path "\" software ) = "" )				;	Garante a existência do executável
 			Base64.FileDec( bins[2, 1] , path "\" software )	;	Transforma o arquivo base64 em executável
 
@@ -196,11 +153,12 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 			||	A_Index > 25 )
 				Break
 			Sleep,	1000
+
 		Run,% path "\" software " 1"
 
 		atualizado	:=	A_YYYY "/" A_MM "/" A_DD " "
 					.	A_Hour ":" A_Min ":" A_Sec
-		Menu, Tray,	Tip, Gestor de Serviços`nùltima Sincronização: %atualizado%
+		Menu, Tray,	Tip, Sicronizador MSSQL x ORACLE	Sicronizador MSSQL x ORACLE`nùltima Sincronização: %atualizado%
 	Return
 
 	load_vars:

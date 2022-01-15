@@ -15,7 +15,7 @@
 
 ;	Variáveis
 	software	=	asm
-		fundo		=	BDDBFF 
+		fundo		=	BDDBFF
 	fundo		=	cfff7e1
 		frente		=	c3D9AE2
 	frente		=	c595653
@@ -165,8 +165,8 @@ SelecionaUnidade:
 																																																		:	SubStr( end%A_Index% , 1 , 1 )	=	6
 																																																											?	"Loja:`n"
 																																																											:	""
-			if ( InStr( Address , string.case( SubStr( end%A_Index% , 3 ) ) , "T" ) = 0 )
-				Address .= s_mapa string.case( SubStr( end%A_Index% , 3 ) , "T" ) "`n`n"
+			if ( InStr( Address , string.case( SubStr( end%A_Index% , 3 ) ) , "T" ) = 1 )
+				Address .= s_mapa "`t" StrReplace( string.case( SubStr( end%A_Index% , 3 ) , "T" ), "`n", "`n`t" ) "`n`n"
 		}
 	Address := SubStr( Address , 1 , StrLen( Address ) - 2 )
 ;

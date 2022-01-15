@@ -1,5 +1,7 @@
-﻿Class	Alarm	{
+﻿global	inc_alarm = 1
 
+Class	Alarm	{
+	
 	name( sensorNumber, idClient )				{
 		if ( StrLen( sensorNumber ) = 1 )
 			sensorNumber := "0" sensorNumber
