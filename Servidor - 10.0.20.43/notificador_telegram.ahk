@@ -39,14 +39,11 @@ Icon_1=C:\AHK\icones\telegram.ico
 	;#Include ..\class\windows.ahk
 ;
 
-;	-Arrays
-	;
-;
-
 ;	Configurações
 	if ( A_Args[1] = "" )	;	Sem mensagem
 		ExitApp
 	#NoTrayIcon
+	#SingleInstance, Ignore
 ;
 
 ;	Variáveis
@@ -57,18 +54,6 @@ Icon_1=C:\AHK\icones\telegram.ico
 	; chat_id	= -1001729068003	;	id do canal de teste
 ;
 
-;	-Login
-	;
-;
-
-;	-Interface
-	;
-;
-
 ;	Code
 	telegram.SendMessage( A_Args[1] , A_Args[2] )
-;
-
-;	-GuiClose
-	;
 ;

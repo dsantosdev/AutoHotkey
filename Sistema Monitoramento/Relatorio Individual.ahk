@@ -325,6 +325,9 @@ _i_relatorio:
 		MsgBox,,Texto insuficiente, Seu relatório necessita ter pelo menos 10 caractéres para poder ser salvo.
 		Return
 	}
+	if ( InStr( @n_relatorio , "'" ) > 0 ) 
+		@n_relatorio := StrReplace( @n_relatorio , "'" , "''" )
+		; MsgBox % @n_relatorio
 	@n_relatorio_ := Safe_Data.Encrypt( @n_relatorio, @usuario)
 	; OutputDebug % "Insere Novo Relatório:`n`t" user_ad "`n_____"
 	insert=
@@ -493,6 +496,9 @@ Relatorio_Temporario:
 		OutputDebug % StrLen(@n_relatorio)
 	if (StrLen(@n_relatorio) > 0
 	&&	@n_relatorio != @old_relatorio) {	;	 se o relatório não está em branco
+		if ( InStr( @n_relatorio , "'" ) > 0 ) 
+			@n_relatorio := StrReplace( @n_relatorio , "'" , "''" )
+			; MsgBox % @n_relatorio
 		insert=
 			(
 			IF NOT EXISTS (SELECT [relatorio_temporario] FROM [ASM].[dbo].[_relatorios_individuais] WHERE [user_ad] = '%@Usuario%' and [relatorio_temporario] is not NULL)

@@ -4,48 +4,11 @@
 [AHK2EXE]
 Exe_File=C:\users\dsantos\desktop\executáveis\mdcol.exe
 Created_Date=1
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "" "0.0.0.5" """
 [VERSION]
 Set_Version_Info=1
 Company_Name=Heimdall
-File_Version=0.0.0.2
-Inc_File_Version=1
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\AHK\ico\mdcol.ico
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
-/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\colaboradores.exe
-Created_Date=1
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Version=0.0.0.1
-Inc_File_Version=1
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\AHK\ico\mdcol.ico
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
-/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\colaboradores.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "colaboradores" "0.0.0.1" """
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
+File_Version=0.0.0.5
 Inc_File_Version=1
 Product_Version=1.1.33.2
 Set_AHK_Version=1
@@ -73,16 +36,18 @@ Icon_1=C:\AHK\ico\mdcol.ico
 ;
 
 ;	Globais
-	Global	m1
+	Global	clicado
+		,	m1
 		,	m2
 		,	m3
 		,	ramal
+		,	ramais := []
 ;
 
 ;	Variabels & Arrays
-	ramais := []
+	
 		r = select distinct ramal from [ASM].[dbo].[_colaboradores] where LEN(ramal) >= 4 and ramal <> '(55)99158-2861'
-		r := sql( r )
+		r := sql( r , 3 )
 		Loop,%	r.Count()-1
 			ramais.push( r[A_Index+1,1] )
 	lv_size		:=	A_ScreenWidth-395	;	385 dos valores fixos e 10 para não exibir a barra horizontal
@@ -103,7 +68,10 @@ Icon_1=C:\AHK\ico\mdcol.ico
 ;	GUI
 	Gui,	Add,	Edit,		x5		y5	w200					h20		vmat	gsubmit ; autosearch
 	Gui,	Add,	Edit,				y5	w50						h20		vdelay2	gSet_Delay Number
-	Gui,	Add,	UpDown,				y5	w150					h20		vdelay	gSet_Delay	Range1-5, 2
+	if ( A_UserName != "dsantos" )
+		Gui,	Add,	UpDown,				y5	w150					h20		vdelay	gSet_Delay	Range1-5, 2
+	Else
+		Gui,	Add,	UpDown,				y5	w150					h20		vdelay	gSet_Delay	Range1-5, 1
 		Gui.Font( "cWhite" , "Bold" )
 	Gui,	Add,	Text,				y7	w300					h20						, ←`tIntervalo para busca automática(segundos)
 		Gui.Font()
@@ -128,23 +96,33 @@ GuiContextMenu() {
 	if ( A_eventInfo = 0 )
 		return
 	menu1:=menu2:=menu3:=""
-	if ( clicado > 1 )
+	if ( clicado > 0 )
 		Menu, ClickToCall, DeleteAll
 	if ( A_GuiControl = "lv" )	{
 		s_ramal:
-		ramal=
-		if ( A_IpAddress1 = "192.9.100.162" )
-			ramal = 2530
-		else if ( A_IpAddress1 = "192.9.100.166" )
-			ramal = 2852
-		else if ( A_IpAddress1 = "192.9.100.169" )
-			ramal = 2853
-		else if ( A_IpAddress1 = "192.9.100.176" )
-			ramal = 2854
-		else if ( A_IpAddress1 = "192.9.100.179" )
-			ramal = 2855
-		else if ( A_IpAddress1 = "192.9.100.184" )
-			ramal = 2524
+		ramal =
+		ip := StrSplit( A_IpAddress1 , "." )
+		if ( ip[4] < 100 AND ip[4] > 124 )
+		|| ( ip[1] "." ip[2] "." ip[3] = "192.9.100") 
+			IniRead, ramal, C:\Users\%A_UserName%\ramal.ini, Ramal, NR
+		if ( ramal = "ERROR" )
+			ramal =
+		if ( ip[1] "." ip[2] "." ip[3] = "192.9.100" )	{
+			if ip[4] > 101 AND ip[4] < 104
+				ramal = 2530
+			else if ip[4] > 105 AND ip[4] < 108
+				ramal = 2852
+			else if ip[4] > 109 AND ip[4] < 112
+				ramal = 2853
+			else if ip[4] > 113 AND ip[4] < 116
+				ramal = 2854
+			else if ip[4] > 117 AND ip[4] < 121
+				ramal = 2855
+			else if ip[4] > 122 AND ip[4] < 124
+				ramal = 2860
+			else if ip[4] = 100
+				ramal = 2524
+		}
 		else if ( ramal = "" )	{
 			InputBox,	ramal,	Ramal,	Digite o ramal que deseja utilizar para efetuar a ligação:
 			If ErrorLevel
@@ -154,18 +132,19 @@ GuiContextMenu() {
 					MsgBox, ,O bebado e o Diabo, 	O bebado chega no inferno e grita: `n`tCadê as mulheres desse caraioo?`nO Diabo responde:`n`tAqui não tem mulher doido.`nO bebado diz:`n`tEntão onde tu arrumou esses chifres disgraçaaaaaaa?, 15
 					Goto	s_ramal
 				}
-				if (StrLen( ramal ) < 4
+				else if (StrLen( ramal ) < 4
 				||	StrLen( ramal ) > 6 )	{
 					MsgBox	Digite um ramal válido.
 					Goto s_ramal
 				}
-				if ( array.InArray( ramais , ramal ) = 0 )	{
+				else if ( array.InArray( ramais , ramal ) = 0 )	{
 					MsgBox	O ramal que você digitou não existe na base de dados da Cotrijal. Digite um ramal válido.
 					Goto	s_ramal
 				}
+				Else
+					IniWrite, %ramal%, C:\Users\%A_UserName%\ramal.ini, Ramal, Nr
 			}
 		}
-		
 		Gui,	ListView,	lv
 		clicado++
 		LV_GetText(	tnome,	A_EventInfo	,	2	)	
@@ -183,6 +162,7 @@ GuiContextMenu() {
 			menu2 =
 		Menu, ClickToCall, Add, %	tnome,	tip
 		Menu, ClickToCall, Add
+		
 		if ( StrLen( m1 ) > 0 )
 			Menu, ClickToCall, Add, %menu1%, Call1
 		if ( StrLen( m2 ) > 0 )	{
@@ -201,9 +181,9 @@ GuiContextMenu() {
 		&&	StrLen( m3 ) < 3 )
 			return
 		if ( sex = "M" )
-			Menu,	ClickToCall,	Icon,	%	tnome,	C:\Seventh\Backup\ico\bman.png,, 0
+			Menu,	ClickToCall,	Icon,	%	tnome,	C:\Seventh\Backup\ico\bman.png,,	0
 		else
-			Menu,	ClickToCall,	Icon,	%	tnome,	C:\Seventh\Backup\ico\bwoman.png,, 0
+			Menu,	ClickToCall,	Icon,	%	tnome,	C:\Seventh\Backup\ico\bwoman.png,,	0
 		Menu, ClickToCall, Show, %A_GuiX%, %A_GuiY%
 	}
 }
@@ -219,6 +199,7 @@ tip:
 return
 
 Call1:
+	Clipboard := ramal
 	convert.call("https://convert.cotrijal.com.br/portal/api/LigacaoAutomatica/executarLigacaoNumero/?origem="	ramal	"&destino="	m1)
 	Menu, ClickToCall, DeleteAll
 	ra	:= ramal
@@ -227,6 +208,7 @@ Call1:
 Return
 
 Call2:
+	Clipboard := ramal
 	convert.call("https://convert.cotrijal.com.br/portal/api/LigacaoAutomatica/executarLigacaoNumero/?origem="	ramal	"&destino="	m2)
 	Menu, ClickToCall, DeleteAll
 	ra	:= ramal
@@ -235,6 +217,7 @@ Call2:
 Return
 
 Call3:
+	Clipboard := ramal
 	convert.call("https://convert.cotrijal.com.br/portal/api/LigacaoAutomatica/executarLigacaoNumero/?origem="	ramal	"&destino="	m3)
 	Menu, ClickToCall, DeleteAll
 	ra	:= ramal

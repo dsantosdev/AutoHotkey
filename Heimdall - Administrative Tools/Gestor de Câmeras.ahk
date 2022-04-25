@@ -483,7 +483,7 @@ CamerasEditGuiClose:
 ExitApp
 
 up:
-	comando.verificar( "sistema" )
+	; comando.verificar( "sistema" )
 return
 
 CamerasEditGuiContextMenu()	{
@@ -573,7 +573,7 @@ Gui, CamerasEdit:Default
 return
 
 Login:
-	s=select usuario from [asm].dbo._colaboradores where access_level > 0
+	s=select usuario from [asm].[dbo].[_colaboradores] where access_level > 0
 	s	:=	sql( s, 3 )
 	Loop, % s.Count()
 		admins	.=	s[ A_Index+1, 1 ] ","

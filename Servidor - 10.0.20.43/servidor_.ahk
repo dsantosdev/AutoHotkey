@@ -82,13 +82,13 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 	executor:
 		;	Tooltip ativado ou não
 			Process, Exist, atualiza_contatos.exe
-			if (tooltips != 1
-			||	ErrorLevel <> 0)
+			if (tooltips	!= 1
+			||	ErrorLevel	<> 0 )
 				ToolTip
 			Else
-				ToolTip,%	StrLen( atualizado )	= 0
-													? "Não efetuou atualização ainda, aguarde a próxima troca de hora ou pressione CTRL+F2"
-													: "Contatos atualizados às " atualizado "`nmmss = " mmss,	50,	50
+				ToolTip,%	StrLen( atualizado ) = 0
+												 ? "Não efetuou atualização ainda, aguarde a próxima troca de hora ou pressione CTRL+F2"
+												 : "Contatos atualizados às " atualizado "`nmmss = " mmss,	50,	50
 		;
 
 		;	prepara variável de tempo
@@ -102,7 +102,7 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 			Loop,%	sistemas.Count() {
 				if ( sistemas[ A_index ].lacuna = 1 )	{	;	Hora em hora
 
-					ToolTip % "Horário Lacuna = 1`n" time_now "`t" A_Hour  inicia "`t" A_Hour  finaliza
+					ToolTip % "Horário Lacuna = 1`n" time_now "`t" A_Hour . inicia "`t" A_Hour . finaliza
 					Sleep, 3000
 					if ((time_now > A_Hour . inicia	&&	time_now < A_Hour . finaliza)				;	horário
 					&&	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" ) = 0)	;	processo não estiver rodando

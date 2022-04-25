@@ -14,26 +14,29 @@ Product_Name=atualiza_contatos
 Product_Version=1.1.33.2
 Set_AHK_Version=1
 [ICONS]
-Icon_1=C:\Dih\zIco\fun\low.ico
+Icon_1=C:\AHK\icones\fun\mag.ico
 
 * * * Compile_AHK SETTINGS END * * *
 */
 
-;@Ahk2Exe-SetMainIcon C:\Dih\zIco\fun\low.ico
+;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\mag.ico
 
 ;	Includes
-	;#Include ..\class\array.ahk
-	#Include ..\class\base64.ahk
-	;#Include ..\class\convert.ahk
-	;#Include ..\class\cor.ahk
-	;#Include ..\class\dguard.ahk
-	;#Include ..\class\functions.ahk
-	;#Include ..\class\gui.ahk
-	;#Include ..\class\mail.ahk
-	;#Include ..\class\safedata.ahk
-	#Include ..\class\sql.ahk
-	#Include ..\class\string.ahk
-	;#Include ..\class\windows.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safedata.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	Variáveis
@@ -43,6 +46,7 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 ;
 
 ;	Configuração
+	SetBatchLines, -1
 	CoordMode, ToolTip, Screen
 	#NoTrayIcon
 ;
@@ -57,7 +61,7 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 		SELECT
 			f.nm_razao_social,
 			f.numcad,
-			f.dn_cargo,
+			TRANSLATE(f.dn_cargo,'ÁáÀàÂâÃãÄäÅåÇçÐÉéÈèÊêËëÍíÌìIiÎîIiÏïIiIiIiÑñÓóÒòÔôÖöÕõØøÚúÙùÛûÜüÝýŸÿŽž','AaAaAaAaAaAaCcDEeEeEeEeIiIiIiIiIiIiIiIiIiNnOoOoOoOoOoOoUuUuUuUuYyYyZz'),
 			f.email_com,
 			f.fone,
 			f.celular,
@@ -90,11 +94,39 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 
 ;	Prepara contatos e atualiza o banco do monitoramento
 	Loop,%	contatos_oracle.Count()-1	{	;	Loop de atualização de contatos
+		; OutputDebug % aaaaa ; apenas para contagem
 		if ( show_tooltip = "1" )
 			ToolTip		% "Contatos restantes: " ( contatos_oracle.Count()-1 ) - A_Index "`nColaborador: " contatos_oracle[A_Index+1,1] "`nMatrícula: " contatos_oracle[A_Index+1,2], 50, 50
 		nome			:=	String.Remove_accents( Format( "{:T}" , contatos_oracle[ A_Index+1 , 1 ] ) )
 		mat				:=	contatos_oracle[ A_Index+1 , 2 ]
 		cargo			:=	String.Remove_accents( Format( "{:T}" , contatos_oracle[ A_Index+1 , 3 ] ) )
+		responsavel		:=	99
+			if(  InStr(cargo, "coordenador") )
+			&&( !InStr(cargo, "trainee" ) )
+				If		InStr(	cargo, "Administrativo" )
+					responsavel	:=	2
+				Else If InStr(	cargo, "Operacional" )
+					responsavel	:=	5
+				Else If InStr(	cargo, "Loja" )
+					If		InStr( cargo, "Facilitador" )
+						responsavel = 99
+					Else If	InStr( cargo, "Comercial" )
+						responsavel = 99
+					Else
+						responsavel	:=	3
+				Else If InStr(	cargo, "Supermercado" )
+					If		InStr( cargo, "Facilitador" )
+						responsavel = 99
+					Else If	InStr( cargo, "Comercial" )
+						responsavel = 99
+					Else
+					responsavel	:=	4
+			If InStr(cargo , "Gerente De Unidade De Negocios" )
+			|| InStr(cargo , "Gerente De Lojas" )
+			|| InStr(cargo , "Gerente De Supermercados" )
+			|| InStr(cargo , "Gerente Da Expodireto" )
+			|| InStr(cargo , "Gerente De Fabrica De Racoes" )
+				responsavel	:=	1
 		mail			:=	contatos_oracle[ A_Index+1 , 4 ]
 		tel1			:=	contatos_oracle[ A_Index+1 , 5 ]
 		tel2			:=	contatos_oracle[ A_Index+1 , 6 ]
@@ -133,6 +165,7 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 						[cd_entreposto]	= '%cdentreposto%',
 						[cd_unidade]	= '%cdunidade%',
 						[admissao]		= '%admissao%',
+						[responsavel]	= '%responsavel%',
 						[id_local]		= '%id_local%'
 					WHERE
 						[matricula]		= '%mat%'
@@ -172,7 +205,7 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 					,'%cdestab%'
 					,'%cdentreposto%'
 					,'%cdunidade%'
-					,'99'
+					,'%responsavel%'
 					,'%admissao%'
 					,'%id_local%'		)
 			)
@@ -191,10 +224,10 @@ Icon_1=C:\Dih\zIco\fun\low.ico
 			ficam .= "," v
 	limpa_demitidos =
 		(
-		DELETE FROM
-			[ASM].[dbo].[_colaboradores]
-		WHERE
-			[matricula] NOT IN ( %ficam% )
+			DELETE FROM
+				[ASM].[dbo].[_colaboradores]
+			WHERE
+				[matricula] NOT IN ( %ficam% )
 		)
 		sql( limpa_demitidos , 3 )
 	ToolTip

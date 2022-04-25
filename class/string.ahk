@@ -103,8 +103,12 @@ Class	String		{
 
 		if ( Strlen( Retorno ) = 0 )
 			Retorno := cargo
-		Retorno	:=	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	Retorno
-																															,	"COORDENADOR ", "C. " )
+		Retorno	:=	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace(	StrReplace ( StrReplace	( StrReplace ( StrReplace ( Retorno
+																																									,	"Centro De Distribuicao", "CD" )
+																																						,	"Gerente de Supermercado", "Gerente de Unidades" )
+																																			,	"Gerente de Loja", "Gerente de Unidades" )
+																																,	"Desenvolvimento Humano E Organizacional", "DHO" )
+																													,	"COORDENADOR ", "C. " )
 																									,	" UNIDADES" )
 																						,	" UNIDADE" )
 																			,	"DE " )

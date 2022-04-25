@@ -30,18 +30,20 @@
 ;
 
 ;	Definição de ramal
-	if		( InStr( A_IpAddress1 , "184" ) > 0 )
+	if		( ip[3] "." ip[4] = "9.100" )
 		ramal = 2524
-	else if ( InStr( A_IpAddress1 , "162" ) > 0 )
+	else if ( ip[3] "." ip[4] = "9.102" )
 		ramal = 2530
-	else if ( InStr( A_IpAddress1 , "166" ) > 0 )
+	else if ( ip[3] "." ip[4] = "9.106" )
 		ramal = 2852
-	else if ( InStr( A_IpAddress1 , "169" ) > 0 )
+	else if ( ip[3] "." ip[4] = "9.109" )
 		ramal = 2853
-	else if ( InStr( A_IpAddress1 , "176" ) > 0 )
+	else if ( ip[3] "." ip[4] = "9.114" )
 		ramal = 2854
-	else if ( InStr( A_IpAddress1 , "179" ) > 0 )
+	else if ( ip[3] "." ip[4] = "9.118" )
 		ramal = 2855
+	else if ( ip[3] "." ip[4] = "9.123" )
+		ramal = 2860
 ;
 
 ;	Select de Unidades
@@ -213,24 +215,24 @@ Responsaveis:	;	Gui de Responsáveis
 		Gui.Font( "2" , "S12" , "Bold" , f_titulo )
 	Gui, 2:Add, Text,			x10		y10		w600	h30		vds_unidade			Center
 		Gui.Font()
-	Gui, 2:Add, DropDownList,	x20		y450	w220	h30		vmapa				Choose%l%	gAbre_Mapa	R%l%											, %campos%
+	Gui, 2:Add, DropDownList,	x20		y450	w220	h30		vmapa				Choose%l%	gAbre_Mapa	R%l%	, %campos%
 	Gui, 2:Add, Button,			x850	y0		w180	h30		vmails							gAbre_Mail
 		Gosub Abre_Mail
 		Gui.Font( "2" , "s10" , "Bold" , f_titulo )
-	Gui, 2:Add, Text,			x250	y450	w300	h30																									, CLIQUE NO MAPA PARA EXPANDIR
-	Gui, 2:Add, GroupBox,		x650	y35		w390	h395																								, Informações da Unidade
-	Gui, 2:Add, GroupBox,		x10		y210	w630	h220																								, Autorizados
-	Gui, 2:Add, GroupBox,		x10		y430	w1030	h530																								, Mapas
-	Gui, 2:Add, Text,			x30		y230	w150																										, Buscar autorizado:
-	Gui, 2:Add, Text,			x660	y50				h20																									, Endereço
+	Gui, 2:Add, Text,			x250	y450	w300	h30															, CLIQUE NO MAPA PARA EXPANDIR
+	Gui, 2:Add, GroupBox,		x650	y35		w390	h395														, Informações da Unidade
+	Gui, 2:Add, GroupBox,		x10		y210	w630	h220														, Autorizados
+	Gui, 2:Add, GroupBox,		x10		y430	w1030	h530														, Mapas
+	Gui, 2:Add, Text,			x30		y230	w150																, Buscar autorizado:
+	Gui, 2:Add, Text,			x660	y50				h20															, Endereço
 		Gui.Font( "2" , "s10" , "Bold" , "cWhite" )
-	Gui, 2:Add, Text,			x660	y70		w360			vds_endereco			0x1000																, %	Address
-		; Gui, 2:Add, Text,						x630	y130				h20																									, Observações
+	Gui, 2:Add, Text,			x660	y70		w360			vds_endereco			0x1000						, %	Address
+		; Gui, 2:Add, Text,						x630	y130				h20										, Observações
 		Gui.Font()
 		; Gui, 2:Add, Edit,						x630	y150	w390	h40		vds_observacao
 	Gui, 2:Add, Edit,			x170	y230	w460			vds_buscaautorizado				gbuscaAutorizado
-	Gui, 2:Add, ListView,		x20		y260	w610	R8		vlv_autorizados					Grid														, Nome|Matrícula|Cargo|Observação|sexo|t1|t2|Ramal
-	Gui, 2:Add, ListView,		x10		y40		w630	R8		vlv_responsaveis	AltSubmit	Grid														, Cargo|Nome|Matrícula|Telefone 1|Telefone 2|Ramal|Situação|sexo
+	Gui, 2:Add, ListView,		x20		y260	w610	R8		vlv_autorizados					Grid				, Nome|Matrícula|Cargo|Observação|sexo|t1|t2|Ramal
+	Gui, 2:Add, ListView,		x10		y40		w630	R8		vlv_responsaveis	AltSubmit	Grid				, Cargo|Nome|Matrícula|Telefone 1|Telefone 2|Ramal|Situação|sexo
 	Gui, 2:Add, Picture,		x20		y480	w1000	h470	vpic_mapa			Hidden		gExpandeMapa
 ;
 
@@ -567,7 +569,7 @@ Abre_Mail:				;{	14/04/2021 - Precisa melhorias visuais e funcionais(filtro)
 	mails = 
 	Particao:=(StrLen(id_mail)=2)?("0" id_mail):(id_mail)
 	; MsgBox % Particao
-	q=SELECT a.[Mensagem],a.[QuandoGerou] FROM [IrisSQL].[dbo].[Agenda] a LEFT JOIN [IrisSQL].[dbo].[Clientes] c on a.IdCliente=c.IdUnico WHERE QuandoGerou >= DATEADD(day,-7, GETDATE()) AND c.[Particao] = '%Particao%'
+	q	=	SELECT a.[Mensagem],a.[QuandoGerou] FROM [IrisSQL].[dbo].[Agenda] a LEFT JOIN [IrisSQL].[dbo].[Clientes] c on a.IdCliente=c.IdUnico WHERE QuandoGerou >= DATEADD(day,-7, GETDATE()) AND c.[Particao] = '%Particao%'
 	; Clipboard:=q
 	qs := sql(q)
 	if(qs.Count()-1=0)	{

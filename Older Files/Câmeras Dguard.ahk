@@ -20,11 +20,13 @@
 	token_2 := Dguard.token( "vdm02" )
 		OutputDebug % StrLen( token_2 ) > 0 ? "-Obtido token 2`n`t" token_2		: "Falha ao obter token 2"
 	token_3 := Dguard.token( "vdm03" )
-		OutputDebug % StrLen( token_3 ) > 0 ? "-Obtido token 3`n`t" token_3 "`n" : "Falha ao obter token 3`n"
+		OutputDebug % StrLen( token_3 ) > 0 ? "-Obtido token 3`n`t" token_3 "`n" : "Falha ao obter token 3"
+	token_4 := Dguard.token( "vdm04" )
+		OutputDebug % StrLen( token_4 ) > 0 ? "-Obtido token 4`n`t" token_4 "`n" : "Falha ao obter token 4`n"
 ;
 
-	OutputDebug % http( "http://vdm01:8081/api/contact-id/receivers" , "Bearer " token_1 )
-	receptoras := json( http( "http://vdm01:8081/api/contact-id/receivers" , "Bearer " token_1 ) )
+	OutputDebug % http( "http://vdm01:8081/api/contact-id/receivers" , "Bearer " token_1, 1 )
+	receptoras := json( http( "http://vdm01:8081/api/contact-id/receivers" , "Bearer " token_1, 1 ) )
 		Loop,% receptoras.receivers.Count()	{
 			; comando	= "http://SERVIDOR:8081/api/contact-id/receivers/1" -H "accept: application/json" -H "Authorization: bearer %token_1%"
 			; dguard.curl( comando , "vdm01" , "DELETE" )
@@ -34,7 +36,7 @@
 		; dguard.curl( comando , "vdm01" , "PUT" )
 	OutputDebug % "receptoras 1 ok"
 
-	receptoras := json( http( "http://vdm02:8081/api/contact-id/receivers" , "Bearer " token_2 ) )
+	receptoras := json( http( "http://vdm02:8081/api/contact-id/receivers" , "Bearer " token_2, 1 ) )
 		Loop,% receptoras.receivers.Count()	{
 			; comando	= "http://SERVIDOR:8081/api/contact-id/receivers/1" -H "accept: application/json" -H "Authorization: bearer %token_2%"
 			; dguard.curl( comando , "vdm02" , "DELETE" )
@@ -45,7 +47,7 @@
 		; dguard.curl( comando , "vdm02" , "PUT" )
 	OutputDebug % "receptoras 2 ok"
 
-	receptoras := json( http( "http://vdm03:8081/api/contact-id/receivers" , "Bearer " token_3 ) )
+	receptoras := json( http( "http://vdm03:8081/api/contact-id/receivers" , "Bearer " token_3, 1 ) )
 		Loop,% receptoras.receivers.Count()	{
 			; comando	= "http://SERVIDOR:8081/api/contact-id/receivers/1" -H "accept: application/json" -H "Authorization: bearer %token_3%"
 			; dguard.curl( comando , "vdm03" , "DELETE" )
@@ -55,6 +57,17 @@
 		; comando	= "http://SERVIDOR:8081/api/contact-id/receivers/0" -H "accept: application/json" -H "Authorization: bearer %token_3%" -H "Content-Type: application/json" -d "{ \"name\": \"Default\", \"code\": 10001, \"protocol\": 0, \"enabled\": false}"
 		; dguard.curl( comando , "vdm03" , "PUT" )
 	OutputDebug % "receptoras 3 ok"
+
+	receptoras := json( http( "http://vdm04:8081/api/contact-id/receivers" , "Bearer " token_4, 1 ) )
+		Loop,% receptoras.receivers.Count()	{
+			; comando	= "http://SERVIDOR:8081/api/contact-id/receivers/1" -H "accept: application/json" -H "Authorization: bearer %token_4%"
+			; dguard.curl( comando , "vdm04" , "DELETE" )
+			OutputDebug % receptoras.receivers.code
+			receiversx.push({ code : receptoras.receivers[A_index].code , server : "4" })
+		}
+		; comando	= "http://SERVIDOR:8081/api/contact-id/receivers/0" -H "accept: application/json" -H "Authorization: bearer %token_3%" -H "Content-Type: application/json" -d "{ \"name\": \"Default\", \"code\": 10001, \"protocol\": 0, \"enabled\": false}"
+		; dguard.curl( comando , "vdm03" , "PUT" )
+	OutputDebug % "receptoras 4 ok"
 
 
 	OutputDebug % receiversx.Count()
@@ -215,11 +228,17 @@ return
 				dguard.curl( comando , "vdm02" , "PUT" )
 
 			}
-			Else	{
+			if ( server = 3 )	{
 				comando = "http://SERVIDOR:8081/api/contact-id/receivers" -H "accept: application/json" -H "Authorization: bearer %token_3%" -H "Content-Type: application/json" -d "{ \"name\": \"%id%\", \"code\": %id%, \"protocol\": 0, \"enabled\": false}"
 				dguard.curl( comando , "vdm03" , "POST" )
 				comando = "http://SERVIDOR:8081/api/servers/`%7B%guid%`%7D/contact-id" -H "accept: application/json" -H "Authorization: bearer %token_3%" -H "Content-Type: application/json" -d "{ \"receiver\": %id%, \"account\": \"%new_contact%\", \"partition\": \"00\"}"
 				dguard.curl( comando , "vdm03" , "PUT" )
+			}
+			Else	{
+				comando = "http://SERVIDOR:8081/api/contact-id/receivers" -H "accept: application/json" -H "Authorization: bearer %token_4%" -H "Content-Type: application/json" -d "{ \"name\": \"%id%\", \"code\": %id%, \"protocol\": 0, \"enabled\": false}"
+				dguard.curl( comando , "vdm04" , "POST" )
+				comando = "http://SERVIDOR:8081/api/servers/`%7B%guid%`%7D/contact-id" -H "accept: application/json" -H "Authorization: bearer %token_3%" -H "Content-Type: application/json" -d "{ \"receiver\": %id%, \"account\": \"%new_contact%\", \"partition\": \"00\"}"
+				dguard.curl( comando , "vdm04" , "PUT" )
 			}
 			MsgBox % "ok"
 		}

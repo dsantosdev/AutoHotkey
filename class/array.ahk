@@ -2,20 +2,20 @@
 Global inc_array = 1
 
 Class Array	{
-	InArray(Array, SearchText, Partial="0")					{
+	InArray( Array, SearchText, Partial="0" )											{
 		; OutputDebug % searchtext
 		if ( debug > 2 )
 			OutputDebug % "_____InArray`n`tSearchText: " SearchText "`n`tArray: " array.Count() "`n`tPartial: " partial "`n"
 		if ( StrLen( SearchText ) = 0 )	{
 			OutputDebug % "SearchText em branco"
 			return 0
-			}
-		if !( IsObject( Array ) )	{
+		}
+		if !IsObject( Array )	{
 			if ( debug > 2 )
 				OutputDebug % "Não é um array!"
 			throw Exception("Não é um array!", -1, Array)
 			return 0
-			}
+		}
 		if ( Partial = 0 )	{
 			if ( debug > 2 )
 				OutputDebug % "partial Zero"
@@ -26,7 +26,7 @@ Class Array	{
 				if ( ArrayText = SearchText )
 					Return index
 				}
-			}
+		}
 		else	{
 			list := []
 			for index, ArrayText in Array
@@ -44,13 +44,13 @@ Class Array	{
 		Return 0
 	}
 
-	InDict(Array,SearchText,key_is="",partial="0",fill="")	{
+	InDict( Array, SearchText, key_is="", partial="0", fill="" )						{
 		; OutputDebug % SearchText
 		if ( fill = 1 )	{
 			list:=[]
 			For index in Array
 				list.Push(index)
-			}
+		}
 		if ( StrLen(SearchText) = 0 and StrLen(fill) = 0 )
 			return 0
 		if !( IsObject(Array) )	{
@@ -89,7 +89,7 @@ Class Array	{
 		return list.Count() = "" ? 0 : list
 	}
 
-	QueryInDict(Array, params*)								{
+	QueryInDict( Array, params* )														{
 		if ( debug > 2 )
 			OutputDebug % params.Count()
 		Loop, %  params.Count()
@@ -103,7 +103,7 @@ Class Array	{
 				}
 	}
 
-	Reverse( Array )										{
+	Reverse( Array )																	{
 		;	original from jeeswg
 		Array2 := Array.Clone()
 		Temp := {}
@@ -115,7 +115,7 @@ Class Array	{
 		Array2 := Temp := ""
 	}
 
-	Sort( Array, Order = "ASC", Is_Map = "0" , Delimiter = "`n" , Sort_Position = "1" )			{	;	Para MAP's precisa ser atualizado
+	Sort( Array, Order = "ASC", Is_Map = "0" , Delimiter = "`n" , Sort_Position = "1" )	{	;	Para MAP's precisa ser atualizado
 		index	:=	[]
 		If ( Is_Map = 1 )	{	;	Retorna um array SIMPLES com a ordem do dictionary
 			for Key in Array

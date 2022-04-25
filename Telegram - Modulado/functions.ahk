@@ -1,6 +1,6 @@
-Global adosql_le, adosql_lq
+Global sql_le, sql_lq
 ; MsgBox	%	html_encode("O código % que você enviou é inválido.`n`nSolicite um código válido com seu gestor.")
-adosql(query,tipo=1,d="")								{
+sql(query,tipo=1,d="")									{
 	if(instr(query,"UPDATE")>0 and instr(query,"WHERE")=0)	{
 		MsgBox, Você está tentando executar um UPDATE sem definir WHERE`, deseja realmente continuar? Isso alterará TODOS os dados da tabela.
 		IfMsgBox,	No
@@ -10,13 +10,13 @@ adosql(query,tipo=1,d="")								{
 	coer:="", txtout:=0, rd:="`n", cd:="CSV", str:=tipo
 	If !(oCon:=ComObjCreate("ADODB.Connection"))
 		Return "", ComObjError(1), ErrorLevel:="Error"
-		, ADOSQL_LE:="Fatal Error: ADODB is not available."
+		, sql_LE:="Fatal Error: ADODB is not available."
 	oCon.ConnectionTimeout:=9
 	oCon.CursorLocation:=3
 	oCon.CommandTimeout:=1800
 	oCon.Open(str)
 	If !(coer:=A_LastError)
-		oRec:=oCon.execute(adosql_lq:=query)
+		oRec:=oCon.execute(sql_lq:=query)
 	If !(coer:=A_LastError)	{
 		o3DA:=[]
 		While IsObject(oRec)
@@ -75,15 +75,15 @@ adosql(query,tipo=1,d="")								{
 				. ", Source: " oFld.Source
 				. ", SQLState: " oFld.SQLState
 			}
-		adosql_le:=SubStr(query,4)
+		sql_le:=SubStr(query,4)
 		query:=""
 		txtout:=1
 		}
 	oCon.Close()
 	ComObjError( 0 )
 	ErrorLevel:=coer
-	if(StrLen(adosql_le)>0 and StrLen(d)>0)
-		MsgBox % adosql_le "`n" adosql_lq
+	if(StrLen(sql_le)>0 and StrLen(d)>0)
+		MsgBox % sql_le "`n" sql_lq
 	Return txtout?query:o3DA.Count()=1?o3DA[1]:o3DA
 	}
 
@@ -152,22 +152,22 @@ InDict(Array,SearchText,key_is="",partial="0")			{
 	return list.Count()=""?0:list
 	}
 Request(url)											{
-	req := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-	req.open("GET", url, false)
-	req.SetRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT")
+	req	:=	ComObjCreate( "WinHttp.WinHttpRequest.5.1" )
+	req.open( "GET", url, false )
+	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
 	req.send()
-	if(strLen(req.responseText)=0){
-		req := ComObjCreate("Msxml2.XMLHTTP")
-		req.open("GET", url, false)
-		req.SetRequestHeader("If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT")
+	if( StrLen( req.responseText ) = 0 )	{
+		req := ComObjCreate( "Msxml2.XMLHTTP" )
+		req.open( "GET", url, false )
+		req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
 		req.send()
-		if(debug=3)
+		if( debug = 3 )
 			OutputDebug	%	"`t`tMSXML2:`n" req.responseText
-		return	%	req.responseText
+		return	req.responseText
 		}
-	if(debug=3)
+	if( debug = 3 )
 		OutputDebug	%	"`t`tWinHttp:`n"	req.responseText
-	return	%	req.responseText
+	return	req.responseText
 	}
 StrReplaceN(Haystack,Needle,Replacement="",Instance=1)	{
 	If !(Instance:=0 | Instance)	{

@@ -5,6 +5,72 @@ Global inc_dguard = 1
 
 Class	dguard {
 	
+	cameras( server = "" , token = "" )											{
+		;	Retorna guid, name, active e connected das câmeras cadastradas no servidor do dguard
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+		url := "http://" server ":8081/api/servers"
+		retorno := Dguard.http( url , token )
+		return	json( retorno )
+	}
+	
+	cameras_info( server = "" , guid = "" , token = "" )						{
+		/* Exemplo de Retorno:
+			"server:" {
+				"name": "ESM | Portão",
+				"guid": "{5AAA4602-8B71-4134-96BC-B6F9F9890014}",
+				"parentGuid": null,
+				"hasChildren": false,
+				"active": true,
+				"connected": true,
+				"vendorGuid": "{CA014F07-32AE-46B9-83A2-8A9B836E8120}",
+				"modelGuid": "{5BA4689B-6DD0-2C27-C0F8-C6B514DC5533}",
+				"address": "10.2.36.221",
+				"port": 80,
+				"username": "admin",
+				"connectionType": 0,
+				"timeoutEnabled": true,
+				"timeout": 60,
+				"bandwidthOptimization": true,
+				"camerasEnabled": 16,
+				"vendorModelName": "Dahua Technology Co., LTD DH-IPC-HDBW2320RN-ZS",
+				"type": 0,
+				"contactIdCode": "0000",
+				"recording": true,
+				"offlineSince": "-",
+				"groupGuid": null,
+				"notes": "54",
+				"advancedSettings": "",
+				"url": "http://10.2.36.221:80",
+				"hasCamerasOutOfSpecifications": false
+			}
+		*/
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+		url := "http://" server ":8081/api/servers/`%7B" StrRep( guid ,, "{", "}" ) "`%7D"
+		retorno := Dguard.http( url , token )
+		return	json( retorno )
+	}
+
+	contact_id( server = "" , guid = "" , token = "" )							{
+		/* Exemplo de Retorno: 
+			"contactId": {
+				"receiver": 10001,
+				"account": "0000",
+				"partition": "00"
+  			}
+		*/
+		; MsgBox % server "`n" guid "`n" token
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+		url := "http://" server ":8081/api/servers/`%7B" StrRep( guid ,, "{", "}" ) "`%7D/contact-id"
+		retorno := Dguard.http( url , token )
+		return	json( retorno )
+	}
+
 	curl( comando , server = "" , tipo = "" )									{
 		comando	:=	StrReplace( comando , "`n" )
 		DetectHiddenWindows On
@@ -64,13 +130,29 @@ Class	dguard {
 			MsgBox Arquivo não existe
 	}
 
-	http( url , token )															{
-		static req := ComObjCreate( "Msxml2.XMLHTTP" )
-		req.open( "GET", url, false )
-		req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
-		req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
-		req.send()
-		return	% req.responseText
+	http( url , token , data="" )												{
+		; data:={"username":"demo","password":"test123"} ; key-val data to be posted
+		; if StrLen( data ) {
+		; 	try	{
+		; 	createFormData(rData,rHeader,data) ; formats the data, stores in rData, header info in rHeader
+		; 	hObject:=comObjectCreate("WinHttp.WinHttpRequest.5.1") ; create WinHttp object
+		; 	hObject.setRequestHeader("Content-Type",rHeader) ; set content header
+		; 	hObject.open("POST",endpoint) ; open a post event to the specified endpoint
+		; 	hObject.send(rData) ; send request with data
+			
+		; 	}
+		; 	catch e	{
+		; 		return e.message
+		; 	}
+		; }
+		; Else	{
+			static req := ComObjCreate( "Msxml2.XMLHTTP" )
+			req.open( "GET", url, false )
+			req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
+			req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
+			req.send()
+			return	% req.responseText
+		; }
 	}
 
 	layouts( server , token )													{
@@ -158,8 +240,8 @@ Class	dguard {
 			return "Value '" value "' not found in array."
 	}
 
-	server( server = "" , guid = "" , token = "" )								{
-		server	:=	StrLen( server )	=	0	;	parâmetro de servidor não enviado
+	server( server = "" , guid = "" , token = "" )								{	;	TROCAR POR CAMERAS_INFO
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
 		url := "http://" server ":8081/api/servers/`%7B" StrReplace( StrReplace( guid , "{" ) , "}" ) "`%7D"
@@ -172,10 +254,9 @@ Class	dguard {
 			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
 		*/
 
-		ip_s = 160									;	Prepara var com os ips do monitoramento
-			Loop, 20
+		ip_s = 99									;	Prepara var com os ips do monitoramento
+			Loop, 25
 				monitoramento .= ip_s+A_Index ","
-			monitoramento .= "184"
 		ip := StrSplit( server , "." )				;	Verifica no ip[4] qual servidor foi requisitado as informações para ajustar a senha de requisição
 		if (user = "conceitto"
 		&&	StrLen( pass ) = 0 )					;	Específico para o sistema da conceitto
@@ -192,14 +273,14 @@ Class	dguard {
 													?	"admin"	:	pass
 												:	pass
 											:	pass
-		if (ip[4] > 160
-		&&	ip[4] < 181 )							;	Se o servidor solicitado for coluna de operador define a senha de administrador
+		if (ip[4] > 100
+		&&	ip[4] < 126 )							;	Se o servidor solicitado for coluna de operador define a senha de administrador
 			pass := "@dm1n"
-		if ( debug >=2 )							;	Debug output
-			OutputDebug % server "`n" user "`n" pass "`n" ip[4]
 		url	=	"http://%server%:8081/api/login" -H "accept: application/json"  -H "Content-Type: application/json" -d "{ \"username\": \"%user%\", \"password\": \"%pass%\"}"
+		OutputDebug % "Classe Dguard:`n`t" server
+					. "`n`t" user
+					. "`n`t" pass
 		retorno	:=	StrReplace(	Dguard.curl( url , server , "POST" ) , """" )
-		; MsgBox % "retorno " retorno "`nURL " url "`nServer " server
 		retorno	:=	SubStr( StrReplace( retorno , "{login:{") , 1 , InStr( retorno , ",serverDate")-9 )
 		return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
 	}

@@ -1,7 +1,7 @@
 ﻿;	Header & Globals
 	Global	inc_telegram	=	1
 		,	bot_token		:=	"https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo"
-		,	chat_id
+		,	chat_id			=	-1001729068003	;	canal de teste
 	; #IncludeAgain	..\class\functions.ahk
 ;
 
@@ -12,7 +12,7 @@ Class	Telegram {
 		req.open( "GET" , url , false )
 		req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
 		req.send()
-
+		; MsgBox % url
 		if(	strLen( req.responseText ) = 0 ){
 			req := ComObjCreate("Msxml2.XMLHTTP")
 			req.open( "GET" , url , false )
@@ -43,6 +43,7 @@ Class	Telegram {
 			.	"/sendmessage?chat_id=" chat_id							;	Chat_id da conversa que deverá receber a msg
 			.	"&text=" StrRep( texto , , "[n]:%0A", "[t]:%09%09" )	;	Insere as novas linhas e tabulações no formato URI
 			.	parametros												;	Adiciona parâmetros adicionas a mensagem
+		; MsgBox % telegram.request( url )
 		return	telegram.request( url )
 	}
 

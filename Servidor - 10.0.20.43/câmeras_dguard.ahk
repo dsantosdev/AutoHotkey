@@ -1,14 +1,13 @@
 ﻿/*
  * * * Compile_AHK SETTINGS BEGIN * * *
-
 [AHK2EXE]
 Exe_File=C:\users\dsantos\desktop\executáveis\câmeras_dguard.exe
 Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "câmeras_dguard" "0.0.0.13" """
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "câmeras_dguard" "0.0.0.14" """
 [VERSION]
 Set_Version_Info=1
 Company_Name=Heimdall
-File_Version=0.0.0.13
+File_Version=0.0.0.15
 Inc_File_Version=1
 Product_Name=câmeras_dguard
 Product_Version=1.1.33.2
@@ -22,20 +21,22 @@ Icon_1=C:\AHK\icones\fun\cam.ico
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\cam.ico
 
 ;	Includes
-	#Include ..\class\array.ahk
-	;#Include ..\class/base64.ahk
-	;#Include ..\class\convert.ahk
-	;#Include ..\class\cor.ahk
-	#Include ..\class\dguard.ahk
-	#Include ..\class\functions.ahk
-	;#Include ..\class\gui.ahk
-	;#Include ..\class\mail.ahk
-	;#Include ..\class\safedata.ahk
-	#Include ..\class\sql.ahk
-	;#Include ..\class\telegram.ahk
-	;#Include ..\class\string.ahk
-	#Include ..\class\timer.ahk
-	;#Include ..\class\windows.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safedata.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\timer.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 timer("1")
@@ -57,7 +58,8 @@ timer("1")
 ;
 
 ;	Variáveis
-	Software		=	câmeras_dguard
+	testar			=	
+	software		=	câmeras_dguard
 	teste			:=	A_Args[3]	;	recebe o argumento 3 para canal teste, caso em branco envia para o server principal
 	show_tooltip	:=	A_Args[1]	;	recebe o argumento 1 para exibir
 	if ( A_IsCompiled = 1  ) {
@@ -77,28 +79,32 @@ timer("1")
 		timer("bd")
 	Gosub,	banco_de_dados
 		OutputDebug % "banco de dados carregado"
+
 		OutputDebug % "Carregando Keys"
 	if ( show_tooltip = "1" )
 		ToolTip		% "Carregando Keys", 50, 50
 		timer("keys")
 	Gosub,	keys
 		OutputDebug % "Keys carregadas"
+
 		OutputDebug % "Carregando servidores do d-guard"
 	if ( show_tooltip = "1" )
 		ToolTip % "Carregando servidores do d-guard", 50, 50
 		timer("servidores")
 	Gosub,	servidores
 		OutputDebug % "Servidores D-Guard carregados"
+
 		OutputDebug % "Iniciando comparação de dados"
 	if ( show_tooltip = "1" )
 		ToolTip % "Iniciando comparação de dados", 50, 50
 		timer("comparando")
 	Gosub,	comparar_dados
 		OutputDebug % "Comparação de dados finalizada"
+
 	if ( show_tooltip = "1" )
 		ToolTip % "Comparação de dados finalizada " datetime( , A_Now ), 50 , 50
 		OutputDebug % timer("Comparado")
-	Return
+	ExitApp
 ;
 
 ;	Shortcut
@@ -126,10 +132,16 @@ timer("1")
 			OutputDebug % StrLen( key_vdm03 )	= 0
 												? "`tFalha ao solicitar Key do servidor 03"
 												: "`tChave Server 3 Ok" ; key_vdm03 "____"
-		; MsgBox % key_vdm01 "`n" key_vdm02 "`n" key_vdm03
+
+		key_vdm04	:=	dguard.token( "vdm04.cotrijal.local" )
+			OutputDebug % StrLen( key_vdm04 )	= 0
+												? "`tFalha ao solicitar Key do servidor 04"
+												: "`tChave Server 4 Ok" ; key_vdm04 "____"
+		; MsgBox % key_vdm01 "`n" key_vdm02 "`n" key_vdm03 "`n" key_vdm04
 		if (key_vdm01 = ""
 		||	key_vdm02 = ""
-		||	key_vdm03 = "")	{
+		||	key_vdm03 = ""
+		||	key_vdm04 = "")	{
 			MsgBox Falha ao resgatar as KEYS!
 			ExitApp
 		}
@@ -137,7 +149,11 @@ timer("1")
 	Return
 
 	servidores:
-		Loop,	3	{
+		if testar = 1
+			loops = 1
+		Else
+			loops = 4
+		Loop,%	loops	{
 			json_guid	:= json( Dguard.http( "http://vdm0" A_Index ".cotrijal.local:8081/api/servers", key_vdm0%A_Index% ) )
 			index		:=	A_Index
 				OutputDebug % "`t" json_guid.servers.Count() " a serem inseridas no map"
@@ -145,10 +161,9 @@ timer("1")
 				guid		:= StrRep(	json_guid.servers[A_Index].guid											;	guid para seleção da câmera
 									,
 									,	"{"
-									,	"}" )
+									,	"}" )	;	JSON com informações do receiver e partition
 
-				receiver	:= json( http(	"http://vdm0" index ".cotrijal.local:8081/api/servers/%7B" guid "%7D/contact-id"	;	JSON com informações do receiver e partition
-										,	"Bearer " key_vdm0%index% ) )
+				receiver	:= dguard.contact_id(	"vdm0" index ".cotrijal.local", guid, key_vdm0%index% )
 				json_camera	:= dguard.server(	"vdm0" index													;	dados da câmera seleciona
 											,	guid
 											,	key_vdm0%index% )
@@ -160,12 +175,11 @@ timer("1")
 					Else
 						offlinesince:= "NULL"
 				;
-				; if ( json_camera.server.name = "ENS | B. Frente" )
-					; MsgBox % json_camera.server.notes "`n" json_camera.server.name
+
 				dguard_câmeras.Push({	name		:	json_camera.server.name									;	Insere as informações no map para comparação posterior
 									,	guid		:	guid
-									,	active		:	json_camera.server.active		= "true" ? "1" : "0"
-									,	connected	:	json_camera.server.connected	= "true" ? "1" : "0"
+									,	active		:	json_camera.server.active
+									,	connected	:	json_camera.server.connected
 									,	address		:	json_camera.server.address
 									,	port		:	json_camera.server.port
 									,	id			:	for_id[3]
@@ -181,7 +195,7 @@ timer("1")
 									,	api_get		:	receiver.contactId.receiver != "10001"
 																					?	"http://conceitto:cjal2021@vdm0" index ".cotrijal.local:85/camera.cgi?receiver=" receiver.contactId.receiver "&server=" json_camera.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
 																					:	""
-									,	recording	:	json_camera.server.recording	= "true" ? "1" : "0"	})
+									,	recording	:	json_camera.server.recording	})
 				;
 			}
 		}
@@ -209,17 +223,22 @@ timer("1")
 					,	[api_get]
 					,	[recording]
 				FROM
-					[Dguard].[dbo].[cameras]
+					[Dguard].[dbo].[Cameras]
 				ORDER BY
 					1
 			)
-		bd := sql( s , 3 )
+		bd := sql( s, 3 )
 		Loop,%	bd.Count()-1 {
-			; OutputDebug %  bd[ A_Index+1 , 10 ] "[t]" bd[ A_Index+1 , 1 ]
+			; OutputDebug %  bd[ A_Index+1 , 3 ] "[t]" bd[ A_Index+1 , 1 ]
+			remove_deletados .= "'" bd[ A_Index+1 , 2 ] "',"
 			bd_câmeras.Push({	name		:	bd[ A_Index+1 , 1 ]		;	Insere as informações no map para comparação posterior
 							,	guid		:	bd[ A_Index+1 , 2 ]
-							,	active		:	bd[ A_Index+1 , 3 ]
-							,	connected	:	bd[ A_Index+1 , 4 ]
+							,	active		:	bd[ A_Index+1 , 3 ]		=	"-1"
+																		?	"True"
+																		:	"False"
+							,	connected	:	bd[ A_Index+1 , 4 ]		=	"-1"
+																		?	"True"
+																		:	"False"
 							,	address		:	bd[ A_Index+1 , 5 ]
 							,	port		:	bd[ A_Index+1 , 6 ]
 							,	id			:	bd[ A_Index+1 , 7 ]
@@ -238,7 +257,9 @@ timer("1")
 							,	sinistro	:	bd[ A_Index+1 , 15 ]
 							,	url			:	bd[ A_Index+1 , 16 ]
 							,	api_get		:	bd[ A_Index+1 , 17 ]
-							,	recording	:	bd[ A_Index+1 , 18 ]	})
+							,	recording	:	bd[ A_Index+1 , 18 ]	=	"-1"
+																		?	"True"
+																		:	"False"	})
 		}
 	;
 
@@ -262,8 +283,8 @@ timer("1")
 	Return
 
 	comparar_dados:
-		OutputDebug % "Câmeras no Banco de Dados = " bd.Count()-1
-		OutputDebug % "Câmeras no dguard = " dguard_câmeras.Count()
+		OutputDebug % "`tCâmeras no Banco de Dados = " bd.Count()-1
+		OutputDebug % "`tCâmeras no dguard = " dguard_câmeras.Count()
 		; OutputDebug % "Ordenando por nome!" dguard_câmeras1 := array.sort( dguard_câmeras )	;	Não está pronto a classe
 		; MsgBox % dguard_câmeras1.count()
 
@@ -349,35 +370,49 @@ timer("1")
 				&&	api_get		= 1)
 				Gosub, api_get
 		}
-		OutputDebug % "Fim do loop."
 	;
 
 	;	Verifica Removida:
+		timer("verifica câmeras removidas")
 		OutputDebug % "Verificando câmeras excluídas"
+
+		if testar
+			goto send
+
 		Loop,%	bd_câmeras.Count()	{
 			OutputDebug % asdfasdfd
 			index	:=	array.InDict( dguard_câmeras, bd_câmeras[ A_index ].guid, "guid" )
 			if ( index != 0 )
 				Continue
 			guid	:=	bd_câmeras[ A_index ].guid
-			d =
-				(
-					DELETE FROM
-						[Dguard].[dbo].[cameras]
-					WHERE
-						[guid] = '%guid%'
-				)			
-			if ( no_sql != 1 )
-				sql( d , 3 )
-			if ( StrLen( sql_le ) > 0 )	{
-				Clipboard := u
-				MsgBox % sql_le "`n" dguard_câmeras[ A_index ].offline
-			}
+
+			; d =
+				; (
+					; DELETE FROM
+						; [Dguard].[dbo].[cameras]
+					; WHERE
+						; [guid] = '%guid%'
+				; )			
+			; if ( no_sql != 1 )
+				; sql( d , 3 )
+			; if ( StrLen( sql_le ) > 0 )	{
+				; Clipboard := u
+				; MsgBox % sql_le "`n" dguard_câmeras[ A_index ].offline
+			; }
 			pre	:=	"[n]<b>" bd_câmeras[ A_index ].name "</b>[n]└┬[t]<b>Excluída</b>[n][t] └─  Servidor:   <code>" bd_câmeras[ A_index ].server "</code>"
 			câmera_removida	=	1
 			StrRep( pre, , "[n]:`n", "[t]:`t" )
 			Gosub, update
 		}
+		remove_deletados :=	SubStr( remove_deletados, 1, -1 )
+		Clipboard := remove_deletados
+		d	=
+			(
+				DELETE FROM [Dguard].[dbo].[cameras]
+				WHERE guid NOT IN ( %remove_deletados% )
+			)
+		sql( d, 3 )
+
 		Gosub, send
 	Return
 
@@ -395,7 +430,6 @@ timer("1")
 		contactid		:=	dguard_câmeras[ A_index ].contactid
 		offlinesince	:=	dguard_câmeras[ A_index ].offline	= ""
 																? "NULL"
-																; : "CAST('" SubStr( dguard_câmeras[ A_index ].offline , 7 , 4 ) "-" SubStr( dguard_câmeras[ A_index ].offline , 4 , 2 ) "-" SubStr( dguard_câmeras[ A_index ].offline , 1 , 2 ) " " SubStr( dguard_câmeras[ A_index ].offline , 12 ) "' as datetime)'"
 																: dguard_câmeras[ A_index ].offline
 		operador		:=	dguard_câmeras[ A_index ].operador
 		sinistro		:=	dguard_câmeras[ A_index ].sinistro
@@ -482,9 +516,8 @@ timer("1")
 			)
 		if ( no_sql != 1 )
 			sql( i , 3 )
-		if ( StrLen( sql_le ) > 0 ) {
+		if ( StrLen( sql_le ) > 0 )
 			MsgBox % sql_le "`n`n" Clipboard := i
-		}
 		câmera_nova = 1
 		set	:=	"name"
 		Gosub, update
@@ -502,7 +535,7 @@ timer("1")
 		active:		;	18/11
 			set		:=	"active"
 			pre		:=	"[n]┌<b>" dguard_câmeras[ A_index ].name "</b>"
-					.	"[n]└┬   <b>Status de Ativação<b\>[n]"
+					.	"[n]└┬   <b>Status de Ativação</b>[n]"
 					.	"[t] └┬  Antigo:   <code>"
 			value_bd:=	bd_câmeras[ index ].active
 			value_dg:=	dguard_câmeras[ A_index ].active
@@ -654,7 +687,8 @@ timer("1")
 	;
 
 	Send:
-		OutputDebug % "Preparando mensagens para envio para o Telegram" 
+		timer("Envia Telegram")
+		OutputDebug % "Preparando mensagens para envio para o Telegram"
 		if ( InStr( mensagens, "º") > 1 )
 			mensagem := StrSplit( mensagens , "º")
 			Else
@@ -662,14 +696,17 @@ timer("1")
 		Loop,%	mensagem.Count()
 			for_order.Push( mensagem[ A_Index ] )
 		; mensagens_telegram := array.sort( for_order )
-		
-		OutputDebug % "Iniciando envio de mensagens para o Telegram.`n`tMensagens a serem enviadas = " mensagens_telegram.Count()-1
+
 		mensagens_telegram := array.sort( for_order, , , , 14 )
-		Loop,%	mensagens_telegram.Count()-1
-			Run,% path_notificador "notificador_telegram." ext " """ mensagens_telegram[ A_Index ] """ ""parse_mode=html"" """ teste """"
+		OutputDebug % "Iniciando envio de mensagens para o Telegram.`n`tMensagens a serem enviadas = " mensagens_telegram.Count() ""
+		Loop,%	mensagens_telegram.Count()
+			if !testar
+				telegram.SendMessage( mensagens_telegram[ A_Index ] , "parse_mode=html", "chat_id=" chat_id )
+			Else
+				telegram.SendMessage( mensagens_telegram[ A_Index ] , "parse_mode=html", "chat_id=" chat_id_test )
 		OutputDebug % timer("Fim")
-	; Return
-	ExitApp
+	Return
+	; ExitApp
 
 
 	update:
@@ -722,8 +759,3 @@ timer("1")
 			MsgBox % sql_le "`n" dguard_câmeras[ A_index ].offline
 		}
 	Return
-;
-
-;	-GuiClose
-	;
-;

@@ -37,8 +37,16 @@ datetime( sql = "0", date = "" ) {
 	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
 }
 
-email_notificador()	{
-	Global last_id
+email_notificador( is_test = "" )	{
+	ListLines, Off
+	if	!is_operator && A_IPAddress1 != "192.9.100.100"
+		Return
+	if is_test {
+			SoundPlay,	\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\%is_test%.wav
+			if (is_test = "toasty" )
+				toasty()
+		Return
+	}
 	s =
 		(
 		SELECT TOP(1)
@@ -58,23 +66,52 @@ email_notificador()	{
 		)
 		email := sql( s , 3 )
 	If ( StrLen( last_id ) = 0 ) {
-		OutputDebug % "Last_ID = 0"
+		; OutputDebug % "Last_ID = 0"
 		last_id := email[2,4]
 		return	last_id
 	}
 	Else if ( last_id < email[2,4] ) {
-		OutputDebug	% "Novo e-mail"
+		; OutputDebug	% "Novo e-mail"
 		operador	:= email[2,2]
 		last_id		:= email[2,4]
-		SoundPlay,	\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\car.wav
+
+		;	easter_egg
+			sound		=
+			Random, easter_egg, 1, 100
+			if ( easter_egg > 5 && easter_egg < 95 )
+				sound = outlook
+			else if ( easter_egg > 94 )
+				sound = yoda
+			else if ( easter_egg < 6 ){
+				sound = toasty
+				toasty()
+			}
+			SoundPlay,	\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\%sound%.wav
+		;
 		TrayTip,%	email[2,3] "`nNOVO E-MAIL - " datetime(), % email[2,1]
 	}
 	if ( last_id > email[2,4] )	{
-		OutputDebug % "Maior que o identificador"
+		; OutputDebug % "Maior que o identificador"
 		last_id := email[2,4]
 	}
-		OutputDebug % "id igual"
+		; OutputDebug % "id igual"
+	ListLines,	On
 	return	last_id
+}
+
+executar( software, software_path="", busca="" )	{
+	if	StrLen( software_path )	= 0
+		software_path	= C:\Dguard Advanced\
+	if	StrLen( busca )	= 0
+		busca	= \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\
+	try	{
+		Run, %software_path%%software%.exe
+	}	catch	{
+		FileCopy, %busca%%software%.exe, %software_path%%software%.exe, 1
+		Sleep, 500
+		if	errorlevel = 0
+			Run, %software_path%%software%.exe
+	}
 }
 
 formatseconds( Seconds ) {
@@ -84,17 +121,24 @@ formatseconds( Seconds ) {
 	return Seconds//3600 ":" mmss
 }
 
-json( ByRef src , args* ) {
+json( ByRef src , params* ) {
 	static q := Chr(34)
-	
-	key := "", is_key := false
-	stack := [ tree := [] ]
-	is_arr := Object(tree, 1) ; ahk v1                    ; orig -> is_arr := { (tree): 1 }
-	next := q "{[01234567890-tfn"
-	pos := 0
-	
+
+	if ( params.Count() != 0 )	{	;	MEU
+		for index,param in params
+			arg := ( p_key := SubStr( param, 1, InStr( param , "|" )-1 )) ( p_value := SubStr( param, InStr( param , "|" )+1 ) )
+		; MsgBox % P_KEY "`n" p_value
+	}
+
+	key		:= "", is_key := false
+	stack	:= [ tree := [] ]
+	is_arr	:= Object(tree, 1) ; ahk v1                    ; orig -> is_arr := { (tree): 1 }
+	next	:= q "{[01234567890-tfn"
+	pos		:= 0
+
 	while ( (ch := SubStr(src, ++pos, 1)) != "" ) {
-		if InStr(" `t`n`r", ch)
+
+		if InStr(" `t`n`r", ch)	;	se tab ou nova linha, skip
 			continue
 		if !InStr(next, ch, true) {
 			testArr := StrSplit(SubStr(src, 1, pos), "`n")
@@ -119,14 +163,13 @@ json( ByRef src , args* ) {
 		}
 		
 		is_array := is_arr[obj := stack[1]] 
-		
+
 		if i := InStr("{[", ch) { ; start new object / map?
-			val := (i = 1) ? Object() : Array()	; ahk v1
-			
+			val := (i = 1) ? Object() : Array()	; ahk v1 != 1
 			is_array ? obj.Push(val) : obj[key] := val
 			stack.InsertAt(1,val)
-			
 			is_arr[val] := !(is_key := ch == "{")
+			
 			next := q (is_key ? "}" : "{[]0123456789-tfn")
 		}
 		else if InStr("}]", ch) {
@@ -175,7 +218,6 @@ json( ByRef src , args* ) {
 			}
 			else { ; number | true | false | null
 				val := SubStr(src, pos, i := RegExMatch(src, "[\]\},\s]|$",, pos)-pos)
-				
 				static number := "number", integer := "integer", float := "float"
 				if val is %number%
 				{
@@ -191,6 +233,7 @@ json( ByRef src , args* ) {
 						pos--, next := "#"					; continue
 						continue
 					}
+				; MsgBox % teste "`n" key ":" val
 				}
 				
 				pos += i-1
@@ -204,36 +247,30 @@ json( ByRef src , args* ) {
 	return tree[1]
 }
 
-search_delay( delay = "500", done = "0" ) {
-	/*
-		Inserir antes do Submit;
-		Não precisa de "if's", apenas a chamada ex: search_delay( "750" )
-	*/
-	if ( done = 0 )
-		Loop	{
-			; OutputDebug % A_TimeIdleKeyboard
-			if ( A_TimeIdleKeyboard > delay )	{
-				Return	done = 0
-				break
-			}
-		}
-	Else
-		Return	done = 0
-}
-
-http( url , token = "") {
+http( url , token="", show_error="0") {
 	static req := ComObjCreate( "Msxml2.XMLHTTP" )
 	req.open( "GET", url, false )
 	if	( token = "" )
 		req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )	;	login local do dguard(admin)
 	Else
-		req.SetRequestHeader( "Authorization", token )	;	bearer custom
+		req.SetRequestHeader( "Authorization", token )						;	bearer custom
 	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
-	req.send()
-	return	%	req.responseText
+	if show_error {
+		req.send()
+		return	%	req.responseText
+	}
+	Else {
+		Try {
+			req.send()
+			Return "Sucesso"
+		}
+		catch
+			Return "Erro"
+	}
 }
 
 login( @usuario, @senha, @admin = "" ) {
+	admins	:=	"dsantos","arsilva","ddiel"
 	if ( @admin != "" )	{
 		if InStr( admins, @usuario )
 			return DllCall(	"advapi32\LogonUser"
@@ -244,8 +281,8 @@ login( @usuario, @senha, @admin = "" ) {
 						,	"Ptr",	3
 						,	"UintP"
 						,	nSize	)	=	1
-									?	"1"
-									:	"0"
+										?	"1"
+										:	"0"
 		Else
 			Return 0
 	}
@@ -262,7 +299,19 @@ login( @usuario, @senha, @admin = "" ) {
 									:	"0"
 }
 
-notificar( ) {
+new_instance( Script, Wait:=true )	{
+	;ExecScript(Script, Wait:=true)	;	this is the original name
+    shell	:= ComObjCreate("WScript.Shell")
+    exec	:= shell.Exec("AutoHotkey.exe /ErrorStdOut *")
+    exec.StdIn.Write( script )
+    exec.StdIn.Close()
+
+    if Wait
+        return exec.StdOut.ReadAll()
+}
+
+notificar( ) {	;	DEFASADO - email_notificador() é o novo
+	ListLines, Off
 	s =
 		(
 		SELECT TOP(1)	p.IdCliente
@@ -283,7 +332,7 @@ notificar( ) {
 	if ( StrLen( last_id ) = 0 )	{
 		last_id := s[2,6]
 		return % last_id
-		}
+	}
 	if ( last_id < s[2, 6] )		{	;executa notificação
 		subjm		:= s[2, 4]
 		iadaviso	:= s[2, 6]
@@ -298,14 +347,31 @@ notificar( ) {
 		Random, easteregg, 1, 100
 		if ( easteregg < 95 )
 			som = car
-			else
+		else
 				som = yoda
 		SoundPlay, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\%som%.wav
 		}
 	if ( last_id > s[2, 6] )
 		last_id := s[2, 6]
 	GuiControl,	debug:,	debug4,% s[2,6] " - " last_id
+	ListLines, On
 	return	last_id
+}
+
+operador() {
+	Return	A_IPAddress1 = "192.9.100.102"
+						? 1
+		:	A_IPAddress1 = "192.9.100.106"
+						? 2
+		:	A_IPAddress1 = "192.9.100.109"
+						? 3
+		:	A_IPAddress1 = "192.9.100.114"
+						? 4
+		:	A_IPAddress1 = "192.9.100.118"
+						? 5
+		:	A_IPAddress1 = "192.9.100.123"
+						? 6
+		:	"2"
 }
 
 ping( address )	{
@@ -321,6 +387,99 @@ ping( address )	{
 		Return rVal
 	Else
 		Return ( ( oS := ( objStatus.StatusCode = "" or objStatus.StatusCode <> 0 ) ) ? "0" : "1" )
+}
+
+progressBar( descriptionBGColor="" , description="" ) {
+	Global	stbar
+	WinGetPos,,,, taskbar, ahk_class Shell_TrayWnd
+	if ( descriptionBGColor = "" )
+		descriptionBGColor	=	499d35
+	else if ( descriptionBGColor = "destroy" ) {
+		Gui,Progress:Destroy
+		Return
+	}
+	Gui, Progress:Color,%	descriptionBGColor
+	Gui, Progress:Add, Text, BackgroundTrans y-60
+	Gui, Progress: -Toolwindow -Caption +AlwaysOnTop -Border
+	Gui, Progress:Font,	s10 Bold
+
+	Gui, Progress:Add, StatusBar,%	"w" A_ScreenWidth - 10 "	"
+								.	"-Theme	"
+								.	"vstbar	"
+								,%	description
+	GuiControl,% "Progress: +Background" descriptionBGColor, stbar
+	
+	Gui, Progress:Default
+	SB_SetParts( A_ScreenWidth // 10 * 3, A_ScreenWidth // 10 * 7 )
+	
+	Gui, Progress:Show,%	"y-8"
+						.	"w" A_ScreenWidth	"	"
+						,	Progress
+}
+
+regDelete( key_name ) {
+	ErrorLevel =
+	RegDelete,% key_name
+	Return ErrorLevel = 1 ? "Erro ao deletar o registro`nRegDelete," key_name "," value_name : "Registro deletado com sucesso!"
+}
+
+regRead( key_name , key )	{
+	RegRead, value_output,% key_name,% key
+	Return	value_output
+}
+
+regWrite( value_type , key_name, value_name="", value=""  ) {
+	ErrorLevel			=
+	types_of_value		= REG_SZ,REG_EXPAND_SZ,REG_MULTI_SZ,REG_DWORD,REG_BINARY
+	types_of_key_name	= HKEY_LOCAL_MACHINE,HKEY_USERS,HKEY_CURRENT_USER,HKEY_CLASSES_ROOT,HKEY_CURRENT_CONFIG,HKLM,HKU,HKCU,HKCR,HKCC,
+
+	if (InStr( types_of_value , value_type ) = 0 )	{
+		MsgBox % "Tipo de valor informado inválido. (primeiro parâmetro)"
+		Return
+	}
+	key_name_	:= StrSplit( key_name , "\" )
+	if (InStr( types_of_key_name , key_name_[1] ) = 0 )	{
+		MsgBox % "Tipo de nome de chave informado inválido. (segundo parâmetro)"
+		Return
+	}
+	RegWrite,% value_type ,% key_name,% value_name ,% value 
+	Return %	ErrorLevel	= 1
+						? "Erro ao escrever o registro`nRegWrite," value_type "," key_name "," value_name "," value
+						: "Registrado com sucesso!"
+}
+
+runCmd( command )	{	;	hidden cmd
+	DetectHiddenWindows On
+	Run		%ComSpec%,, Hide, pid
+		WinWait ahk_pid %pid%
+
+	DllCall( "AttachConsole" , "UInt" , pid )
+
+	Shell	:= ComObjCreate( "WScript.Shell" )
+	Exec	:= Shell.Exec( ComSpec " /C " command )
+
+	; while	Exec.Status == 0
+		; OutputDebug % just_for_loop
+
+	DllCall( "FreeConsole" )
+	Return	Exec.StdOut.ReadAll()
+}
+
+search_delay( delay = "500", done = "0" ) {
+	/*
+		Inserir antes do Submit;
+		Não precisa de "if's", apenas a chamada ex: search_delay( "750" )
+	*/
+	if ( done = 0 )
+		Loop	{
+			; OutputDebug % A_TimeIdleKeyboard
+			if ( A_TimeIdleKeyboard > delay )	{
+				Return	done = 0
+				break
+			}
+		}
+	Else
+		Return	done = 0
 }
 
 StrRep( haystack , separator = ":" , needles* )	{
@@ -342,6 +501,84 @@ StrRep( haystack , separator = ":" , needles* )	{
 	}
 	Return haystack
 
+}
+
+toasty() {
+	x := A_ScreenWidth
+	WinGetPos,,,, taskbar, ahk_class Shell_TrayWnd
+
+	Gui, Toasty: +LastFound +AlwaysOnTop +ToolWindow -Caption
+	Gui, Toasty:Color, EEAA99
+	Gui, Toasty:Add, Picture, BackgroundTrans HWNDToasty, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\toasty.png
+		ControlGetPos,,, w, h,,% "ahk_id " Toasty
+	WinSet, TransColor, EEAA99
+	
+	Gui, Toasty:Show,% "x" A_ScreenWidth " y" (A_ScreenHeight - taskbar ) - h
+
+	Loop, 5	{
+		x -= 52
+		WinMove,% x ,% (A_ScreenHeight - taskbar ) - h
+	}
+	Gui, Toasty:Destroy
+}
+
+unicode( text , accentXunicode="1" ) {
+	static unicode := {}
+		unicode["á"] := "\u00e1"
+		unicode["à"] := "\u00e0"
+		unicode["â"] := "\u00e2"
+		unicode["ã"] := "\u00e3"
+		unicode["ä"] := "\u00e4"
+		unicode["Á"] := "\u00c1"
+		unicode["À"] := "\u00c0"
+		unicode["Â"] := "\u00c2"
+		unicode["Ã"] := "\u00c3"
+		unicode["Ä"] := "\u00c4"
+		unicode["é"] := "\u00e9"
+		unicode["è"] := "\u00e8"
+		unicode["ê"] := "\u00ea"
+		unicode["ê"] := "\u00ea"
+		unicode["É"] := "\u00c9"
+		unicode["È"] := "\u00c8"
+		unicode["Ê"] := "\u00ca"
+		unicode["Ë"] := "\u00cb"
+		unicode["í"] := "\u00ed"
+		unicode["ì"] := "\u00ec"
+		unicode["î"] := "\u00ee"
+		unicode["ï"] := "\u00ef"
+		unicode["Í"] := "\u00cd"
+		unicode["Ì"] := "\u00cc"
+		unicode["Î"] := "\u00ce"
+		unicode["Ï"] := "\u00cf"
+		unicode["ó"] := "\u00f3"
+		unicode["ò"] := "\u00f2"
+		unicode["ô"] := "\u00f4"
+		unicode["õ"] := "\u00f5"
+		unicode["ö"] := "\u00f6"
+		unicode["Ó"] := "\u00d3"
+		unicode["Ò"] := "\u00d2"
+		unicode["Ô"] := "\u00d4"
+		unicode["Õ"] := "\u00d5"
+		unicode["Ö"] := "\u00d6"
+		unicode["ú"] := "\u00fa"
+		unicode["ù"] := "\u00f9"
+		unicode["û"] := "\u00fb"
+		unicode["ü"] := "\u00fc"
+		unicode["Ú"] := "\u00da"
+		unicode["Ù"] := "\u00d9"
+		unicode["Û"] := "\u00db"
+		unicode["ç"] := "\u00e7"
+		unicode["Ç"] := "\u00c7"
+		unicode["ñ"] := "\u00f1"
+		unicode["Ñ"] := "\u00d1"
+		unicode["&"] := "\u0026"
+		unicode["'"] := "\u0027"
+	 For Key, Value in unicode
+	 	if accentXunicode
+		 	text := RegExReplace( text, Key,		Value )
+	 	Else
+		 	text := RegExReplace( text, "\" Value,	Key )
+	Return	text
 }
 
 update( comando = "" ) {

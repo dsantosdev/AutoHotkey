@@ -2,8 +2,9 @@
  * * * Compile_AHK SETTINGS BEGIN * * *
 
 [AHK2EXE]
-Exe_File=\\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\agenda.exe
+Exe_File=C:\users\dsantos\desktop\executáveis\agenda.exe
 Created_Date=1
+Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe"
 [VERSION]
 Set_Version_Info=1
 Company_Name=Heimdall
@@ -11,13 +12,11 @@ Inc_File_Version=1
 Legal_Copyright=WTFL
 Product_Version=1.1.33.2
 Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\Dih\zIco\mail.ico
 
 * * * Compile_AHK SETTINGS END * * *
 */
 
-;@Ahk2Exe-SetMainIcon	C:\Dih\zIco\mail.ico
+;@Ahk2Exe-SetMainIcon	C:\AHK\icones\_gray\2mail.ico
 
 /*
 	Changelog
@@ -144,8 +143,6 @@ interface:
 		Gui,	Add,	DropDownList,	x120	yp		w300	R25					v_uni				gcl
 			Gui.Font( "S10" , "Bold" )
 		Gui,	Add,	Edit,			x10		yp+30	w410	h280				v_text				g_inserido	+WantTab
-			Gui.Font( "CWhite" )
-		; Gui,	Add,	CheckBox,		x10		yp+280	w190	h30		Checked		v_notify										,	Notificar operador
 			Gui.Font( )
 		Gui,	Add,	Button,			x220	yp+280	w200	h30										g_add						,	Adicionar
 			Gui.Font( "S10" )

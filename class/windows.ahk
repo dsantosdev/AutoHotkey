@@ -26,6 +26,16 @@ Class	Windows	{
 			Return property[ "FullName" ]
 	}
 
+	Speak( text, language="1" )	{
+		speak	:= ComObjCreate("SAPI.SpVoice")
+		; For languages In voice.GetVoices
+			; msgbox % languages.GetDescription
+		speak.Volume := 100
+		speak.rate := 0
+		return	speak.Speak( text )
+		; return	speak.Speak( text ).GetVoices().Item( %language% ) ; Item is Zero based
+	}
+
 	Status( where )	{
 		; OutputDebug % where
 		if !where

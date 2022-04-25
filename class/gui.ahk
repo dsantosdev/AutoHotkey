@@ -1,5 +1,5 @@
-﻿Global inc_gui = 1
-
+﻿Global	inc_gui = 1
+	,	tray_bg_color	=	9BACC0
 Class	Gui	{
 	
 	Cores( id = "", cor1 = "", cor2 = "" )												{
@@ -47,5 +47,23 @@ Class	Gui	{
 			}
 			
 			Menu, % type, % SubStr( parametros, 1, -1 )
+	}
+
+	ScreenSizes( )																		{
+		Global	monitor_w
+			,	monitor_h
+			,	work_h
+		; SysGet, taskbar_size, 31
+		WinGetPos,,,,taskbar_size, ahk_class Shell_TrayWnd
+		monitor_w	:=	A_ScreenWidth
+		monitor_h	:=	A_ScreenHeight
+		work_h		:=	monitor_h - taskbar_size
+		Return "monitor_w, monitor_h e work_h com os valores."
+	}
+
+	Submit( named="" , hide="0" )														{
+		if named
+			named .= ":"
+		Gui,	%named%Submit,% hide = "0" ?	"NoHide" : ""
 	}
 }

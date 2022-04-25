@@ -1,0 +1,14 @@
+chat_id - Canal	https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo/sendMessage?text=Bem vindo ao Monitoramento - Cotrijal%0A%0AEnvie sua senha para iniciar o registro.&chat_id=-1001160086708
+
+chat_id - grupo	https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo/sendMessage?text=Bem vindo ao Monitoramento - Cotrijal%0A%0AEnvie sua senha para iniciar o registro.&chat_id=-1001484122398
+
+	asdasd
+	
+	Samsung Techwin Co., Ltd. SNO-L6013R
+	2021-04-19 04:14:07.000
+	07:14
+	
+	https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo/sendmessage?chat_id=-1001160086708&text=%0A*Modelo* da câmera `TPI | Balança' alterado dê:%0A%0A`Samsung Techwin Co., Ltd. SNO-L6013R`%09%09%09%09para%09%09%09%09`Dahua Technology Co., LTD DH-IPC-HDBW2320RN-ZS`%0A&parse_mode=markdownv2
+	
+	
+https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo/sendmessage?chat_id=-1001160086708&text=%0ATPI | Balança%0A<b>Status de Gravação</b> alterado dê <pre>0</pre>%09%09%09%09para%09%09%09%09<pre>1</pre>&parse_mode=html
