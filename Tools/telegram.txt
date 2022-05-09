@@ -12,3 +12,13 @@ chat_id - grupo	https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q
 	
 	
 https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo/sendmessage?chat_id=-1001160086708&text=%0ATPI | Balança%0A<b>Status de Gravação</b> alterado dê <pre>0</pre>%09%09%09%09para%09%09%09%09<pre>1</pre>&parse_mode=html
+
+
+https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo/sendmessage?chat_id=-1001729068003&text=%0A┌<b><u>%09%09AB | Balança</u></b>%0A└┬%09%09Alterado do <b>Servidor</b> 0</code>%0A%09%09%09%09%09%09└%09%09Novo:     <code></code>&parse_mode=html
+
+"[n]┌<b><u>[t]AB | Balança</u></b>[n]└┬[t]Alterado do <b>Servidor</b> 0</code>[n][t][t][t]└[t]Novo:     <code></code>"
+
+%0A┌<b><u>%09%09AB%20|%20Balança</u></b>%0A└┬%09%09Alterado%20do%20<b>Servidor</b>%200</code>%0A%09%09%09%09%09%09└%09%09Novo:%20%20%20%20%20
+
+type 7 = dvr
+type 0 = ip

@@ -20,18 +20,18 @@
 */
 
 ;	Includes
-	#Include ..\class\array.ahk
-	;#Include ..\class\base64.ahk
-	;#Include ..\class\convert.ahk
-	;#Include ..\class\cor.ahk
-	;#Include ..\class\dguard.ahk
-	;#Include ..\class\functions.ahk
-	;#Include ..\class\gui.ahk
-	;#Include ..\class\mail.ahk
-	;#Include ..\class\safedata.ahk
-	#Include ..\class\sql.ahk
-	; #Include ..\class\string.ahk
-	;#Include ..\class\windows.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	-Arrays
@@ -94,7 +94,7 @@
 								,'ESMERALDA ANEXO', 'ESMERALDA - ANEXO')
 							,'ASSOC. FUNCIONARIOS', 'SEDE - AFC')
 						,'VIVEIRO', 'PASSO FUNDO - VIVEIRO')
-					,'ESMERALDA CENTRO', 'ESMERALDA - CENTRO')	),
+					,'ESMERALDA CENTRO', 'ESMERALDA - CENTRO')	) AS UNIDADES,
 				abrev,
 				cd_entreposto,
 				cd_estabel,

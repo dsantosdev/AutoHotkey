@@ -1,4 +1,6 @@
-﻿global	green2orange	:= [	"0x264653"
+﻿if	inc_cor
+	Return
+global	green2orange	:= [	"0x264653"
 							,	"0x2a9d8f"
 							,	"0xe9c46a"
 							,	"0xf4a261"

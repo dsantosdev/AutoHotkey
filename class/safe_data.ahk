@@ -1,21 +1,23 @@
-﻿Global	Coded
+﻿if	inc_safe_data
+	Return
+Global	Coded
 	,	Base_Key
 	,	Alfabeto:="abcdefghijklmnopqrstuvwxyz"
-	,	inc_safedata = 1
+	,	inc_safe_data = 1
 ;end global
 
 Class Safe_Data	{
 
-	Encrypt( String, base )	{
-		if ( StrLen( base ) = 0 )	{
+	Encrypt( String, key )	{
+		if ( StrLen( key ) = 0 )	{
 			MsgBox % "Você precisa passar uma key de codificação para encriptar o arquivo"
 			Return
 			}
 		StringCaseSenseSetting := A_StringCaseSense 
 		StringCaseSense Off
-		Coded := Safe_Data.Crypt_Key( Base )
+		Coded := Safe_Data.Crypt_Key( key )
 		if ( debug >= 4 )
-			OutputDebug % Base " - " coded
+			OutputDebug % key " - " coded
 		Loop, Parse, String
 			{
 			Ascii := Asc( A_LoopField )
@@ -34,14 +36,14 @@ Class Safe_Data	{
 		Return Encrypted ;"`n__`nEncriptado: " Coded
 	}
 
-	Decrypt( String, Base )	{
-		if ( StrLen( base ) = 0 )	{
+	Decrypt( String, key )	{
+		if ( StrLen( key ) = 0 )	{
 			MsgBox % "Você precisa passar uma key de decodificação para decriptar o arquivo"
 			Return
 			}
 		StringCaseSenseSetting := A_StringCaseSense 
 		StringCaseSense Off
-		Coded := Safe_Data.Crypt_Key( Base )
+		Coded := Safe_Data.Crypt_Key( key )
 		Loop, Parse, String
 			{
 			Ascii := Asc( A_LoopField )
@@ -60,14 +62,14 @@ Class Safe_Data	{
 		Return Decrypted ;"`n___`nDecriptado: " Coded
 	}
 
-	Crypt_Key( Base )		{
+	Crypt_Key( key )		{
 		Alfabeto:="abcdefghijklmnopqrstuvwxyz"
-		StringLower, base, base
-		Loop,	% StrLen( base )	;	Remove espaços
-			base := StrReplace( base, " " )
+		StringLower, key, key
+		Loop,	% StrLen( key )	;	Remove espaços
+			key := StrReplace( key, " " )
 		base_key :=
-		Loop,	% StrLen( base )
-			base_key .= InStr( base_key, n_key := SubStr( base, A_Index, 1) ) = 0
+		Loop,	% StrLen( key )
+			base_key .= InStr( base_key, n_key := SubStr( key, A_Index, 1) ) = 0
 														? n_key
 														: ""
 		Loop,	%	StrLen( base_key )

@@ -32,7 +32,7 @@ Icon_1=C:\AHK\icones\telegram.ico
 	;#Include ..\class\gui.ahk
 	;#Include ..\class\listview.ahk
 	;#Include ..\class\mail.ahk
-	;#Include ..\class\safedata.ahk
+	;#Include ..\class\safe_data.ahk
 	#Include ..\class\sql.ahk
 	;#Include ..\class\string.ahk
 	#Include ..\class\telegram.ahk

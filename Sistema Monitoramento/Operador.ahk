@@ -37,7 +37,7 @@ global	debug				;	Core = 1, funções 2, core e funções = 3, classes = 4, core
 	#Include ..\class\windows.ahk
 	#Include ..\class\array.ahk
 	#Include ..\class\gui.ahk
-	#Include ..\class\safedata.ahk
+	#Include ..\class\safe_data.ahk
 
 ;
 

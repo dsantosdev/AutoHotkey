@@ -1,4 +1,6 @@
-﻿Global inc_listview = 1
+﻿if	inc_listview
+	Return
+Global inc_listview = 1
 
 Class ListView {
 

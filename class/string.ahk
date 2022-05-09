@@ -1,8 +1,10 @@
-﻿Global inc_string = 1
+﻿if	inc_string
+	Return
+Global inc_string = 1
 
 Class	String		{
 
-	Name( name )					{
+	Name( name )							{
 		if !name
 			Return
 		StringUpper, name, name, T
@@ -23,7 +25,7 @@ Class	String		{
 		return StrReplace( new_name, "  ", " " )
 	}
 
-	Cargo( cargo )					{
+	Cargo( cargo )							{
 		StringUpper,	cargo,	cargo,	T
 		cargo	:=	StrReplace(	StrReplace(	StrReplace(	cargo
 										,	" - Feira"	)
@@ -127,12 +129,12 @@ Class	String		{
 		return	%	Retorno
 	}
 
-	Case( word, type )				{	;	usar format?
+	Case( word, type )						{	;	usar format?
 		StringUpper, word, word ,% type
 		Return word
 	}
 
-	Destaca_Busca( phrase, word )	{
+	Destaca_Busca( phrase, word )			{
 		if ( InStr( word, " " ) > 0 )
 			wordx := StrSplit( word, " " )
 		Else

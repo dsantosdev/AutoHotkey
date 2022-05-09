@@ -20,7 +20,7 @@ Set_AHK_Version=1
 	#Include ..\class\array.ahk
 	#Include ..\class\functions.ahk
 	#Include ..\class\gui.ahk
-	#Include ..\class\safedata.ahk
+	#Include ..\class\safe_data.ahk
 	#Include ..\class\sql.ahk
 	#Include ..\class\string.ahk
 	#Include ..\class\windows.ahk

@@ -46,10 +46,9 @@ CAHK_Version=0.10.1.0
 ; INI File
 	OutputDebug % "Ini Read"
 		IniRead,	s_INI,% In_File,%	AHK_Section,	Exe_File,	ERROR
-	FileRead,	In_File_Content,%	In_File
+	FileRead,	In_File_Content,%	In_File	;	CONTEÚDO COMPLETO DO SCRIPT
 	If ( s_INI <> ERROR )	{	; Ini Params included in script file
 		SaveIniInScript	=	1
-		; Clipboard:=In_File_Content
 		RegExMatch( In_File_Content , "is)Compile_AHK SETTINGS BEGIN \* \* \*(?:`n|`r`n)(?:`n|`r`n)(.+?)(?:`n|`r`n)\* \* \* Compile_AHK SETTINGS END" , In_File_Settings )
 		In_File_Content := RegExReplace( In_File_Content , "/\*(`n|`r`n)`t\* \* \* Compile_AHK SETTINGS BEGIN \* \* \*[\S\s]*\* \* \* Compile_AHK SETTINGS END \* \* \*(`n|`r`n)\*\/(`n|`r)+" )	;	Script
 		FileDelete,%	Ini_File
@@ -57,11 +56,12 @@ CAHK_Version=0.10.1.0
 		_READ_INI( Ini_File )
 		SplitPath , Exe_File , s_File_Name
 	}
-	Else If FileExist( Ini_File )
+	Else If FileExist( Ini_File ) {
 		_READ_INI( Ini_File )
-	Else If FileExist( Defaults_Ini )
+	}
+	Else If FileExist( Defaults_Ini ){
 		_READ_INI( Defaults_Ini )
-	MsgBox
+	}
 	; Compilation Settings Gui
 	
 	_Set_Gui_VERS()
@@ -1302,7 +1302,7 @@ CAHK_Version=0.10.1.0
 		}
 
 	;	AHK2EXE
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Alt_Bin , ERROR
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Alt_Bin		, ERROR
 			If (s_INI != "ERROR") {
 				StringReplace , s_INI , s_INI , `%In_Dir`% , %In_Dir%
 				If FileExist(s_INI)	{
@@ -1310,21 +1310,21 @@ CAHK_Version=0.10.1.0
 					Alt_Bin_Set := 1
 				}
 			}
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Compression , ERROR
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Compression	, ERROR
 			If (s_INI = "ERROR")
 				IniRead , s_INI , %s_Ini_File% , %AHK_Section% , UPX_LEVEL , ERROR
 			If s_INI Between 0 and 4
 				Compression := s_INI
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , No_UPX , ERROR
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , No_UPX			, ERROR
 			If s_INI In 0,1
 				No_UPX := s_INI		
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Password , ERROR
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Password		, ERROR
 			If (s_INI = "ERROR")
 				IniRead , s_INI , %s_Ini_File% , %AHK_Section% , OUT_PASS , ERROR	
 			If (s_INI != "ERROR") {
 				Password := s_INI
 			}
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Show_Pwd , ERROR
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Show_Pwd		, ERROR
 			If (s_INI = "ERROR")
 				IniRead , s_INI , %s_Ini_File% , %AHK_Section% , SHOW_PASS , ERROR
 			If (s_INI != "ERROR") {
@@ -1335,7 +1335,7 @@ CAHK_Version=0.10.1.0
 				}
 				Show_Pwd := s_INI
 			}
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , NoDecompile , ERROR
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , NoDecompile	, ERROR
 			If (s_INI = "ERROR")
 				IniRead , s_INI , %s_Ini_File% , %AHK_Section% , OUT_DCMP , ERROR
 			If (s_INI != "ERROR") {
@@ -1346,7 +1346,7 @@ CAHK_Version=0.10.1.0
 				}
 				NoDecompile := s_INI
 			}
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Created_Date , ERROR
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Created_Date	, ERROR
 			If (s_INI != "ERROR") {
 				If s_INI Not In 0,1
 				{
@@ -1355,20 +1355,21 @@ CAHK_Version=0.10.1.0
 				}
 				Created_Date := s_INI
 			}
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Run_Before , ERROR
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Run_Before		, ERROR
 			If (s_INI != "ERROR")
 				Run_Before := s_INI
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Run_After , ERROR
-			If (s_INI != "ERROR")
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Run_After		, ERROR
+			If (s_INI != "ERROR")	{
 				Run_After := s_INI
-		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Execution_Level , ERROR
+			}
+		IniRead , s_INI , %s_Ini_File% , %AHK_Section% , Execution_Level, ERROR
 			If (s_INI = "ERROR")
 				IniRead , s_INI , %s_Ini_File% , %AHK_Section% , EXEC_LEVEL , ERROR
 			If (s_INI != "ERROR") {
 				Execution_Level := s_INI
 			}
 
-		Loop ,%	Icon_Count	{
+		Loop,%	Icon_Count	{
 			IniRead , s_INI , %s_Ini_File% , %ICO_Section% , Icon_%A_Index% , ERROR
 			If (s_INI = 0)
 				Icon_%A_Index%_Delete := 1
@@ -1382,8 +1383,8 @@ CAHK_Version=0.10.1.0
 		}
 	;	VERSION
 		IniRead , s_INI , %s_Ini_File% , %RES_Section% ,% File_Name := SubStr( Exe_File, InStr(Exe_File, "\" , , -1)+1 , -4 ) , ERROR
-			; If (s_INI = "ERROR")
-			; 	File_Name := s_INI
+			If (s_INI = "ERROR")
+				File_Name := s_INI
 		IniRead , s_INI , %s_Ini_File% , %RES_Section% , File_Obs , ERROR
 			If (s_INI = "ERROR")
 				Loop , parse , In_File_Content , `n
@@ -1500,6 +1501,7 @@ CAHK_Version=0.10.1.0
 		Error_Message := "Error writing INI File!`n" . s_Ini_File . "`n"
 		SplitPath , s_Ini_File , , s_ini_OutDir
 		
+
 		IfNotExist , %s_ini_OutDir%
 		{
 			FileCreateDir , %s_ini_OutDir%
@@ -1607,21 +1609,20 @@ CAHK_Version=0.10.1.0
 
 	_SaveIniInScript()	{
 		Global
-		Local s_Creation , s_Modification , s_Access, Ini_File_Content ;, In_File_Content 
-		
+		Local s_Creation , s_Modification , s_Access, Ini_File_Content, In_File_Content 
 		IfInString , In_File_Content , `r`n
 			new_line := "`r`n"
 		Else
 			new_line := "`n"
 		
-		FileGetTime , s_Creation , %In_File% , C
-		FileGetTime , s_Modification , %In_File%, M
-		FileGetTime , s_Access , %In_File% , A
+		FileGetTime , s_Creation 	,%	In_File, C
+		FileGetTime , s_Modification,%	In_File, M
+		FileGetTime , s_Access		,%	In_File, A
 		
-		FileRead , Ini_File_Content , %Ini_File%
-		StringReplace , Ini_File_Content , Ini_File_Content , `r, , A
-		StringReplace , Ini_File_Content , Ini_File_Content , `n, %new_line%, A  ; make sure all line feedings are changed
-		FileDelete , %Ini_File%
+		FileRead		, Ini_File_Content,%	Ini_File
+		StringReplace	, Ini_File_Content,		Ini_File_Content, `r,				, A
+		StringReplace	, Ini_File_Content,		Ini_File_Content, `n,%	new_line, A  ; make sure all line feedings are changed
+		FileDelete		, %Ini_File%
 		
 		If (In_File_Settings1 = Ini_File_Content)	; settings match old settings
 			Return
@@ -2233,7 +2234,7 @@ CAHK_Version=0.10.1.0
 	Set_Parameters_Option( File_To_Run = "" )	{
 		Global
 		Product_Name := StrLen( Gui_Product_Name ) = 0 ? Product_Name : Gui_Product_Name
-		; File_Version := StrLen( Gui_File_Version ) = 0 ? File_Version : Gui_File_Version
+		File_Version := StrLen( Gui_File_Version ) = 0 ? File_Version : Gui_File_Version
 		File_Description := StrLen( Gui_File_Description ) = 0 ? File_Description : Gui_File_Description
 		new_ := StrSplit(File_Version, ".")
 		Loop, 4
@@ -2241,8 +2242,10 @@ CAHK_Version=0.10.1.0
 				new_version .= new_[A_Index]+1
 			Else
 				new_version .= new_[A_Index] "."
+		if ( new_version = "..." )
+			new_version	=	0.0.0.0
 		if ( File_To_Run = "" )
-					Return	"C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe" . " """ Product_Name """" " """ new_version """" " """ LTrim(  RTrim( File_Description ) ) """"
+			Return	"C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe" . " """ Product_Name """" " """ new_version """" " """ LTrim(  RTrim( File_Description ) ) """"
 		Else
 			Return	File_To_Run " """ Product_Name """" " """ File_Version """" " """ LTrim(  RTrim( File_Description ) ) """"
 	}
@@ -2332,9 +2335,8 @@ CAHK_Version=0.10.1.0
 			StringReplace , s_PASS , Password , " , "" , All ;"
 			s_PASS := " /pass """ . s_PASS . """"
 		}
-		If (NoDecompile and !IsIcon8) {
+		If (NoDecompile and !IsIcon8)
 			s_NoDecompile := " /NoDecompile"
-		}
 		
 		Old_Compression := _Set_Compression(Compression)
 		
@@ -2346,22 +2348,23 @@ CAHK_Version=0.10.1.0
 				. s_NoDecompile
 				. s_ICON
 				. " >> "
-				. """" . A_WorkingDir . "\" . Log_File . """"
+				. "C:\users\dsantos\desktop\executáveis\" . Log_File . """"
+		FileAppend , `n* Compile script:`n%s_CMD%`n, C:\users\dsantos\desktop\executáveis\%Log_File%
+		MsgBox /c "%s_CMD%"
+		RunWait , %ComSpec% /c "%s_CMD%" , , UseErrorLevel Hide	;	linha de compilação
 
-		FileAppend , `n* Compile script:`n%s_CMD%`n, %A_WorkingDir%\%Log_File%
-		RunWait , %ComSpec% /c "%s_CMD%" , , UseErrorLevel Hide
 		If ErrorLevel	{
 				_Set_Compression( Old_Compression )
 				Return False
 		}
 
-		FileAppend , `n# Script Compiled successfully!`n , %A_WorkingDir%\%Log_File%
+		FileAppend , `n# Script Compiled successfully! %A_YYYY%-%A_MM%-%A_DD% %A_Hour%:%A_Min%:%A_Sec%`n , C:\users\dsantos\desktop\executáveis\%Log_File%
 		_Set_Compression(Old_Compression)
 		If ( Auto_Compile <> 2 )	{
-			Loop, Read , %A_WorkingDir%\%Log_File%
+			Loop, Read , C:\users\dsantos\desktop\executáveis\%Log_File%
 				LastLine := A_Index
 			LastLine -= 2
-			FileReadLine , s_Log , %A_WorkingDir%\%Log_File% , %LastLine%
+			FileReadLine , s_Log , C:\users\dsantos\desktop\executáveis\%Log_File% , %LastLine%
 			Msgbox , 262208 , %MSG_TITLE% , %s_Log% , 1
 		}
 		Return True
@@ -2709,6 +2712,7 @@ CAHK_Version=0.10.1.0
 		Created_Date		:= 1	;	Renew
 		SaveIniInScript		:= 1
 		Run_Before			:= ""
+		; Run_After			:= A_ScriptName
 		Run_After			:= ""
 		Execution_Level		:= 1
 	;

@@ -1,4 +1,6 @@
-﻿global	inc_folder = 1
+﻿if	inc_folder
+	Return
+global	inc_folder = 1
 
 Class	Folder	{
 	

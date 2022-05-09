@@ -22,7 +22,6 @@ Icon_1=C:\Dih\zico\compiler.ico
 * * * Compile_AHK SETTINGS END * * *
 */
 ;@Ahk2Exe-SetMainIcon C:\Dih\zico\compiler.ico
-;@Ahk2Exe-SetMainIcon C:\Dih\zico\compiler.ico
 ;	Bibliotecas
 	#SingleInstance Force
 	#Persistent

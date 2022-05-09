@@ -23,7 +23,7 @@ Icon_1=C:\Dih\zico\heimdall blue\mail.ico
 ; #Include ..\class\classes.ahk
 	#Include ..\class\sql.ahk
 	#Include ..\class\array.ahk
-	#Include ..\class\safedata.ahk
+	#Include ..\class\safe_data.ahk
 	#Include ..\class\gui.ahk
 	#Include ..\class\windows.ahk
 	#Include ..\class\string.ahk

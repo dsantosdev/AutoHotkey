@@ -26,7 +26,7 @@ Icon_1=C:\Dih\zIco\compiler.ico
 	; #Include	..\class\array.ahk
 	#Include	..\class\functions.ahk
 	#Include	..\class\gui.ahk
-	; #Include	..\class\safedata.ahk
+	; #Include	..\class\safe_data.ahk
 	#Include	..\class\sql.ahk
 	; #Include	..\class\windows.ahk
 ;

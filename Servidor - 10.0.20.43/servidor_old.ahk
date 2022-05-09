@@ -102,7 +102,7 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 			Loop,%	sistemas.Count() {
 				if ( sistemas[ A_index ].lacuna = 1 )	{	;	Hora em hora
 
-					ToolTip % "Horário Lacuna = 1`n" time_now "`t" A_Hour . inicia "`t" A_Hour . finaliza
+					ToolTip % "Horário Lacuna = 1`n" time_now "`t" A_Hour . inicia "`t" A_Hour . finaliza "`n" sistemas[ A_index ].nome
 					Sleep, 3000
 					if ((time_now > A_Hour . inicia	&&	time_now < A_Hour . finaliza)				;	horário
 					&&	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" ) = 0)	;	processo não estiver rodando
@@ -115,7 +115,9 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 					 		.	"manhã " for_timer . inicia
 					 		.	"`ntarde " for_timer + sistemas[ A_index ].lacuna . finaliza
 							.	"`n" A_Hour . time_check " || " A_Hour . time_check
+							.	"`n" sistemas[ A_index ].nome
 					sleep 10000
+					MsgBox
 					;	
 					if ((for_timer . inicia > A_Hour . time_check && for_timer . finaliza < A_Hour . time_check)
 					||	(for_timer + sistemas[ A_index ].lacuna . time_check > A_Hour . inicia	&&	for_timer + sistemas[ A_index ].lacuna . time_check < A_Hour . finaliza)	;	horário

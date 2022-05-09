@@ -1,5 +1,7 @@
-﻿Global	inc_functions = 1
-
+﻿if	inc_functions
+	Return
+Global	inc_functions = 1
+#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 chrome_history() {	;	Bloqueia a exclusao de historico
 	RegRead,	history,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
 	if ( history != 0 )	{
@@ -18,23 +20,30 @@ chrome_incognito() {	;	Bloqueia modo anonimo
 	return	OK
 }
 
-datetime( sql = "0", date = "" ) {
-	If (	sql = 2
-		&&	StrLen( date ) = 0 )	{
+datetime( sql=0, date="", format="" ) {
+	if Strlen(sql) = 14
+		is_date:=sql, sql:=0, date:=is_date
+	If(	sql = 2
+	&&	StrLen( date ) = 0 )	{
 		MsgBox,0x40,ERRO, A função datetime() em modo SQL 2`, necessita que seja enviado o valor date para funcionar.
 		Return
-		}
-	If ( sql = 1 )
+	}
+	If( sql = 1 )
 		Return SubStr( A_Now, 1, 4 ) "-"  SubStr( A_Now, 5, 2 ) "-"  SubStr( A_Now, 7, 2 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 ) ".000"
 	else If ( sql = 2 )	{
 		date := RegExReplace(date, "\D")
 		Return SubStr( date, 5, 4 ) "-"  SubStr( date, 3, 2 ) "-"  SubStr( date, 1, 2 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
-		}
-	else If ( sql = 3 && date !="" )	{	;	valor passado junto
+	}
+	else If(	sql	=	3
+	&&			date!=	"" )	{	;	valor passado junto
 		date := RegExReplace(date, "\D")
 		Return SubStr( date, 1, 4 ) "-"  SubStr( date, 5, 2 ) "-"  SubStr( date, 7, 2 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
-		}
-	Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
+	}
+	Else If(	sql	=	0
+	&&			date!=  "")
+		return SubStr( date, 7, 2 ) "/"  SubStr( date, 5, 2 ) "/"  SubStr( date, 1, 4 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
+	Else
+		Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
 }
 
 email_notificador( is_test = "" )	{
@@ -247,7 +256,7 @@ json( ByRef src , params* ) {
 	return tree[1]
 }
 
-http( url , token="", show_error="0") {
+http( url , token="", show_response="0") {
 	static req := ComObjCreate( "Msxml2.XMLHTTP" )
 	req.open( "GET", url, false )
 	if	( token = "" )
@@ -255,7 +264,7 @@ http( url , token="", show_error="0") {
 	Else
 		req.SetRequestHeader( "Authorization", token )						;	bearer custom
 	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
-	if show_error {
+	if show_response {
 		req.send()
 		return	%	req.responseText
 	}
@@ -299,7 +308,7 @@ login( @usuario, @senha, @admin = "" ) {
 									:	"0"
 }
 
-new_instance( Script, Wait:=true )	{
+new_instance( Script, Wait:=true )	{	;	in development
 	;ExecScript(Script, Wait:=true)	;	this is the original name
     shell	:= ComObjCreate("WScript.Shell")
     exec	:= shell.Exec("AutoHotkey.exe /ErrorStdOut *")

@@ -1,4 +1,6 @@
-﻿
+﻿if	inc_array
+	Return
+
 Global inc_array = 1
 
 Class Array	{

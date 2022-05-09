@@ -1,4 +1,6 @@
-﻿global	inc_alarm = 1
+﻿if	inc_alarm
+	Return
+global	inc_alarm = 1
 
 Class	Alarm	{
 	

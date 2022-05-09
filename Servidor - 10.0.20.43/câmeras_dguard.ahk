@@ -1,23 +1,5 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\câmeras_dguard.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "câmeras_dguard" "0.0.0.14" """
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Version=0.0.0.15
-Inc_File_Version=1
-Product_Name=câmeras_dguard
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\AHK\icones\fun\cam.ico
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
+﻿File_Version=0.0.0.16
+Save_To_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\cam.ico
 
 ;	Includes
@@ -31,15 +13,14 @@ Icon_1=C:\AHK\icones\fun\cam.ico
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safedata.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\timer.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
-
-timer("1")
+	timer("Inicio")
 
 ;	Arrays
 	bd_câmeras			:= {}	;	informações das câmeras no banco de dados
@@ -58,7 +39,6 @@ timer("1")
 ;
 
 ;	Variáveis
-	testar			=	
 	software		=	câmeras_dguard
 	teste			:=	A_Args[3]	;	recebe o argumento 3 para canal teste, caso em branco envia para o server principal
 	show_tooltip	:=	A_Args[1]	;	recebe o argumento 1 para exibir
@@ -73,37 +53,27 @@ timer("1")
 ;
 
 ;	Execução
-
-	if ( show_tooltip = "1" )
-		ToolTip		% "Buscando câmeras no banco de dados", 50, 50
-		timer("bd")
-	Gosub,	banco_de_dados
+	OutputDebug % "Carregando banco de dados"
+		timer("carrega informações e configurações do banco de dados")
+		Gosub,	banco_de_dados
 		OutputDebug % "banco de dados carregado"
 
-		OutputDebug % "Carregando Keys"
-	if ( show_tooltip = "1" )
-		ToolTip		% "Carregando Keys", 50, 50
-		timer("keys")
-	Gosub,	keys
+	OutputDebug % "Carregando Keys"
+		timer("carrega keys")
+		Gosub,	keys
 		OutputDebug % "Keys carregadas"
 
-		OutputDebug % "Carregando servidores do d-guard"
-	if ( show_tooltip = "1" )
-		ToolTip % "Carregando servidores do d-guard", 50, 50
-		timer("servidores")
-	Gosub,	servidores
+	OutputDebug % "Carregando servidores do d-guard"
+		timer("carrega informações dos servidores")
+		Gosub,	servidores
 		OutputDebug % "Servidores D-Guard carregados"
 
-		OutputDebug % "Iniciando comparação de dados"
-	if ( show_tooltip = "1" )
-		ToolTip % "Iniciando comparação de dados", 50, 50
-		timer("comparando")
-	Gosub,	comparar_dados
+	OutputDebug % "Iniciando comparação de dados"
+		timer("compara informações do banco de dados com as dos servidores")
+		Gosub,	comparar_dados
 		OutputDebug % "Comparação de dados finalizada"
 
-	if ( show_tooltip = "1" )
-		ToolTip % "Comparação de dados finalizada " datetime( , A_Now ), 50 , 50
-		OutputDebug % timer("Comparado")
+	OutputDebug % timer("finalizado")
 	ExitApp
 ;
 
@@ -117,90 +87,6 @@ timer("1")
 ;
 
 ;	Code
-	keys:
-		key_vdm01	:=	dguard.token( "vdm01.cotrijal.local" )
-			OutputDebug % StrLen( key_vdm01 )	= 0
-												? "`tFalha ao solicitar Key do servidor 01"
-												: "`tChave Server 1 Ok" ; key_vdm01 "____"
-
-		key_vdm02	:=	dguard.token( "vdm02.cotrijal.local" )
-			OutputDebug % StrLen( key_vdm02 )	= 0
-												? "`tFalha ao solicitar Key do servidor 02"
-												: "`tChave Server 2 Ok" ; key_vdm02 "____"
-
-		key_vdm03	:=	dguard.token( "vdm03.cotrijal.local" )
-			OutputDebug % StrLen( key_vdm03 )	= 0
-												? "`tFalha ao solicitar Key do servidor 03"
-												: "`tChave Server 3 Ok" ; key_vdm03 "____"
-
-		key_vdm04	:=	dguard.token( "vdm04.cotrijal.local" )
-			OutputDebug % StrLen( key_vdm04 )	= 0
-												? "`tFalha ao solicitar Key do servidor 04"
-												: "`tChave Server 4 Ok" ; key_vdm04 "____"
-		; MsgBox % key_vdm01 "`n" key_vdm02 "`n" key_vdm03 "`n" key_vdm04
-		if (key_vdm01 = ""
-		||	key_vdm02 = ""
-		||	key_vdm03 = ""
-		||	key_vdm04 = "")	{
-			MsgBox Falha ao resgatar as KEYS!
-			ExitApp
-		}
-
-	Return
-
-	servidores:
-		if testar = 1
-			loops = 1
-		Else
-			loops = 4
-		Loop,%	loops	{
-			json_guid	:= json( Dguard.http( "http://vdm0" A_Index ".cotrijal.local:8081/api/servers", key_vdm0%A_Index% ) )
-			index		:=	A_Index
-				OutputDebug % "`t" json_guid.servers.Count() " a serem inseridas no map"
-			Loop,%	json_guid.servers.Count()	{	;	câmeras do dguard para o map
-				guid		:= StrRep(	json_guid.servers[A_Index].guid											;	guid para seleção da câmera
-									,
-									,	"{"
-									,	"}" )	;	JSON com informações do receiver e partition
-
-				receiver	:= dguard.contact_id(	"vdm0" index ".cotrijal.local", guid, key_vdm0%index% )
-				json_camera	:= dguard.server(	"vdm0" index													;	dados da câmera seleciona
-											,	guid
-											,	key_vdm0%index% )
-				for_id		:= StrSplit( json_camera.server.address , "." )
-				;	Tratamento de offline
-					numbers		:= RegExReplace( json_camera.server.offlineSince , "\D")
-					if ( numbers != "" )
-						offlinesince:= SubStr( numbers, 5, 4 ) "/" SubStr( numbers, 3, 2 ) "/" SubStr( numbers, 1, 2 ) SubStr( json_camera.server.offlineSince, 11 )
-					Else
-						offlinesince:= "NULL"
-				;
-
-				dguard_câmeras.Push({	name		:	json_camera.server.name									;	Insere as informações no map para comparação posterior
-									,	guid		:	guid
-									,	active		:	json_camera.server.active
-									,	connected	:	json_camera.server.connected
-									,	address		:	json_camera.server.address
-									,	port		:	json_camera.server.port
-									,	id			:	for_id[3]
-									,	vendor		:	json_camera.server.vendorModelName
-									,	receiver	:	receiver.contactId.receiver
-									,	contactid	:	json_camera.server.contactIdCode
-									,	partition	:	receiver.contactId.partition
-									,	offline		:	offlineSince
-									,	server		:	index
-									,	operador	:	SubStr( json_camera.server.notes , 1 , 1 ) = "" ? "0" : SubStr( json_camera.server.notes , 1 , 1 )
-									,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 ) = "" ? "0" : SubStr( json_camera.server.notes , 2 , 1 )
-									,	url			:	StrReplace( json_camera.server.url , "\" )
-									,	api_get		:	receiver.contactId.receiver != "10001"
-																					?	"http://conceitto:cjal2021@vdm0" index ".cotrijal.local:85/camera.cgi?receiver=" receiver.contactId.receiver "&server=" json_camera.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
-																					:	""
-									,	recording	:	json_camera.server.recording	})
-				;
-			}
-		}
-	Return
-	
 	banco_de_dados:
 		s =
 			(
@@ -229,41 +115,40 @@ timer("1")
 			)
 		bd := sql( s, 3 )
 		Loop,%	bd.Count()-1 {
-			; OutputDebug %  bd[ A_Index+1 , 3 ] "[t]" bd[ A_Index+1 , 1 ]
-			remove_deletados .= "'" bd[ A_Index+1 , 2 ] "',"
+			; OutputDebug %  bd[ A_Index+1 , 2 ] "[t]" bd[ A_Index+1 , 1 ]
 			bd_câmeras.Push({	name		:	bd[ A_Index+1 , 1 ]		;	Insere as informações no map para comparação posterior
 							,	guid		:	bd[ A_Index+1 , 2 ]
-							,	active		:	bd[ A_Index+1 , 3 ]		=	"-1"
-																		?	"True"
-																		:	"False"
-							,	connected	:	bd[ A_Index+1 , 4 ]		=	"-1"
-																		?	"True"
-																		:	"False"
+							,	active		:	bd[ A_Index+1 , 3 ]	=	"-1"
+																	?	"True"
+																	:	"False"
+							,	connected	:	bd[ A_Index+1 , 4 ]	=	"-1"
+																	?	"True"
+																	:	"False"
 							,	address		:	bd[ A_Index+1 , 5 ]
 							,	port		:	bd[ A_Index+1 , 6 ]
 							,	id			:	bd[ A_Index+1 , 7 ]
 							,	vendor		:	bd[ A_Index+1 , 8 ]
 							,	receiver	:	bd[ A_Index+1 , 9 ]
-							,	contactid	:	bd[ A_Index+1 , 10 ]
-							,	partition	:	bd[ A_Index+1 , 11 ]
-							,	offline		:	bd[ A_Index+1 , 12 ]	= ""
-																		? "NULL"
-																		:			SubStr( bd[ A_Index+1 , 12 ] , 7 , 4 )
-																			.	"/" SubStr( bd[ A_Index+1 , 12 ] , 4 , 2 )
-																			.	"/" SubStr( bd[ A_Index+1 , 12 ] , 1 , 2 )
-																			.	" " SubStr( bd[ A_Index+1 , 12 ] , 12 )
-							,	server		:	bd[ A_Index+1 , 13 ]
-							,	operador	:	bd[ A_Index+1 , 14 ]
-							,	sinistro	:	bd[ A_Index+1 , 15 ]
-							,	url			:	bd[ A_Index+1 , 16 ]
-							,	api_get		:	bd[ A_Index+1 , 17 ]
-							,	recording	:	bd[ A_Index+1 , 18 ]	=	"-1"
+							,	contactid	:	bd[ A_Index+1 , 10]
+							,	partition	:	bd[ A_Index+1 , 11]
+							,	offline		:	bd[ A_Index+1 , 12]	= ""
+																	? "NULL"
+																	: SubStr( bd[ A_Index+1 , 12 ] , 7 , 4 )
+																		.	"/" SubStr( bd[ A_Index+1 , 12 ] , 4 , 2 )
+																		.	"/" SubStr( bd[ A_Index+1 , 12 ] , 1 , 2 )
+																		.	" " SubStr( bd[ A_Index+1 , 12 ] , 12 )
+							,	server		:	bd[ A_Index+1 , 13]
+							,	operador	:	bd[ A_Index+1 , 14]
+							,	sinistro	:	bd[ A_Index+1 , 15]
+							,	url			:	bd[ A_Index+1 , 16]
+							,	api_get		:	bd[ A_Index+1 , 17]
+							,	recording	:	bd[ A_Index+1 , 18]	=	"-1"
 																		?	"True"
 																		:	"False"	})
 		}
 	;
 
-	;	Configurações de variáveis pelo bd
+	;	Configurações de variáveis pelo bd	-	 PERTENCE A SEQUENCIA ACIMA
 		s =
 			(
 				SELECT	[software]
@@ -272,22 +157,105 @@ timer("1")
 					[ASM].[dbo].[Software_Config]
 				WHERE
 					[Software] = '%software%'
+				OR
+					[Software] = 'servidores'
 			)
 		config	:= sql( s , 3 )
-		configs	:= StrSplit( config[ 2 , 2 ] , ";" )
-		Loop,% configs.Count()	{
-			definition	:= StrSplit( configs[ A_index ] , "=" )
-			var			:= definition[1]
-			%var%		:= definition[2]
-		}
+		Loop,%	config.Count()-1 {
+			configs	:= StrSplit( config[ A_Index+1 , 2 ] , ";" )
+			Loop,% configs.Count()	{
+				definition	:= StrSplit( configs[ A_index ] , "=" )
+				var			:= definition[1]
+				%var%		:= definition[2]
+			}
+		}		
 	Return
 
-	comparar_dados:
-		OutputDebug % "`tCâmeras no Banco de Dados = " bd.Count()-1
-		OutputDebug % "`tCâmeras no dguard = " dguard_câmeras.Count()
-		; OutputDebug % "Ordenando por nome!" dguard_câmeras1 := array.sort( dguard_câmeras )	;	Não está pronto a classe
-		; MsgBox % dguard_câmeras1.count()
+	keys:
+		Loop,%	servidores {
+			if StrLen( A_Index ) = 2
+				indice := A_index
+			Else
+				indice := "0" A_index
+			key_vdm%indice%	:=	dguard.token(	"vdm" indice ".cotrijal.local" 
+											,	senha
+											,	login	)
+			Gosub, % StrLen( key_vdm%indice% )	= 0
+												? "ExitApp"
+												: "KeyOk"
 
+		}
+		
+		Menu, Tray, Tip , Atualizador [dguard].[dbo].[cameras]`nVersão %Current_Version%
+		Return
+
+		ExitApp:
+			MsgBox Falha ao resgatar key do servidor %indice%
+			ExitApp
+
+		keyOk:
+			OutputDebug %	"`tChave Server " A_Index " Ok"
+	Return
+
+	servidores:
+		if	testar
+			servidores = 1
+
+		Loop,%	servidores	{
+			if StrLen( A_Index ) = 2
+				indice := A_index
+			Else
+				indice := "0" A_index
+
+			cameras	:=	dguard.cameras( "vdm" indice, key_vdm%indice% )
+				OutputDebug % "`t" cameras.servers.Count() " a serem inseridas no map"
+			Loop,%	cameras.servers.Count()	{	;	câmeras do dguard para o map
+				guid			:= StrRep(	cameras.servers[A_Index].guid
+									,
+									,	"{"
+									,	"}" )
+				remove_deletados.= "'" guid "',"
+
+				receiver		:= dguard.contact_id( "vdm" indice ".cotrijal.local", guid, key_vdm%indice% )
+				info			:= dguard.cameras_info( "vdm" indice											;	dados da câmera seleciona
+											,	guid
+											,	key_vdm%indice% )
+				for_id			:= StrSplit( info.server.address , "." )
+				dguard_câmeras.Push({	name		:	info.server.name										;	Insere as informações no map para comparação posterior
+									,	guid		:	guid
+									,	active		:	info.server.active
+									,	connected	:	info.server.connected
+									,	address		:	info.server.address
+									,	port		:	info.server.port
+									,	id			:	for_id[3]
+									,	vendor		:	info.server.vendorModelName
+									,	receiver	:	receiver.contactId.receiver
+									,	contactid	:	info.server.contactIdCode
+									,	partition	:	receiver.contactId.partition
+									,	offline		:	info.server.offlineSince	= "-"
+																					? "NULL"
+																					: DateTime( 1, info.server.offlineSince )
+									,	server		:	indice
+									,	type		:	info.server.type	=	"0"
+																			?	"IPC"
+																			:	"DVR"
+									,	operador	:	SubStr( info.server.notes , 1 , 1 ) = "" ? "0" : SubStr( info.server.notes , 1 , 1 )
+									,	sinistro	:	SubStr( info.server.notes , 2 , 1 ) = "" ? "0" : SubStr( info.server.notes , 2 , 1 )
+									,	url			:	StrRep( info.server.url,, "\" )
+									,	api_get		:	receiver.contactId.receiver != "10001"
+																					?	"http://conceitto:cjal2021@vdm" indice ".cotrijal.local:85/camera.cgi?receiver=" receiver.contactId.receiver "&server=" info.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
+																					:	""
+									,	recording	:	info.server.recording	})
+				;
+			}
+		}
+	Return
+	
+	comparar_dados:
+		OutputDebug % "`tCâmeras no Banco de Dados`t= " bd.Count()-1
+		OutputDebug % "`tCâmeras no dguard`t`t= " dguard_câmeras.Count()
+
+		; msgbox %	dguard_câmeras.Count() "`n" bd_câmeras.Count()
 		Loop,%	dguard_câmeras.Count()	{
 			OutputDebug % asdffds
 			index	:=	array.InDict( bd_câmeras, dguard_câmeras[ A_index ].guid, "guid" )	;	busca o INDEX no map de câmeras do BD com GUID igual ao da câmera atual do dguard
@@ -295,7 +263,8 @@ timer("1")
 			if ( index = 0 )	{	;	câmera nova(não consta no map do banco de dados)
 				Gosub,	câmera_nova
 				Continue
-				}
+			}
+
 			if (dguard_câmeras[ A_index ].name			!= bd_câmeras[ index ].name
 				&&	name		= 1)
 				Gosub, name
@@ -376,36 +345,25 @@ timer("1")
 		timer("verifica câmeras removidas")
 		OutputDebug % "Verificando câmeras excluídas"
 
-		if testar
-			goto send
+		if	testar
+			Goto send
 
-		Loop,%	bd_câmeras.Count()	{
-			OutputDebug % asdfasdfd
-			index	:=	array.InDict( dguard_câmeras, bd_câmeras[ A_index ].guid, "guid" )
-			if ( index != 0 )
-				Continue
-			guid	:=	bd_câmeras[ A_index ].guid
-
-			; d =
-				; (
-					; DELETE FROM
-						; [Dguard].[dbo].[cameras]
-					; WHERE
-						; [guid] = '%guid%'
-				; )			
-			; if ( no_sql != 1 )
-				; sql( d , 3 )
-			; if ( StrLen( sql_le ) > 0 )	{
-				; Clipboard := u
-				; MsgBox % sql_le "`n" dguard_câmeras[ A_index ].offline
-			; }
-			pre	:=	"[n]<b>" bd_câmeras[ A_index ].name "</b>[n]└┬[t]<b>Excluída</b>[n][t] └─  Servidor:   <code>" bd_câmeras[ A_index ].server "</code>"
-			câmera_removida	=	1
-			StrRep( pre, , "[n]:`n", "[t]:`t" )
-			Gosub, update
-		}
 		remove_deletados :=	SubStr( remove_deletados, 1, -1 )
-		Clipboard := remove_deletados
+			If	!A_IsCompiled
+				Clipboard := remove_deletados
+
+		select_deleted	=
+			(
+				SELECT
+					 [guid]
+					,[name]
+					,[server]
+				FROM
+					[Dguard].[dbo].[cameras]
+				WHERE
+					[guid] NOT IN ( %remove_deletados% );
+			)
+		deleted_cam	:=	sql( select_deleted )
 		d	=
 			(
 				DELETE FROM [Dguard].[dbo].[cameras]
@@ -413,7 +371,32 @@ timer("1")
 			)
 		sql( d, 3 )
 
-		Gosub, send
+		Loop,%	deleted_cam.Count()-1 {
+			index			:=	array.InDict( dguard_câmeras, deleted_cam[ A_index+1, 1 ], "guid" )
+			name_excluded	:=	dguard_câmeras[ index ].name
+			MsgBox % name_excluded
+			pre				:=	"[n]<b>" deleted_cam[ A_index+1, 2 ] "</b>[n]└┬[t]<b>Excluída</b>[n][t] └─  Servidor:   <code>" deleted_cam[ A_index+1, 3 ] "</code>"
+			notifica_email	=
+				(
+					INSERT INTO [ASM].[dbo].[_agenda]
+						([mensagem]
+						,[inserido]
+						,[gerado_por]
+						,[id_cliente]
+						,[estacao]
+						,[operador])
+					VALUES
+						('Câmera excluída:`n`n%name%'
+						,getdate()
+						,'Sistema de Notificação Automatizado'
+						,'232'
+						,'Sistema Monitoramento'
+						,'0')	;
+				)
+			câmera_removida	=	1
+			StrRep( pre, , "[n]:`n", "[t]:`t" )
+		}
+		Gosub Send
 	Return
 
 	câmera_nova:
@@ -457,7 +440,7 @@ timer("1")
 						.	"[n][t] └─┬[t]<b>ID</b>"
 						.	"[n][t][t][t][t] └─[t]" ID
 
-		if ( offlinesince != "NULL" )
+		if ( offlinesince	!= "NULL" )
 			offlinesince	:= "CAST('" offlinesince "' as datetime)"
 		i	=
 			(
@@ -527,7 +510,7 @@ timer("1")
 		name:		;	18/11
 			set		:=	"name"
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>[n]└┬[t]<b>Nome</b>[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].name
+			value_bd:=	bd_câmeras[ indice ].name
 			value_dg:=	dguard_câmeras[ A_index ].name
 			Gosub,	update
 		Return
@@ -537,7 +520,7 @@ timer("1")
 			pre		:=	"[n]┌<b>" dguard_câmeras[ A_index ].name "</b>"
 					.	"[n]└┬   <b>Status de Ativação</b>[n]"
 					.	"[t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].active
+			value_bd:=	bd_câmeras[ indice ].active
 			value_dg:=	dguard_câmeras[ A_index ].active
 			Gosub,	update
 		Return
@@ -547,7 +530,7 @@ timer("1")
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>Endereço IP</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].address
+			value_bd:=	bd_câmeras[ indice ].address
 			value_dg:=	dguard_câmeras[ A_index ].address
 			Gosub,	update
 		Return
@@ -565,7 +548,7 @@ timer("1")
 		id:			;	18/11
 			set		:=	"id"
 			value_dg:=	dguard_câmeras[ A_index ].id
-			value_bd:=	bd_câmeras[ index ].id
+			value_bd:=	bd_câmeras[ indice ].id
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>ID</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
@@ -577,7 +560,7 @@ timer("1")
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>Modelo</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].vendor
+			value_bd:=	bd_câmeras[ indice ].vendor
 			value_dg:=	dguard_câmeras[ A_index ].vendor
 			Gosub,	update
 		Return
@@ -587,7 +570,7 @@ timer("1")
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>Receptora</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].receiver
+			value_bd:=	bd_câmeras[ indice ].receiver
 			value_dg:=	dguard_câmeras[ A_index ].receiver
 			Gosub,	update
 		Return
@@ -597,7 +580,7 @@ timer("1")
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>ContactID</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].contactid
+			value_bd:=	bd_câmeras[ indice ].contactid
 			value_dg:=	dguard_câmeras[ A_index ].contactid
 			Gosub,	update
 		Return
@@ -605,7 +588,7 @@ timer("1")
 		partition:	;	18/11
 			set		:=	"partition"
 			value_dg:=	dguard_câmeras[ A_index ].partition
-			value_bd:=	bd_câmeras[ index ].partition
+			value_bd:=	bd_câmeras[ indice ].partition
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>Partição</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
@@ -617,7 +600,7 @@ timer("1")
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>"  "Offline" "</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].offline
+			value_bd:=	bd_câmeras[ indice ].offline
 			value_dg:=	dguard_câmeras[ A_index ].offline	= ""
 															? "NULL"
 															: dguard_câmeras[ A_index ].offline
@@ -629,7 +612,7 @@ timer("1")
 			; pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					; .	"[n]└┬[t]<b>Status de Gravação</b>"
 					; .	"[n]├─[t]Antigo[t]<code>"
-			value_bd:=	bd_câmeras[ index ].recording
+			value_bd:=	bd_câmeras[ indice ].recording
 			value_dg:=	dguard_câmeras[ A_index ].recording
 			if ( off_change = 0 )
 				Gosub,	update
@@ -640,7 +623,7 @@ timer("1")
 			; pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					; .	"[n]└┬[t]<b>Status de Conexão</b>"
 					; .	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].connected
+			value_bd:=	bd_câmeras[ indice ].connected
 			value_dg:=	dguard_câmeras[ A_index ].connected
 			if ( off_change = 0 )
 				Gosub,	update
@@ -649,8 +632,8 @@ timer("1")
 		server:		;	18/11
 			set		:=	"server"
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
-					.	"[n]└┬[t]Alterado do <b>Servidor</b> "
-			value_bd:=	bd_câmeras[ index ].server
+					.	"[n]└┬[t]Alterado do <b>Servidor</b><code>"
+			value_bd:=	bd_câmeras[ indice ].server
 			value_dg:=	dguard_câmeras[ A_index ].server
 			Gosub,	update
 		Return
@@ -660,7 +643,7 @@ timer("1")
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>Operador</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].operador
+			value_bd:=	bd_câmeras[ indice ].operador
 			value_dg:=	dguard_câmeras[ A_index ].operador
 			Gosub,	update
 		Return
@@ -670,7 +653,7 @@ timer("1")
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>Operador de Sinistro</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].sinistro
+			value_bd:=	bd_câmeras[ indice ].sinistro
 			value_dg:=	dguard_câmeras[ A_index ].sinistro
 			Gosub,	update
 		Return
@@ -680,7 +663,7 @@ timer("1")
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
 					.	"[n]└┬[t]<b>API GET</b>"
 					.	"[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ index ].api_get
+			value_bd:=	bd_câmeras[ indice ].api_get
 			value_dg:=	dguard_câmeras[ A_index ].api_get
 			Gosub,	update
 		Return
@@ -706,8 +689,6 @@ timer("1")
 				telegram.SendMessage( mensagens_telegram[ A_Index ] , "parse_mode=html", "chat_id=" chat_id_test )
 		OutputDebug % timer("Fim")
 	Return
-	; ExitApp
-
 
 	update:
 		; Return
@@ -731,6 +712,7 @@ timer("1")
 							.			"-" SubStr( dguard_câmeras[ A_index ].offline , 9 , 2 )
 							.			" " SubStr( dguard_câmeras[ A_index ].offline , 12 ) "' AS datetime)"
 		}
+		; MsgBox % set "`n" value_dg
 		if (value_dg = "NULL"
 		||	InStr(value_dg, "CAST(") != 0 )
 			u	=

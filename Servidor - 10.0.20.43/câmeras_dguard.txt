@@ -1,0 +1,11 @@
+- Carrega informações das câmeras que constam no banco de dados dguard.cameras
+- Carrega informações dos servidores e variáveis para o programa do banco de dados asm.software_config
+- Prepara as variáveis do sistema
+- Carrega as keys de acesso aos servidores da cotrijal
+- Solicita aos servidores do d-guard as informações sobre as câmeras(name e guid, outras informações e de contact id)
+- Faz uma comparação dos dados que estão na base de dados e os dados recebidos dos servidores, e envia o relatório POR câmera para enviar pelo telegram
+- Verifica se alguma câmera foi excluída de algum dos servidores e envia o relatório POR câmera pelo telegram
+- Remove da base de dados as câmeras que foram excluídas dos servidores
+
+Executa 2 vezes ao dia, às 07:00 e às 19:00 como processo independete no servidor de banco de dados 10.0.20.43
+Configurado pelo banco de dados, não havendo necessidade de mudar o código em caso de implementação de mais servidores ou alteração de senha dos mesmos

@@ -1,17 +1,23 @@
-﻿
+﻿if	inc_mail
+	Return
+
 Global inc_mail = 1
 
 Class	Mail	{
 
-	new( to, subject, body, from := "", attach := "" )	{
+	new( to, subject, body, from := "", attach := "", cc* )	{
 		if ( StrLen( from ) = 0 )
 			from := """Sistema Monitoramento"" <do-not-reply@cotrijal.com.br>"
 		Else
 			from := """Sistema Monitoramento"" <" from ">"
-		OutputDebug % from
+		if cc
+			Loop,% cc.Count()
+				copia .= cc[ A_Index ] ","
+		OutputDebug % "enviado de: `n" from
 		pmsg							:= ComObjCreate( "CDO.Message" )
 		pmsg.From						:= from
 		pmsg.To							:= to
+		pmsg.CC							:= copia
 		pmsg.Subject					:= subject
 		pmsg.TextBody					:= body
 		sAttach							:= attach

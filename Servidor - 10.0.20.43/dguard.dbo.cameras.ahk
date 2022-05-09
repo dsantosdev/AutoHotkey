@@ -1,19 +1,7 @@
-﻿/*
-	* * * Compile_AHK SETTINGS BEGIN * * *
-	[AHK2EXE]
-		Exe_File=C:\users\dsantos\desktop\executáveis\dguard.dbo.cameras.exe
-		Created_Date=1
-	[VERSION]
-		Set_Version_Info=1
-		Company_Name=Heimdall
-		File_Description=
-		File_Version=0.0.0.1
-		Inc_File_Version=1
-		Product_Name=dguard.dbo.cameras
-		Product_Version=1.1.33.2
-		Set_AHK_Version=1
-	* * * Compile_AHK SETTINGS END * * *
-*/
+﻿File_Version=0.0.0.0
+Save_to_Sql=0
+;	DEFASADO - UTILIZAR CAMERAS DGUARD
+
 ;@Ahk2Exe-SetMainIcon	C:\AHK\icones\srv.ico
 ;	Includes
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
@@ -26,7 +14,7 @@
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safedata.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk

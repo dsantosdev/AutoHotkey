@@ -99,11 +99,13 @@ webhook:
 				sticker_id		:=	received.message.sticker.file_id	;	Id de sticker enviado
 				offset			:=	received.update_id					;	offset da mensagem para ser apagada
 			OutputDebug % from_id "`n" mtext "`n" first_name "`n" last_name "`n" username "`n" message_id "`n" offset "`n______________"
+
 			If MAP( usuarios, from_id, "ChatID" ) {
-				if InArray( comandos, StrReplace( mtext, "/" ) ) {
-					function:=	comandos[InArray( comandos, StrReplace( mtext, "/" ) )]
-					Goto,%	function
-				}
+				if pos := InArray( comandos_adm, StrReplace( mtext, "/" ),1 )	;	admin commands
+					Goto,%	comandos_adm[pos]
+				if pos := InArray( comandos, StrReplace( mtext, "/" ),1 )
+					Goto,%	comandos[pos]
+				; }
 				; If		( mtext = "/start" ) {
 							; keyb=
 								; (JOIN
@@ -120,86 +122,100 @@ webhook:
 		}
 	}
 Return
-
-DBStatus:
-	s =
-		(
-			SELECT 
-				[state_desc]
-			FROM
-				[sys].[databases]
-			WHERE
-				[Name] = 'MotionDetection' 
-		)
-	s := sql( s, 3 )
-	status := s[2, 1]
-	mensagem	:=  status = "RECOVERY_PENDING"
-				?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
-				:	status = "OFFLINE"
-				?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
-				:	status = "RECOVERING"
-				?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
-				:	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
-	SendText( mensagem )
-
-	; status=INDISPONÍVEL
-	if ( status = "INDISPONÍVEL" )	{
-		no	:=	html_encode("Não")
-		is_keyb= 1
-		keyb=
-			(JOIN
-			{"inline_keyboard"		:	[ [
-			{"text": "Sim"	, "callback_data" 	: "Restore"},
-			{"text": "%no%"	, "callback_data" 	: "Ignore"}
-			] ]									, "resize_keyboard" : true }
+;	Normal Commands
+	DBStatus:
+		s =
+			(
+				SELECT 
+					[state_desc]
+				FROM
+					[sys].[databases]
+				WHERE
+					[Name] = 'MotionDetection' 
 			)
-		mensagem:=	html_encode( "Tentar recuperar o banco de dados?"	)
-		url		:=	token "/sendMessage?text=" mensagem ".&chat_id=" from_id "&reply_markup=" keyb
-		mtext	=
-		request( url )
-	}
-Return
+		s := sql( s, 3 )
+		status := s[2, 1]
+		mensagem	:=  status = "RECOVERY_PENDING"
+					?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
+					:	status = "OFFLINE"
+					?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
+					:	status = "RECOVERING"
+					?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
+					:	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
+		SendText( mensagem )
 
-Restore:
-	if	is_keyb = 1, is_keyb =0
+		; status=INDISPONÍVEL
+		if ( status = "INDISPONÍVEL" )	{
+			no	:=	html_encode("Não")
+			is_keyb= 1
+			keyb=
+				(JOIN
+				{"inline_keyboard"		:	[ [
+				{"text": "Sim"	, "callback_data" 	: "Restore"},
+				{"text": "%no%"	, "callback_data" 	: "Ignore"}
+				] ]									, "resize_keyboard" : true }
+				)
+			mensagem:=	html_encode( "Tentar recuperar o banco de dados?"	)
+			url		:=	token "/sendMessage?text=" mensagem ".&chat_id=" from_id "&reply_markup=" keyb
+			mtext	=
+			request( url )
+		}
+	Return
+
+	Restore:
+		if	is_keyb = 1, is_keyb =0
+			RemoveKeyb()
+
+		mensagem := html_encode( "Executando restauração, por favor aguarde..." )
+		SendText( mensagem )
+		s =
+			(
+				ALTER DATABASE MotionDetection SET OFFLINE;
+				ALTER DATABASE MotionDetection SET ONLINE;
+			)
+		sql( s, 3 )
+		s =
+			(
+				SELECT 
+					[state_desc]
+				FROM
+					[sys].[databases]
+				WHERE
+					[Name] = 'MotionDetection'
+			)
+		s := sql( s, 3 )
+		status	:= s[2, 1]
+		estado	:=	status = "RECOVERY_PENDING"
+					?	"\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
+					:	status = "OFFLINE"
+					?	"\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
+					:	status = "RECOVERING"
+					?	"\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
+					:	"\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
+		Sleep, 1000
+		mensagem := html_encode("Tentativa de recuperação efetuada.`n`n`nEstado atual do banco de dados de Detecção de Movimento é:`n`n`t`t"  )
+		SendText( mensagem estado)
+	Return
+
+	Ignore:
 		RemoveKeyb()
+		mensagem := html_encode("Banco de dados não recuperado... ")
+		SendText( mensagem " \xF0\x9F\x98\x95" )
+	Return
+;
+;	Elevated commands
+	getpicture:
+		mensagem := html_encode("ba dum tsssss")
+		SendText( mensagem )
+	Return
 
-	mensagem := html_encode( "Executando restauração, por favor aguarde..." )
-	SendText( mensagem )
-	s =
-		(
-			ALTER DATABASE MotionDetection SET OFFLINE;
-			ALTER DATABASE MotionDetection SET ONLINE;
-		)
-	sql( s, 3 )
-	s =
-		(
-			SELECT 
-				[state_desc]
-			FROM
-				[sys].[databases]
-			WHERE
-				[Name] = 'MotionDetection'
-		)
-	s := sql( s, 3 )
-	status	:= s[2, 1]
-	estado	:=	status = "RECOVERY_PENDING"
-				?	"\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
-				:	status = "OFFLINE"
-				?	"\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
-				:	status = "RECOVERING"
-				?	"\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
-				:	"\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
-	Sleep, 1000
-	mensagem := html_encode("Tentativa de recuperação efetuada.`n`n`nEstado atual do banco de dados de Detecção de Movimento é:`n`n`t`t"  )
-	SendText( mensagem estado)
-Return
+	getinfo:
 
-Ignore:
-	RemoveKeyb()
-	mensagem := html_encode("Banco de dados não recuperado... ")
-	SendText( mensagem " \xF0\x9F\x98\x95" )
-Return
+	Return
 
+	talk:
+
+	Return
+;
 ^+END::
 	ExitApp

@@ -35,7 +35,7 @@ debug	=
 #Include		..\class\windows.ahk
 #Include		..\class\array.ahk
 #Include		..\class\gui.ahk
-#Include		..\class\safedata.ahk
+#Include		..\class\safe_data.ahk
 
 ; #Include classes.ahk
 

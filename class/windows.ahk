@@ -1,8 +1,29 @@
-﻿Global inc_windows = 1
+﻿if	inc_windows
+	Return
+
+Global inc_windows = 1
 
 Class	Windows	{
+	
+	LoginAd( usuario, senha )	{
+		if DllCall( "advapi32\LogonUser", "str"
+			.	, usuario, "str"
+			.	, "Cotrijal", "str"
+			.	, senha, "Ptr"
+			.	, 3, "Ptr"
+			.	, 3, "UintP"
+			.	, nSize)
+			return	1
+		else
+			return	0
+	}
 
-	Run( software )	{
+	ProcessExist( processName )	{
+		Process, Exist,% processName
+		return Errorlevel
+	}
+
+	Run( software )				{
 		path = C:\Dguard Advanced\
 		copy = \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\
 		try
@@ -17,26 +38,17 @@ Class	Windows	{
 			}
 	}
 
-	Users( where )	{
-		if !where
-			Return
-		obj := ComObjGet( "winmgmts:{impersonationLevel=impersonate}!\\" . A_ComputerName . "\root\cimv2" )
-		query_results := obj.ExecQuery( "SELECT FullName FROM Win32_UserAccount WHERE Name = '" where "'" )._NewEnum
-		While query_results[ property ]
-			Return property[ "FullName" ]
-	}
-
 	Speak( text, language="1" )	{
 		speak	:= ComObjCreate("SAPI.SpVoice")
 		; For languages In voice.GetVoices
 			; msgbox % languages.GetDescription
 		speak.Volume := 100
-		speak.rate := 0
+		speak.rate := 2
 		return	speak.Speak( text )
 		; return	speak.Speak( text ).GetVoices().Item( %language% ) ; Item is Zero based
 	}
 
-	Status( where )	{
+	Status( where )				{
 		; OutputDebug % where
 		if !where
 			Return
@@ -46,8 +58,13 @@ Class	Windows	{
 			Return property[ "Lockout" ] = "-1" ? "Usuário bloqueado ou senha expirada" : "Usuário ou senha inválidos.`nVerifique sua senha, se a tecla CAPSLOCK não está ativada.`nE se atecla NUMLOCK está ativada!"
 	}
 
-	ProcessExist( processName )	{
-		Process, Exist,% processName
-		return Errorlevel
+	Users( where )				{
+		if !where
+			Return
+		obj := ComObjGet( "winmgmts:{impersonationLevel=impersonate}!\\" . A_ComputerName . "\root\cimv2" )
+		query_results := obj.ExecQuery( "SELECT FullName FROM Win32_UserAccount WHERE Name = '" where "'" )._NewEnum
+		While query_results[ property ]
+			Return property[ "FullName" ]
 	}
+
 }

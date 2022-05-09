@@ -21,7 +21,7 @@ global	iniciou	;	Verificar necessidade
 	; #Include ..\class\dguard.ahk	;	desnecessário até então
 	#Include ..\class\functions.ahk
 	#Include ..\class\gui.ahk
-	#Include ..\class\safedata.ahk
+	#Include ..\class\safe_data.ahk
 	#Include ..\class\sql.ahk
 	#Include ..\class\windows.ahk
 ;

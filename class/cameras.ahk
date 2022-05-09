@@ -1,4 +1,6 @@
-﻿
+﻿if	inc_cameras
+	Return
+
 Global inc_cameras = 1
 	;	Precisa o módulo functions
 Class Cameras	{

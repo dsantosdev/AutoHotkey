@@ -1,6 +1,8 @@
 ﻿/*
 	Depende da instalação do cUrl e configuração do path do mesmo
 */
+if	inc_dguard
+	Return
 Global inc_dguard = 1
 
 Class	dguard {
@@ -256,7 +258,7 @@ Class	dguard {
 
 		ip_s = 99									;	Prepara var com os ips do monitoramento
 			Loop, 25
-				monitoramento .= ip_s+A_Index ","
+				monitoramento .= ip_s + A_Index ","
 		ip := StrSplit( server , "." )				;	Verifica no ip[4] qual servidor foi requisitado as informações para ajustar a senha de requisição
 		if (user = "conceitto"
 		&&	StrLen( pass ) = 0 )					;	Específico para o sistema da conceitto

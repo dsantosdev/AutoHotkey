@@ -1,38 +1,25 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\mdcol.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "" "0.0.0.5" """
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Version=0.0.0.5
-Inc_File_Version=1
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\AHK\ico\mdcol.ico
-
-* * * Compile_AHK SETTINGS END * * *
-*/
+﻿File_Version=0.0.1.0
 
 ;@Ahk2Exe-SetMainIcon C:\AHK\ico\mdcol.ico
 
 ;	Includes
-	#Include ..\class\array.ahk
-	;#Include ..\class\base64.ahk
-	#Include ..\class\convert.ahk
-	;#Include ..\class\cor.ahk
-	;#Include ..\class\dguard.ahk
-	#Include ..\class\functions.ahk
-	#Include ..\class\gui.ahk
-	;#Include ..\class\mail.ahk
-	;#Include ..\class\safedata.ahk
-	#Include ..\class\sql.ahk
-	#Include ..\class\string.ahk
-	;#Include ..\class\windows.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\auth.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\date.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	Globais
@@ -42,12 +29,19 @@ Icon_1=C:\AHK\ico\mdcol.ico
 		,	m3
 		,	ramal
 		,	ramais := []
+		,	ips_monitoramento := []
 ;
 
 ;	Variabels & Arrays
-	
+		; ips_monitoramento.Push("192.9.100.100")
+		ips_monitoramento.Push("192.9.100.102")
+		ips_monitoramento.Push("192.9.100.106")
+		ips_monitoramento.Push("192.9.100.109")
+		ips_monitoramento.Push("192.9.100.114")
+		ips_monitoramento.Push("192.9.100.118")
+		ips_monitoramento.Push("192.9.100.123")
 		r = select distinct ramal from [ASM].[dbo].[_colaboradores] where LEN(ramal) >= 4 and ramal <> '(55)99158-2861'
-		r := sql( r , 3 )
+		r := sql( r, 3 )
 		Loop,%	r.Count()-1
 			ramais.push( r[A_Index+1,1] )
 	lv_size		:=	A_ScreenWidth-395	;	385 dos valores fixos e 10 para não exibir a barra horizontal
@@ -71,7 +65,7 @@ Icon_1=C:\AHK\ico\mdcol.ico
 	if ( A_UserName != "dsantos" )
 		Gui,	Add,	UpDown,				y5	w150					h20		vdelay	gSet_Delay	Range1-5, 2
 	Else
-		Gui,	Add,	UpDown,				y5	w150					h20		vdelay	gSet_Delay	Range1-5, 1
+		Gui,	Add,	UpDown,				y5	w150					h20	vdelay	gSet_Delay	Range1-5, 1
 		Gui.Font( "cWhite" , "Bold" )
 	Gui,	Add,	Text,				y7	w300					h20						, ←`tIntervalo para busca automática(segundos)
 		Gui.Font()
@@ -91,59 +85,59 @@ Icon_1=C:\AHK\ico\mdcol.ico
 		LV_ModifyCol( 11, 0 )
 	Gui,	Show,%				"x-2	y0	w" A_ScreenWidth	"	h310"					, Buscar Colaboradores
 return
-
+; a
 GuiContextMenu() {
 	if ( A_eventInfo = 0 )
 		return
 	menu1:=menu2:=menu3:=""
-	if ( clicado > 0 )
+	if ( clicado > 0 ) {
 		Menu, ClickToCall, DeleteAll
+		clicado =
+	}
 	if ( A_GuiControl = "lv" )	{
 		s_ramal:
-		ramal =
-		ip := StrSplit( A_IpAddress1 , "." )
-		if ( ip[4] < 100 AND ip[4] > 124 )
-		|| ( ip[1] "." ip[2] "." ip[3] = "192.9.100") 
-			IniRead, ramal, C:\Users\%A_UserName%\ramal.ini, Ramal, NR
-		if ( ramal = "ERROR" )
-			ramal =
-		if ( ip[1] "." ip[2] "." ip[3] = "192.9.100" )	{
-			if ip[4] > 101 AND ip[4] < 104
-				ramal = 2530
-			else if ip[4] > 105 AND ip[4] < 108
-				ramal = 2852
-			else if ip[4] > 109 AND ip[4] < 112
-				ramal = 2853
-			else if ip[4] > 113 AND ip[4] < 116
-				ramal = 2854
-			else if ip[4] > 117 AND ip[4] < 121
-				ramal = 2855
-			else if ip[4] > 122 AND ip[4] < 124
-				ramal = 2860
-			else if ip[4] = 100
-				ramal = 2524
+		
+		if ( array.InArray( ips_monitoramento, A_IpAddress1 ) ) {
+			ip := StrSplit( A_IpAddress1 , "." )
+			if ( ip[1] "." ip[2] "." ip[3] = "192.9.100" )	{
+				ip	:=	ip[4]
+				if ip		BETWEEN 101 AND 104
+					ramal = 2530
+				else if ip	BETWEEN 105 AND 108
+					ramal = 2852
+				else if ip	BETWEEN 109 AND 112
+					ramal = 2853
+				else if ip	BETWEEN 113 AND 116
+					ramal = 2854
+				else if ip	BETWEEN 117 AND 120
+					ramal = 2855
+				else if ip	BETWEEN 121 AND 124
+					ramal = 2860
+				else if ip	= 100
+					ramal = 2524
+			}		
 		}
-		else if ( ramal = "" )	{
+		Else {
+			IniRead, ramal, C:\Users\%A_UserName%\ramal.ini, Ramal, NR
+			If ( ramal = "ERROR" )	{
 			InputBox,	ramal,	Ramal,	Digite o ramal que deseja utilizar para efetuar a ligação:
-			If ErrorLevel
-				return
-			Else	{
-				if ( ramal = "666" )	{
-					MsgBox, ,O bebado e o Diabo, 	O bebado chega no inferno e grita: `n`tCadê as mulheres desse caraioo?`nO Diabo responde:`n`tAqui não tem mulher doido.`nO bebado diz:`n`tEntão onde tu arrumou esses chifres disgraçaaaaaaa?, 15
-					Goto	s_ramal
+				If ErrorLevel
+					return
+				Else	{
+					If (StrLen( ramal ) < 4
+					||	StrLen( ramal ) > 7 )	{
+						MsgBox	Digite um ramal válido.
+						Goto s_ramal
+					}
+					Else If ( array.InArray( ramais , ramal ) = 0 )	{
+						MsgBox	O ramal que você digitou não existe na base de dados da Cotrijal.`nDigite um ramal válido.
+						Goto	s_ramal
+					}
+					Else
+						IniWrite, %ramal%, C:\Users\%A_UserName%\ramal.ini, Ramal, Nr
 				}
-				else if (StrLen( ramal ) < 4
-				||	StrLen( ramal ) > 6 )	{
-					MsgBox	Digite um ramal válido.
-					Goto s_ramal
-				}
-				else if ( array.InArray( ramais , ramal ) = 0 )	{
-					MsgBox	O ramal que você digitou não existe na base de dados da Cotrijal. Digite um ramal válido.
-					Goto	s_ramal
-				}
-				Else
-					IniWrite, %ramal%, C:\Users\%A_UserName%\ramal.ini, Ramal, Nr
-			}
+		}
+
 		}
 		Gui,	ListView,	lv
 		clicado++
@@ -199,8 +193,9 @@ tip:
 return
 
 Call1:
-	Clipboard := ramal
-	convert.call("https://convert.cotrijal.com.br/portal/api/LigacaoAutomatica/executarLigacaoNumero/?origem="	ramal	"&destino="	m1)
+	if !A_IsCompiled
+		Clipboard := ramal
+	convert.discar( ramal, m1 )
 	Menu, ClickToCall, DeleteAll
 	ra	:= ramal
 	des	:= m1
@@ -208,8 +203,9 @@ Call1:
 Return
 
 Call2:
-	Clipboard := ramal
-	convert.call("https://convert.cotrijal.com.br/portal/api/LigacaoAutomatica/executarLigacaoNumero/?origem="	ramal	"&destino="	m2)
+	if !A_IsCompiled
+		Clipboard := ramal
+	convert.discar( ramal, m2 )
 	Menu, ClickToCall, DeleteAll
 	ra	:= ramal
 	des	:= m2
@@ -217,8 +213,9 @@ Call2:
 Return
 
 Call3:
-	Clipboard := ramal
-	convert.call("https://convert.cotrijal.com.br/portal/api/LigacaoAutomatica/executarLigacaoNumero/?origem="	ramal	"&destino="	m3)
+	if !A_IsCompiled
+		Clipboard := ramal
+	convert.discar( ramal, m3 )
 	Menu, ClickToCall, DeleteAll
 	ra	:= ramal
 	des	:= m3

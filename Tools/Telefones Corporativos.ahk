@@ -6,7 +6,7 @@
 	; #Include ..\class\functions.ahk
 	; #Include ..\class\gui.ahk
 	; #Include ..\class\mail.ahk
-	; #Include ..\class\safedata.ahk
+	; #Include ..\class\safe_data.ahk
 	; #Include ..\class\string.ahk
 	#Include ..\class\sql.ahk
 	; #Include ..\class\windows.ahk

@@ -1,4 +1,6 @@
-﻿global	inc_date = 1
+﻿if	inc_date
+	Return
+global	inc_date = 1
 
 Class	Date	{
 	

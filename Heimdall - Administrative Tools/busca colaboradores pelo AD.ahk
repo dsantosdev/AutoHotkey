@@ -19,18 +19,26 @@
 	; saida .= o.Name "`t" o.FullName "`n"
 	; Clipboard := saida
 	; ExitApp
-InputBox, userad, Buscar Informações de Conta no AD, Insira o USUÁRIO do AD que deseja consultar:
-for o in ComObjGet("winmgmts:").ExecQuery("Select * From Win32_UserAccount where name = '" userad "'" )
-{
-	MsgBox %	"`n"
-			; .	"Descrição :`t"				o.Description
-			.	"`nNome Completo :`t"		o.FullName
-			.	"`nUsuário :`t`t"			o.Name
-			.	"`nDesabilitada :`t"		o.Disabled
-			.	"`nDominio :`t"				o.domain
-			.	"`nConta Local :`t"			o.localaccount
-			.	"`nBloqueada :`t"			o.Lockout	;	-1 = Bloqueada
-			; .	"`nsId :`t`t"				o.sid
-			.	"`nEstado :`t`t"			o.status
-}
+F1::
+	InputBox, userad, Buscar Informações de Conta no AD, Insira o USUÁRIO do AD que deseja consultar:
+	Goto executa
+F2::
+	InputBox, userad, Buscar Informações de Conta no AD, Insira o NOME COMPLETO do usuário que deseja consultar:
+	Goto executa
+
+executa:
+	; for o in ComObjGet("winmgmts:").ExecQuery("Select * From Win32_UserAccount where FullName = '" userad "'" )
+	for o in ComObjGet("winmgmts:").ExecQuery("Select * From Win32_UserAccount where Name = '" userad "'" )
+	{
+		MsgBox %	"`n"
+				; .	"Descrição :`t"				o.Description
+				.	"`nNome Completo :`t"		o.FullName
+				.	"`nUsuário :`t`t"			o.Name
+				.	"`nDesabilitada :`t"		o.Disabled
+				.	"`nDominio :`t"				o.domain
+				.	"`nConta Local :`t"			o.localaccount
+				.	"`nBloqueada :`t"			o.Lockout	;	-1 = Bloqueada
+				; .	"`nsId :`t`t"				o.sid
+				.	"`nEstado :`t`t"			o.status
+	}
 ExitApp

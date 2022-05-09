@@ -1,24 +1,5 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\servidor.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "servidor" "0.0.0.34" """
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Version=0.0.0.34
-Inc_File_Version=1
-Product_Name=servidor
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\AHK\icones\fun\bat.ico
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
+﻿File_version=0.0.0.36
+save_to_sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\bat.ico
 
 ;	Informações
@@ -34,9 +15,6 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 ;
 
 ;	Variáveis
-	for_timer	= 07	;	Horário das câmeras
-	inicia		= 0000
-	finaliza	= 0010
 	tooltips	= 0
 ;
 
@@ -49,17 +27,17 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 ;
 
 ;	Includes
-	#Include	..\class\base64.ahk
-	#Include	..\class\sql.ahk
-	#Include	..\class\windows.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\sync_data.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	Timers
 	Gosub, load_vars
-	SetTimer,	executor,	5000	;	a cada 5 segundos verifica os horários
-	if ( A_Args[1] = 1 )			;	para chamada dinâmica por outro sistema
-		Gosub, executa_atualizado
-	Return
+	SetTimer,	verifica_horario_execução,	5000	;	a cada 5 segundos verifica os horários
 ;
 
 ;	Shortcuts
@@ -67,37 +45,54 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 		tooltips	:=	!tooltips
 	return
 
-	^F2::	;	Executa agora
-		executa_atualizado:
-		inicia		:=	SubStr( A_Now , 11 )
-		finaliza	:=	inicia + 10
-	return
+	F4::	;	Debug only
+		debuguion=1
+		; SetTimer, verifica_horario_execução, Off
+		Gui, Font, S10 Bold
+		Gui, Add, Button, gcopia_log, Copiar log para o clipboard
+		Gui, Add, Edit,% "w500 h" A_ScreenHeight-45 "	vdebugui"
+		Gui, Show, ,Debugger
+		Return
 
-	F3::	;	Atualiza horários e sistemas via query sql manualmente
-		for_timer	:=	A_Hour - 12 < 0 ? StrLen( 24 + ( for_timer - 12 ) ) = 1 ? : : A_Hour - 12	;	se passar da meia noite
-		; inicia		:=	0700
-		inicia		:=	A_Min A_Sec
-			Loop	;	Deal with zeros in minutes
-				if ( StrLen( inicia ) = 4 )
-					Break
-				Else
-					inicia := "0" inicia
+		GuiClose:
+			debuguion=0
+			Gui, Destroy
+		Return
 
-		finaliza	:=	inicia + 10
-			if ( SubStr( finaliza , -1) >= 60 )		;	Segundos passam de 59
-				finaliza := finaliza + 40
+		copia_log:
+			Gui, Submit, NoHide
+			clipboard:=debugui
+			tooltip, Log copiado com sucesso
+			Sleep, 2000
+			tooltip
+			Gosub, GuiClose
+		Return
 
-			if ( SubStr( finaliza , -3) >= 6000 )	;	Minutos passam de 59
-				finaliza := finaliza + 4000
+		Loop,% sistemas.Count()	{
+			debug_index		:=	A_Index
+			OutputDebug % sistemas[ A_index ].horas.Count()
 
-			if ( SubStr( finaliza , -5) >= 235959 )	;	Hora passa de 235959
-				finaliza := finaliza - 240000
-			Loop
-				if ( StrLen( finaliza ) = 4 )
-					Break
-				Else
-					finaliza := "0" finaliza
-		Gosub, executor
+			debug_horas_executar=
+
+			Loop,%	sistemas[ A_index ].horas.Count()
+				debug_horas_executar .=	sistemas[debug_index].horas[A_Index] "`n`t"
+
+			debug_horas_executar	:=	SubStr( debug_horas_executar, 1, -1 )
+			_outputdebug	.= "Sistema:`n`t"	sistemas[ A_index ].software "`nHorários:`n`n`t" debug_horas_executar
+		}
+
+		MsgBox % clipboard := _outputdebug
+		SetTimer, verifica_horario_execução, 5000
+
+	Return
+
+	^Home::	;	Roda sistema forçado
+		SetTimer, verifica_horario_execução, Off
+		Gui, Add, Text,							,	Selecione o Sistema que deseja executar agora:
+		Loop,% sistemas.Count()
+			Gui, Add, Button,	gexecute_system	,%	sistemas[A_Index].software
+		Gui, Add, Button,	gexecute_system	, Recarregar Sistema
+		Gui, Show
 	Return
 
 	End::	;	Encerra o aplicativo
@@ -106,74 +101,136 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 ;
 
 ;	Code
-	executor:
+	load_vars:
+		select =
+			(
+				SELECT
+					 [sistema]
+					,[minutes]
+					,[horas_executar]
+				FROM
+					[ASM].[dbo].[_gestao_servidor]
+			)
+			s := sql( select , 3 )
+
+		Loop,%	s.Count()-1 {	;	 se intervalo for zero, sabe que é o path
+
+			main_index	:=	A_Index
+
+			if ( s[main_index+1 , 2] = "" )	{
+				path	:=	SubStr( s[main_index+1 , 1],	InStr( s[main_index+1 , 1], "|" )+1 )
+				Continue
+			}
+			Else	{	;	Prepara horários de execução
+
+				horas	:=	[]
+				if ( InStr( s[ A_Index+1 , 3 ], ";" ) > 0 ) {	;	Se há mais de um horário de execução
+					horarios	:=	StrSplit( s[main_index+1 , 3], ";" )
+					Loop,%	horarios.Count() {
+						hora	:=	horarios[A_Index] . "0000"
+						hora	+=	s[main_index+1 , 2] . "00"
+						; MsgBox % s[main_index+1 , 1] "`n" hora "`n" s[main_index+1 , 3]
+						horas.Push( hora )
+					}
+				}
+				Else	{
+
+					hora	:=	s[main_index+1 , 3] . "0000"
+					hora	+=	s[main_index+1 , 2] . "00"
+					; MsgBox %  s[main_index+1 , 1] "`n" hora "`n" s[main_index+1 , 3]
+					horas.Push( hora )
+				}
+				sistemas.push({	software	:	s[main_index+1 , 1]
+							,	horas		:	horas })
+			}
+		}
+
+		OutputDebug % "Sistemas pré carregados`n`t" sistemas.Count() "`nPath`n`t" path
+	Return
+
+	execute_system:
+		Gui,	Submit
+		if ( A_GuiControl = "Recarregar Sistema")
+			Reload
+		software	:=	A_GuiControl ".exe" ; necessário para conversão de bin para exe
+		
+		Gosub	Run
+		SetTimer, verifica_horario_execução, 5000
+	Return
+
+	verifica_horario_execução:
 		;	Tooltip ativado ou não
-			Process, Exist, atualiza_contatos.exe
 			if (tooltips != 1
 			||	ErrorLevel <> 0)
 				ToolTip
 			Else
 				ToolTip,%	StrLen( atualizado )	= 0
 													? "Não efetuou atualização ainda, aguarde a próxima troca de hora ou pressione CTRL+F2"
-													: "Contatos atualizados às " atualizado "`nmmss = " mmss,	50,	50
+													: "Última execução às " atualizado "`nmm : ss = " A_Min " : " A_Sec,	50,	50
 		;
 
 		;	prepara variável de tempo
-			time_now	:=	SubStr( A_Now, 9 )
-			time_check	:=	SubStr( A_Now, 11)
+			time_now	:=	SubStr( A_Now, 9 )	;	hhmmss
 		;
 
 		;	Execução
+
 			Loop,%	sistemas.Count() {
-				SetTimer, executor, Off
+
+				
+				SetTimer, verifica_horario_execução, Off
 				sleep,	1000
-				if ( sistemas[ A_index ].lacuna = 1 )	{	;	Hora em hora
-					h_inicio_m	:= A_Hour . inicia
-					h_fim_m	 	:= A_Hour . finaliza
+				index :=	A_Index
+				_software := sistemas[A_Index].software
+				GuiControl, , debugui,% log .="`n" "Verificando horário de execução de " _software
 
-					if ((time_now > h_inicio_m && time_now < h_fim_m)								;	horário
-					&&	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" ) = 0)	;	processo não estiver rodando
-						Gosub, Run
+				Loop,%	sistemas[ A_index ].horas.Count()	{
+					 log	.=	"`n`n`tInicio`t"	sistemas[index].horas[A_Index]
+							.	"`n`tAgora`t"		time_now
+							.	"`n`tFim`t"			sistemas[index].horas[A_Index]+10
 
-				}
-				Else	{									;	Intervalo Definido
-					inicio_t	:= for_timer + sistemas[ A_index ].lacuna . inicia
-					fim_t		:= for_timer + sistemas[ A_index ].lacuna . finaliza
-					m_inicio_m	:= for_timer . inicia
-					m_fim_m		:= for_timer . finaliza
+					if(	time_now > sistemas[index].horas[A_Index]
+					&&	time_now < sistemas[index].horas[A_Index]  + 10 )	{
 
-					manhã :=	time_now >= m_inicio_m && time_now	< m_fim_m
-																? "True"
-																: "False"
-					tarde :=	time_now >= inicio_t && time_now  < fim_t
-															 ? "True"
-															 : "False"
-					processo :=	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" )	= 0
-																								? "True"
-																								: "False"
-					; MsgBox,%	manhã " OU ( " tarde " E " processo " )`n"
-							; .	time_now " >= " m_inicio_m	" && " time_now " < " m_fim_m "`n"
-							; .	time_now " >= " inicio_t	" && " time_now " < " fim_t "`n"
-							; .	windows.ProcessExist( software := sistemas[ A_index ].nome ".exe" )
-					;
+						log .= "`nHORA OK`n" "Verifica se o software já está rodando:"
+							.	"`t" windows.ProcessExist( software := _software ".exe" ) = 1 ? "RODANDO" : "`nPronto para ser executado"
 
-					if ((manhã		= "true" )		;	manhã
-					||	(tarde		= "true" 		;	tarde e ↓
-					&&	 processo	= "true" ) ) {	;			processo não estiver rodando
-						; MsgBox 1
-						Gosub, Run
+						if !windows.ProcessExist( software := _software ".exe" )	{	;	processo não estiver rodando
+							if ( _software = "atualiza_contatos" ) {
+								log .=	"`nExecutando Atualização de colaboradores com senha"
+								sync_data.alarms()
+							}
+							log .="`n`n" _software " iniciado às " datetime()
+							Gosub, Run
+						}
 					}
-					; MsgBox 2
+				}
+				if	debuguion	{
+					contagem = 11
+					GuiControl, , debugui
+					GuiControl, , debugui,% log
+					if rodou
+						Loop, 10 {
+							WinSetTitle, Debugger, ,% "Debugger - " contagem-A_Index
+							Sleep, 1000
+						}
+					rodou =
+					WinSetTitle, Debugger - 1, ,Debugger
+					log	=
 				}
 			}
 		;
 
-		SetTimer,	executor,	5000
+		SetTimer,	verifica_horario_execução,	5000
 	Return
 
 	Run:
-		FileDelete,% path "\" software
-		for_sql := SubStr( software , 1 , -4 )
+		rodou = 1
+		if FileExist( path "\" software )
+			FileDelete,% path "\" software
+
+		nome_do_software_para_sql := StrRep( software,,".exe" )
+		OutputDebug % "Executando " nome_do_software_para_sql
 
 		s =
 			(
@@ -182,44 +239,55 @@ Icon_1=C:\AHK\icones\fun\bat.ico
 			FROM
 				[ASM].[dbo].[Softwares]
 			WHERE
-				[Name]	= '%for_sql%'
-			AND
-				[Obs]	= ''
+				[Name]	= '%nome_do_software_para_sql%'
 			)
 			bins := sql( s, 3 )
-			Sleep, 1000
-		if (FileExist( path "\" software ) = "" )				;	Garante a existência do executável
-			Base64.FileDec( bins[2, 1] , path "\" software )	;	Transforma o arquivo base64 em executável
 
-		Loop													;	Garante a existência do arquivo antes de executar para evitar erro
+		if	( bins.Count()-1	=	0 ) {
+
+			log2 .= "`nBINÁRIO NÃO ENCONTRADO`n"
+
+			if !nome_do_software_para_sql
+				body	:=	"Sistema`t"" " software " "" não foi encontrado na base de dados`npara ser executado em `t" datetime()
+			Else
+				body	:=	"Sistema`t"" " nome_do_software_para_sql " "" não foi encontrado na base de dados`npara ser executado em `t" datetime()
+			mail.new("dsantos@cotrijal.com.br","10.0.20.43 - Erro Gestor de Serviços", body )
+
+			log2 .= "`nE-mail de aviso de erro enviado para dsantos@cotrijal.com.br`n"
+
+			Menu, Tray,	Tip, %software% NÃO EXISTE NA BASE DE DADOS
+			Return
+		}
+		Sleep, 3000
+		
+		log2 .="`nVerificando se o software " _software " já existe em " path "`n"	FileExist( path "\" software ) = 1
+																					? "Existe"
+																					: "Não Existe"
+		
+		if ( FileExist( path "\" software ) = "" )	{			;	Garante a inexistência do executável
+			Base64.FileDec( bins[2, 1] , path "\" software )	;	Transforma o arquivo base64 em executável
+			log2 .= "`nExecutável criado no destino"
+		}
+		Loop	{												;	Garante a existência do arquivo antes de executar para evitar erro
 			If (FileExist( path "\" software ) != ""
-			||	A_Index > 25 )
+			||	A_Index > 25 ) {
+				log2 .= "`nEXECUTÁVEL ENCONTRADO, encerrando Loop. Index atual = " A_index "`n"
 				Break
-			Sleep,	1000
-		Run,% path "\" software " 1"
+			}
+			Else {
+				log2 .= "`nEXECUTÁVEL NÃO ENCONTRADO, encerrando Loop. Index atual = " A_index "`n"
+				Return
+			}
+		}
+		Sleep,	1000
 
 		atualizado	:=	A_YYYY "/" A_MM "/" A_DD " "
 					.	A_Hour ":" A_Min ":" A_Sec
-		Menu, Tray,	Tip, Gestor de Serviços`nùltima Sincronização: %atualizado%
-	Return
 
-	load_vars:
-		select =
-			(
-				SELECT
-					 [sistema]
-					,[lacuna]
-				FROM
-					[ASM].[dbo].[_gestao_servidor]
-			)
-			s := sql( select , 3 )
-		Loop,%	s.Count()-1	;	 se lacuna for zero, sabe que é o path
-			if ( s[ A_Index+1 , 2 ] = 0 )	{
-				path := SubStr( s[ A_Index+1 , 1 ], InStr( s[ A_Index+1 , 1 ], "|" )+1 )
-				Continue
-			}
-			Else
-				sistemas.push({	nome	:	s[ A_Index+1 , 1 ]
-							,	lacuna	:	s[ A_Index+1 , 2 ]	 })
+		Run,% path "\" software
+
+		log	.="`n`n" _software " executado às " datetime() "`n" log2
+		log2=
+		Menu, Tray,	Tip, Gestor de Serviços`nùltima execução: %atualizado%`t%software%
 	Return
 ;

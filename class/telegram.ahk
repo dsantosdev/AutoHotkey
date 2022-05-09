@@ -1,8 +1,9 @@
-﻿;	Header & Globals
-	Global	inc_telegram	=	1
-		,	bot_token		:=	"https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo"
-		,	chat_id			=	-1001729068003	;	canal de teste
-	; #IncludeAgain	..\class\functions.ahk
+﻿if	inc_telegram
+	Return
+Global	inc_telegram	=	1
+	,	bot_token		:=	"https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo"
+	,	chat_id			=	-1001729068003	;	canal de teste
+#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 ;
 
 Class	Telegram {
@@ -46,5 +47,4 @@ Class	Telegram {
 		; MsgBox % telegram.request( url )
 		return	telegram.request( url )
 	}
-
 }

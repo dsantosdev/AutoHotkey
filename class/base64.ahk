@@ -1,4 +1,6 @@
-﻿Global inc_base64 = 1
+﻿if inc_base64
+	Return
+Global inc_base64 = 1
 
 Class Base64 {
 	/*

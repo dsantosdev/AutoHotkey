@@ -1,4 +1,6 @@
-﻿Global	inc_gui = 1
+﻿if	inc_gui
+	Return
+Global	inc_gui = 1
 	,	tray_bg_color	=	9BACC0
 Class	Gui	{
 	
