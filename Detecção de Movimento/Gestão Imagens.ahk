@@ -1,4 +1,9 @@
-﻿File_Version=0.0.0.0
+﻿File_Version=0.0.0.1
+
+/*
+	[0.0.0.1]
+		11-05-2022=shell.Exec alterado para a variável do path do executável do AHK devido a erros de execução após compilar
+*/
 
 ;	Includes
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
@@ -176,7 +181,7 @@
 			LV_Delete(row)
 			LV_Modify(1,"Focus Select")
 			deleted .= ip "`n"
-			code := "Loop,	Files,	\\srvftp\Monitoramento\FTP\Verificados\" dia_verificar "\"	ip	"*`n FileDelete,	`%	A_LoopFileFullPath"
+			code := "#notrayicon`nLoop,	Files,	\\srvftp\Monitoramento\FTP\Verificados\" dia_verificar "\"	ip	"*`n FileDelete,	`%	A_LoopFileFullPath"
 			ExecScript(code)
 			Send {right}
 			Send {right}
@@ -201,9 +206,7 @@
 
 ExecScript( Script, Wait := false )  {
     shell := ComObjCreate( "WScript.Shell" )
-    exec := shell.Exec( "AutoHotkey.exe /ErrorStdOut *" )
+    exec := shell.Exec( A_AhkPath " /ErrorStdOut *" )
     exec.StdIn.Write( script )
     exec.StdIn.Close()
-    if Wait
-        return exec.StdOut.ReadAll()
 }
