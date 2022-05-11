@@ -119,6 +119,7 @@ Class	String		{
 										,	"CENTRO DISTRIBUICAO", "CD" )
 							,	"DA " )
 				,	" Obras E Manutencoes" )
+		
 		if ( InStr( Retorno, "auxiliar" )
 				>	0	)
 			Retorno	:=	StrReplace( Retorno, "Auxiliar", "Aux." )
@@ -126,7 +127,7 @@ Class	String		{
 				Retorno := StrReplace( Retorno, "Operador", "Op." )
 			Else if ( InStr( Retorno, "Engenheiro" ) > 0 )
 				Retorno := StrReplace( Retorno, "Engenheiro", "Eng." )
-		return	%	Retorno
+		return	%	StrRep( Retorno, , " Novos" )
 	}
 
 	Case( word, type )						{	;	usar format?
