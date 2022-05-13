@@ -43,3 +43,8 @@ DBStatus() {
 	MsgBox
 	Return
 }
+
+talkto( text, operator ) {
+	
+	
+}

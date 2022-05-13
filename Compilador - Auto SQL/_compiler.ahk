@@ -1,5 +1,6 @@
-﻿File_Version=0.0.0.1
+﻿File_Version=0.1.0
 save_to_sql=0
+;@Ahk2Exe-SetMainIcon C:\AHK\icones\compiler.ico
 ;	Includes
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
@@ -56,28 +57,28 @@ if !file_ahk
 	FileReadLine,	version,%		file_ahk, 1
 	FileReadLine,	save_to_sql,%	file_ahk, 2
 	If !version
-		version 	=	0.0.0.0
+		version 	=	0.1.0
 	version_in_file	:=	StrSplit( StrRep( version,, "File_Version=" ), "." )
 	save_to_sql		:=	StrRep( save_to_sql,, "Save_To_Sql=" )
 
-	;	update version	-	IN DEVELOPMENT
-		; s	=
-			; (
-				; SELECT	[vars]
-				; FROM	[ASM].[dbo].[software_config]
-				; WHERE	[software] = '%file_name%'
-			; )
-		; pre_config	:=	sql( s, 3 )
-		; config		:=	StrSplit( pre_config[2,1], ";" )
-			; Loop,%	config.Count()
-			; If InStr( config[A_index], "current_version" )
-				; version_in_db	:=	StrSplit( StrRep( config[A_index],, "current_version="), "." )
-		; If version_in_db[4]	> version_in_file[4]
-		; If version_in_db[3]	> version_in_file[3]
-		; If version_in_db[2]	> version_in_file[2]
-		; If version_in_db[1]	> version_in_file[1]
-
-	file_new_version :=	version_in_file[1] "." version_in_file[2] "." version_in_file[3] "." version_in_file[4]+1
+	v	=
+		(
+			SELECT	[version],[pkid]
+			FROM	[ASM].[dbo].[Softwares]
+			WHERE	[name] = '%file_name%'
+			ORDER BY [pkid] DESC
+		)
+	version_sql	:=	sql( v, 3 )
+	sql_pkid	:=	version_sql[2, 2]
+	version_sql	:=	StrSplit( version_sql[2, 1], "." )
+	_new_version:=	[]
+	_new_version.Push( version_in_file[1] < version_sql[1] ? version_sql[1] : version_in_file[1] )
+	_new_version.Push( version_in_file[2] < version_sql[2] ? version_sql[2] : version_in_file[2] )
+	if	( version_in_file[2] < version_sql[2] )	;	Se houver nova funcionalidade, zera o parâmetro de patchs
+		_new_version.Push( "0" )
+	Else
+		_new_version.Push( version_sql[3] = "" ? version_in_file[3] : version_sql[3]+1 )	;	Do contrário, incrementa novo patch
+	_new_version := _new_version[1] "."  _new_version[2] "."  _new_version[3]
 ;
 
 ;	CMD
@@ -102,11 +103,10 @@ if !file_ahk
 					[ASM].[dbo].[softwares]
 					(name,bin,version,date)
 				VALUES
-					('%file_name%','%file_b64%','%file_new_version%','%file_new_date%')
+					('%file_name%','%file_b64%','%_new_version%','%file_new_date%')
 			)
 		sql( insert_new_exe, 3 )
 	}
-	MsgBox
 	FileMove,% file_exe, C:\Users\dsantos\Desktop\Executáveis\%file_name% %file_new_version%.exe, 1
 ;
 ExitApp

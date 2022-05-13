@@ -1,7 +1,66 @@
 ﻿if	inc_functions
 	Return
 Global	inc_functions = 1
+
+#Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+
+; auto_update( software, version, script_dir, full_path ) {	;	Auto update do sistema via versão nova na base de dados
+auto_update( software, version ) {	;	NECESSITA TESTE - Auto update do sistema via versão nova na base de dados	
+	if InStr( software, ".exe" )
+		software := SubStr( software, 1, -4 )
+	s =
+		(
+			SELECT	TOP(1)
+				 [name]
+				,[bin]
+				,[version]
+			FROM
+				[ASM].[dbo].[Softwares]
+			WHERE
+				[name] = '%software%'
+			ORDER BY
+				1
+			DESC 
+		)
+	sql	:=	sql( s, 3 )
+	if ( sql.count(-1 = 0) )
+		Return "Atualizado"
+
+	version_sql := StrSplit( sql[ 2, 3 ], "." )
+	version_file:= StrSplit( version, "." )
+	Loop, 4	;	Compara versão do executável com a base de dados
+		if ( version_sql[A_Index] > version_file[A_Index] )	{	;	se qualquer um dos campos de versão na base de dados for maior, atualiza
+			base64.FileDec( sql[ 2, 2 ], A_ScriptDir "\" software "_new.exe" )
+			Loop	{
+				Sleep, 1000
+				If fileExist( A_ScriptDir "\" software "_new.exe" )	;	se criou o novo executável, sai do loop para atualizar
+					Break
+				Else If ( A_Index > 25 ) {	;	se não criou o executável após 25 segundos, retorna falha e interrompe a atualização
+					fail = 1
+					Break
+				}
+			}
+			if	Fail	;	se não criou executável, retorna mensagem de falha 
+				Return "Falha ao criar o executável."
+			;	bloco de update
+			update_software	:=	"ToolTip, Atualizando " software	;	prepara var para execução de script de atualização assíncrono para excluir o executável antigo
+						.	"`nSleep, 2000"
+						.	"`nFileMove	,"	;	Renomeia o executável antigo
+										.	A_ScriptFullPath
+										.	"," SubStr( A_ScriptFullPath, 1 , -4 ) "_old.exe, 1`nsleep 1000"
+						.	"`nFileMove	,"	;	prepara o arquivo atualizado para executar
+										.	SubStr( A_ScriptFullPath, 1 , -4 ) "_new.exe,"
+										.	A_ScriptFullPath ", 1`nsleep 1000"
+
+						.	"`nFileDelete,"	SubStr( A_ScriptFullPath, 1 , -4 ) "_old.exe`nsleep 1000"	;	deleta o executável antigo
+						.	"`nRun, "		A_ScriptFullPath	;	executa o novo executável
+						.	"`nExitapp"	;	sai do script de update
+			new_instance( update_software )	;	executa a atualização assíncrona
+		}
+	return	"Atualizado"
+}
+
 chrome_history() {	;	Bloqueia a exclusao de historico
 	RegRead,	history,	HKLM,	SOFTWARE\Policies\Google\Chrome,	IncognitoEnabled
 	if ( history != 0 )	{
@@ -256,7 +315,7 @@ json( ByRef src , params* ) {
 	return tree[1]
 }
 
-http( url , token="", show_response="0") {
+http( url , token="", show_response="0" ) {
 	static req := ComObjCreate( "Msxml2.XMLHTTP" )
 	req.open( "GET", url, false )
 	if	( token = "" )
@@ -308,15 +367,11 @@ login( @usuario, @senha, @admin = "" ) {
 									:	"0"
 }
 
-new_instance( Script, Wait:=true )	{	;	in development
-	;ExecScript(Script, Wait:=true)	;	this is the original name
+new_instance( Script )	{	;	in development
     shell	:= ComObjCreate("WScript.Shell")
-    exec	:= shell.Exec("AutoHotkey.exe /ErrorStdOut *")
+    exec	:= shell.Exec( A_AhkPath " /ErrorStdOut *")
     exec.StdIn.Write( script )
     exec.StdIn.Close()
-
-    if Wait
-        return exec.StdOut.ReadAll()
 }
 
 notificar( ) {	;	DEFASADO - email_notificador() é o novo

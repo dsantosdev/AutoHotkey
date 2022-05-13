@@ -1,7 +1,7 @@
 ﻿if	inc_string
 	Return
 Global inc_string = 1
-
+#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 Class	String		{
 
 	Name( name )							{
@@ -199,4 +199,5 @@ Class	String		{
 		else
 			return "0(0" SubStr( numero_telefone , 1 , 2 ) ") " SubStr( numero_telefone , 4 , 4 ) " - " SubStr( numero_telefone , -3 )
 	}
+
 }

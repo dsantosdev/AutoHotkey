@@ -154,8 +154,8 @@ return
 			; Gosub	fill_model
 			Gui.Font( "cWhite" , "s10" )
 		Gui,Add,Edit,%		"xm	w760		ReadOnly				h142	vdebug_output"				,	Output Debug...
-		Gui,Add,Button,%	"xm	w760															gVars"	,	Configurar	;	Executa configuração
-		; Gui,Add,Button,%	"xm	w760															gDguard",	Configurar	;	Executa cadastro ou atualização
+		; Gui,Add,Button,%	"xm	w760															gVars"	,	Configurar	;	Executa configuração
+		Gui,Add,Button,%	"xm	w760															gDguard",	Configurar	;	Executa cadastro ou atualização
 		Gui,Show,																						,	Dahua Config
 	return
 ;
@@ -187,7 +187,7 @@ return
 		; debug .= SubStr( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=reboot" ), 1, 2 )	= "Ok"
 																												; ? "`nCâmera configurada!`n`nReiniciando a câmera agora..."
 																												; : "`nCâmera configurada!`n`nFalha ao reiniciar a câmera, reinicie a câmera manualmente."
-		
+
 		GuiControl, , debug_output,% debug
 		SendMessage,0x115,7,0,Edit13,Dahua Config
 	Return
@@ -201,11 +201,11 @@ return
 			license_%A_Index%	:= json( dguard.http( "http://192.9.100.18" A_Index ":8081/api/licenses/projects" , token_%A_Index% ) )
 
 			servers_%A_Index%	:=	json( servidores := dguard.http( "http://192.9.100.18" A_Index ":8081/api/servers" , token_%A_Index% ) )
-			; MsgBox % servers_%A_Index%
-			MsgBox % Clipboard:=unicode(servidores)
+
+			; MsgBox % Clipboard:=unicode(servidores)
 			StringReplace,	servidores, servidores, "active":true, "active":true	, UseErrorLevel
 				ativas	:= ErrorLevel
-			
+
 			sigla := SubStr( cam_name, 1, InStr( cam_name , " |" )-1 )
 			StringReplace,	servidores, servidores, "%sigla% |	, "%sigla% |	, UseErrorLevel
 				existentes_mesma_unidade := ErrorLevel
@@ -221,7 +221,7 @@ return
 			}
 
 			ip_livres_%A_Index%	:=	( dgip_%A_Index% + dgdvr_%A_Index% ) - servers_%A_Index%.servers.Count()
-			MsgBox % ativas "`n" existentes
+			; MsgBox % ativas "`n" dgip_%main_index% "`n" dgdvr_%main_index%
 		}
 		Loop, 4
 			MsgBox %	"Licenças IP`t"		dgip_%A_Index%

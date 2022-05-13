@@ -1,29 +1,10 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\atualiza_contatos.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "atualiza_contatos" "0.0.0.14" """
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Version=0.0.0.14
-Inc_File_Version=1
-Product_Name=atualiza_contatos
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\AHK\icones\fun\mag.ico
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
+﻿File_Version=0.1.0
+Save_To_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\mag.ico
 
 ;	Includes
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
@@ -43,6 +24,10 @@ Icon_1=C:\AHK\icones\fun\mag.ico
 	show_tooltip	:=	A_Args[1]
 	if ( A_UserName = "dsantos" )
 		show_tooltip = 1
+	if A_IsCompiled
+		ext	= exe
+	Else
+		ext = ahk
 ;
 
 ;	Configuração
@@ -52,7 +37,7 @@ Icon_1=C:\AHK\icones\fun\mag.ico
 ;
 
 ;	Arrays
-	funcionarios := []
+	funcionarios	:= []
 ;
 
 ;	Busca contatos no oracle
@@ -209,10 +194,15 @@ Icon_1=C:\AHK\icones\fun\mag.ico
 					,'%admissao%'
 					,'%id_local%'		)
 			)
-			; Clipboard:= atualiza_dados
-			; MsgBox
+
 		atualiza_dados := sql( atualiza_dados , 3 )
+		if InStr( cargo, "agente de monitoramento" ) {
+			OutputDebug % "Atualizando usuário ad monitoramento`n`t" nome
+			Run,	operadores_update_ad_user.%ext% "%nome%"
+		}
+
 	}
+	
 ;
 
 ;	Remove demitidos

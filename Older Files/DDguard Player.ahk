@@ -1,21 +1,5 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\DDguard Player.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe"
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Version=0.2.7.4
-Inc_File_Version=0
-Internal_Name=ddguard player
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-
-* * * Compile_AHK SETTINGS END * * *
-*/
+﻿File_Version=0.2.8.0
+Save_to_sql=1
 
 ;@Ahk2Exe-SetMainIcon	C:\Seventh\Backup\ico\2sm.ico
 ;	Configs
@@ -32,7 +16,7 @@ Set_AHK_Version=1
 	software		=	ASM
 	salvar			=	0
 	debug			=	0
-	version			=	2.7.5
+	version			=	0.2.8.0
 	need_admin		=	1
 	tray_bg_color	=	9BACC0
 	reg_backup_srv	=	
@@ -45,27 +29,23 @@ Set_AHK_Version=1
 ;
 	
 ;	Includes
-	; #Include ..\class\alarm.ahk
-	; #Include ..\class\array.ahk
-	; #Include ..\class\base64.ahk
-	; #Include ..\class\convert.ahk
-	; #Include ..\class\cor.ahk
-	; #Include ..\class\dguard.ahk
-	#Include ..\class\functions.ahk
-	; #Include ..\class\gui.ahk
-	; #Include ..\class\listview.ahk
-	; #Include ..\class\mail.ahk
-	; #Include ..\class\safe_data.ahk
-	#Include ..\class\sql.ahk
-	; #Include ..\class\string.ahk
-	; #Include ..\class\telegram.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
 
-	; #Include ..\class\timer.ahk
-	; #Include ..\class\windows.ahk
-;
-
-;	Resources
-; 	FileInstall, ..\class\toasty.png, ..\toasty\toasty.png, 1
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\timer.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	Traymenu
@@ -88,18 +68,17 @@ Set_AHK_Version=1
 
 ;	Prepara os diretórios e copia o executável de update
 	FileCreateDir,	C:\Seventh\backup
-	FileCopy,		%smk%update.exe,	C:\Seventh\backup\update.exe,				1
+	FileCopy,%	smk	"update.exe",	C:\Seventh\backup\update.exe,	1
 ;
 
 ;	Timers
-	; if ( ip != 100 ) {
 		if ( A_UserName != "Alberto" ) {
 			SetTimer,	close_messageBox,	50		;	Define o tema do dguard ao iniciar, se houver disparo no iris gera o disparo sonoro e fecha janelas desnecessárias do dguard
 			SetTimer,	auto_restore,		1000	;	Verifica se é 07:00 ou 19:00 para efetuar o restauro dos layouts das colunas
+			SetTimer,	talkto,				30000	;	Sistema de speech to text via telegram
 		}
 		SetTimer,	restore_time,			60000
 		SetTimer,	new_mail,				60000
-	; }
 
 	SetTimer, guid, -5000	;	Limpa as GUI's iniciais do Sistema Monitoramento
 ;
@@ -204,6 +183,8 @@ return
 		return
 	else if( pass = "close" )
 			ExitApp
+	else if( pass = "path" )
+			MsgBox % "C:\Users\dsantos\Desktop\AutoHotkey\Older Files\DDguard Player.ahk"
 	else if( pass = "toasty" ) {
 			email_notificador( "toasty" )
 		Return
@@ -538,6 +519,7 @@ return
 			if InStr( n , "Web Filter Violation" )
 				SoundPlay, \\fs\Departamentos\monitoramento\Monitoramento\Dieisson\SMK\hahaha.wav
 		}
+		OutputDebug % "Auto Restore"
 		ListLines,	On
 	return
 
@@ -616,3 +598,64 @@ guid:
 		else if( strlen( _tarde := q[3,1] ) = 0 )
 			_tarde = 190000
 return
+
+
+talkto:
+	OutputDebug % "Talk To"
+	
+	if ( (	SubStr( A_Now, 1, 10 )	> "185900"
+		&&	SubStr( A_Now, 1, 10 )	< "190011" )
+	|| (	SubStr( A_Now, 1, 10 )	> "065900"
+		&&	SubStr( A_Now, 1, 10 )	< "070011" ) )
+		Return
+	talk_operador := A_IPAddress1	= "192.9.100.102"
+									? "1"
+									: A_IPAddress1	= "192.9.100.106"
+									? "2"
+									: A_IPAddress1	= "192.9.100.109"
+									? "3"
+									: A_IPAddress1	= "192.9.100.114"
+									? "4"
+									: A_IPAddress1	= "192.9.100.118"
+									? "5"
+									: A_IPAddress1	= "192.9.100.123"
+									? "6"
+									: A_IPAddress1	= "192.9.100.100"
+									? "0"
+									: ""
+
+	if	( talk_operador = "" )
+		Return
+
+	s	=
+		(
+			SELECT
+				 [id]
+				,[command]
+			FROM
+				[Telegram].[dbo].[command]
+			WHERE
+				[return] IS NULL 
+			AND
+				[command] LIKE '%talk_operador%]`%'
+		)
+	talk_messages := sql( s, 3 )
+	Loop,% talk_messages.Count()-1 {
+		id_executado	:=	talk_messages[A_Index+1,1]
+		message			:=	StrSplit( talk_messages[A_index+1, 2], "][" )
+				
+		SoundGet, master_volume
+		SoundSet, 100
+		Sleep, 1000
+		windows.speak( message[2] )
+		SoundSet,%	master_volume
+		Telegram.SendMessage( "Mensagem executada para o operador " message[1], "reply_to_message_id=" message[3], "chat_id=" message[4] )
+		u =
+			(
+				UPDATE [Telegram].[dbo].[command]
+				SET [return] = 'Executado'
+				WHERE [id] = '%id_executado%'
+			)
+		sql( u, 3 )
+	}
+Return

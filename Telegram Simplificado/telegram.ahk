@@ -67,10 +67,14 @@ SendImage( file, caption := "" )	{
 	return RequestFormData( url, objParam )	
 }
 
-SendText( text, replyMarkup="", parseMode="" )	{
+SendText( text, replyMarkup="", parseMode="", params* )	{
 	if InStr( text ,"\x" )
 		text := StrReplace( text, "\x", "`%"  )
-	url	:=	token "/sendmessage?chat_id=" from_ID "&text=" text "&reply_markup=" replyMarkup "&parse_mode=" parseMode
+	if params.Count()
+		url	:=	token "/sendmessage?chat_id=" from_ID "&text=" text "&reply_markup=" replyMarkup "&parse_mode=" parseMode "&" params[A_Index]
+	Else
+		url	:=	token "/sendmessage?chat_id=" from_ID "&text=" text "&reply_markup=" replyMarkup "&parse_mode=" parseMode
+		; MsgBox % Clipboard := url
 	return Request( url )
 }
 

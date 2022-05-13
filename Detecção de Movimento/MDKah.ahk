@@ -1,4 +1,4 @@
-﻿File_version=0.1.5.2
+﻿File_version=1.5.2
 Save_to_sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
@@ -28,7 +28,7 @@ BD = MotionDetection
 Menu,	Tray,	Icon,	C:\Seventh\Backup\ico\2motion.ico
 #Persistent
 #SingleInstance, Force
-	sys_vers	= Detecção de Movimento %File_version% - 15/04/2022
+	sys_vers	= Detecção de Movimento %File_version% - 13/05/2022
 	2_operadores= 0
 ;
 
@@ -123,7 +123,7 @@ verifica_imagens:
 	;
 
 	;	Verifica se é horário de detecção e se está compilado
-		OutputDebug % "Verifica se é horário de detecção e se está compilado"
+		OutputDebug % "Verifica se é horário de detecção"
 		If( Substr( A_Now, 9 ) < "203000"		;	Fora da faixa de horário de execução
 		&&	SubStr( A_Now, 9 ) > "060000" )	{
 			ico			= 2motionp
@@ -175,12 +175,10 @@ verifica_imagens:
 		OutputDebug % "Imagens"
 		Loop, Files,%	buscar
 		{
-			If( A_IPAddress1 != "192.9.100.100" )	{	;	Lida com imagens fora do horário de atendimento
-				If( Substr( A_Now, 9 ) > "60000"
-				&&	Substr( A_Now, 9 ) < "203000" )	{
-					FileDelete,%	A_LoopFileFullPath
-					Continue
-				}
+			If( Substr( A_Now, 9 ) > "060000"
+			&&	Substr( A_Now, 9 ) < "203000" )	{
+				FileDelete,%	A_LoopFileFullPath
+				Continue
 			}
 
 			arquivo			:=	StrSplit( A_LoopFileName, "_" )

@@ -1,4 +1,4 @@
-﻿File_version=0.0.0.36
+﻿File_version=0.1.0
 save_to_sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\bat.ico
 
@@ -29,15 +29,50 @@ save_to_sql=1
 ;	Includes
 	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
 	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
 	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\sync_data.ahk
 	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
+;	auto atualizador
+	script := SubStr( A_ScriptName, 1, -4 )
+	s	=
+		(
+			SELECT TOP(1)
+				 [pkid]
+				,[name]
+				,[bin]
+				,[version]
+				,[date]
+				,[obs]
+			FROM
+				[ASM].[dbo].[Softwares]
+			WHERE
+				[name] = '%script%'
+			ORDER BY
+				1
+			DESC
+		)
+	sql	:=	sql( s, 3 )
+	
+	compare_version := StrRep( sql[ 2, 4 ], , "." ) <= StrRep( File_version, , "." )+1 ? "Keep" : "Update"
+	Goto %compare_version%
+
+	Update:
+		base64.FileDec( sql[ 2, 3 ], A_ScriptDir "\" sql[ 2, 2 ] "_new.exe" )
+		Loop
+			if fileExist( A_ScriptDir "\" sql[ 2, 2 ] "_new.exe" )
+				break
+		change_name( sql[ 2, 4 ], script )
+;
+
 ;	Timers
-	Gosub, load_vars
-	SetTimer,	verifica_horario_execução,	5000	;	a cada 5 segundos verifica os horários
+	Keep:
+		Gosub	load_vars
+		SetTimer,	verifica_horario_execução,	5000	;	a cada 5 segundos verifica os horários
+	Return
 ;
 
 ;	Shortcuts
@@ -164,9 +199,9 @@ save_to_sql=1
 			||	ErrorLevel <> 0)
 				ToolTip
 			Else
-				ToolTip,%	StrLen( atualizado )	= 0
-													? "Não efetuou atualização ainda, aguarde a próxima troca de hora ou pressione CTRL+F2"
-													: "Última execução às " atualizado "`nmm : ss = " A_Min " : " A_Sec,	50,	50
+				ToolTip,%	StrLen( atualizado )= 0
+												? "Não efetuou atualização ainda, aguarde a próxima troca de hora ou pressione CTRL+F2"
+												: "Última execução às " atualizado "`nmm : ss = " A_Min " : " A_Sec,	50,	50
 		;
 
 		;	prepara variável de tempo
@@ -174,10 +209,10 @@ save_to_sql=1
 		;
 
 		;	Execução
-
+			
+			log	=	;	Adicionado devido a estouro de memória
 			Loop,%	sistemas.Count() {
 
-				
 				SetTimer, verifica_horario_execução, Off
 				sleep,	1000
 				index :=	A_Index
@@ -240,6 +275,9 @@ save_to_sql=1
 				[ASM].[dbo].[Softwares]
 			WHERE
 				[Name]	= '%nome_do_software_para_sql%'
+			ORDER BY
+				[PKID]
+			DESC
 			)
 			bins := sql( s, 3 )
 
@@ -290,4 +328,23 @@ save_to_sql=1
 		log2=
 		Menu, Tray,	Tip, Gestor de Serviços`nùltima execução: %atualizado%`t%software%
 	Return
+;
+
+;	Atualizador
+	change_name( new_version, software ){
+		update_software	:=	"ToolTip, Atualizando Servidor"
+						.	"`nSleep, 2000"
+						.	"`nFileMove	,"
+										.	A_ScriptFullPath
+										.	"," SubStr( A_ScriptFullPath, 1 , -4 ) "_old.exe, 1`nsleep 1000"
+						.	"`nFileMove	,"
+										.	SubStr( A_ScriptFullPath, 1 , -4 ) "_new.exe,"
+										.	A_ScriptFullPath ", 1`nsleep 1000"
+
+						.	"`nFileDelete,"	SubStr( A_ScriptFullPath, 1 , -4 ) "_old.exe`nsleep 1000"
+						.	"`nRun, "		A_ScriptFullPath
+						.	"`nExitapp"
+		new_instance( update_software )
+		ExitApp
+	}
 ;

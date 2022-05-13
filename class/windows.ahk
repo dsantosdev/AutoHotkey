@@ -38,13 +38,15 @@ Class	Windows	{
 			}
 	}
 
-	Speak( text, language="1" )	{
+	Speak( text, language="1", volume="100", speed="1" )	{
+
 		speak	:= ComObjCreate("SAPI.SpVoice")
 		; For languages In voice.GetVoices
 			; msgbox % languages.GetDescription
-		speak.Volume := 100
-		speak.rate := 2
-		return	speak.Speak( text )
+		speak.Volume := volume
+		speak.rate := speed
+		speak.Speak( text )
+		return
 		; return	speak.Speak( text ).GetVoices().Item( %language% ) ; Item is Zero based
 	}
 

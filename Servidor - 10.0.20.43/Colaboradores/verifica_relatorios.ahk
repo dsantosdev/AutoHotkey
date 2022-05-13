@@ -1,4 +1,4 @@
-﻿File_Version=0.0.0.3
+﻿File_Version=0.0.3
 Save_To_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\mail.ico
 
@@ -42,7 +42,7 @@ Save_To_Sql=1
 		CoordMode, ToolTip, Screen
 
 	if A_IsCompiled
-		ext	=	exe
+		ext	= exe
 	Else
 		ext = ahk
 
@@ -53,7 +53,7 @@ Save_To_Sql=1
 		s	=
 			(
 				SELECT
-					a.[login_ad]
+					 a.[login_ad]
 					,a.[turno]
 					,b.[nome]
 				FROM
@@ -67,7 +67,8 @@ Save_To_Sql=1
 			)
 		s	:=	sql( s ,3 )
 		Loop,%	s.Count()-1 {
-			if( s[A_index+1, 2] = Mod( A_YDay, 2 ) = 1 ? 0 : 1 )
+			if( s[A_index+1, 2] != Mod( A_YDay, 2 ) )
+			; if( s[A_index+1, 2] = Mod( A_YDay, 2 ) )	;	DEBUG do outro dia
 				operadores.Push({	user_ad		:	s[A_Index+1, 1]
 							,		user_name	:	s[A_Index+1, 3] })
 		}
@@ -86,13 +87,13 @@ Save_To_Sql=1
 				FROM
 					[ASM].[dbo].[_relatorios_individuais]
 				WHERE	--	Dia de trabalho anterior do turno atual
-					(	Datepart( dayofyear, [data] ) = Datepart( dayofyear, GETDATE()-2 )
-					AND	(	Datepart(hour,[data]) >= 8										--	Turno do dia ← ↓
-						AND	Datepart(hour,[data]) <= 19	)	)
+					(	DATEPART( dayofyear, [data] ) = DATEPART( dayofyear, GETDATE()-2 )
+					AND	(	DATEPART(hour,[data]) >= 8										--	Turno do dia ← ↓
+						AND	DATEPART(hour,[data]) <= 19	)	)
 				OR		--	Noite de trabalho anterior do turno atual
-					(	Datepart( dayofyear, [data] ) = Datepart( dayofyear, GETDATE()-3 )
-					AND	(	Datepart(hour,[data]) >= 20										--	Turno da noite ← ↓
-						OR	Datepart(hour,[data]) <= 7	)	)
+					(	DATEPART( dayofyear, [data] ) = DATEPART( dayofyear, GETDATE()-3 )
+					AND	(	DATEPART(hour,[data]) >= 20										--	Turno da noite ← ↓
+						OR	DATEPART(hour,[data]) <= 7	)	)
 				AND		--	Relatório não está vazio
 					[relatorio] IS NOT NULL
 				ORDER BY
@@ -118,7 +119,6 @@ Save_To_Sql=1
 			Else
 				sem_relatorio	.=	operadores[ A_Index ].user_name "`n`t"
 		Sort, sem_relatorio
-
 		sem_relatorio	:=	"Lista de colaboradores do turno de hoje`nque não fizeram relatório Individual no último dia de trabalho:`n`n`t" sem_relatorio
 		mail_beto		:=	sem_relatorio quebra_linha "`nRelatórios Individuais do turno de hoje, do dia de trabalho anterior:`n`n`n" mail_beto
 		subject			:=	"Relatórios Individuais " SubStr( datetime(), 1, 10)
@@ -127,6 +127,7 @@ Save_To_Sql=1
 		mail.new( "alberto@cotrijal.com.br", subject, mail_beto )
 		OutputDebug % "E-mail do Alberto enviado"
 
+		; mail.new( "dsantos@cotrijal.com.br", subject, sem_relatorio )	;	debug
 		mail.new( "dsantos@cotrijal.com.br", subject, sem_relatorio,,,"ddiel@cotrijal.com.br","arsilva@cotrijal.com.br" )
 		OutputDebug % "E-mail dos tucos enviado"
 	ExitApp	

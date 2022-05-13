@@ -121,7 +121,10 @@ webhook:
 					Goto getpicture
 				}
 				if	( usuarios[MAP( usuarios, from_id, "ChatID" )].admin = 99 ) {	;	admin MAX commands 
-					comando_recebido	:=	SubStr( mtext, 1, InStr( mtext, " " )-1 )
+					if	InStr(mtext, " ")
+						comando_recebido	:=	SubStr( mtext, 1, InStr( mtext, " " )-1 )
+					Else
+						comando_recebido	:=	mtext
 					OutputDebug % comando_recebido "`n`t" A_LineNumber
 					if pos := InArray( comandos_adm, StrReplace( comando_recebido, "/" ) ) {
 						OutputDebug % "Executando comando ADM`n`t" A_LineNumber
@@ -273,8 +276,24 @@ Return
 
 	Return
 
-	talk:
-
+	talkto:
+		OutputDebug % "Executando talkto(rotina)`n`t" A_LineNumber
+		param 	= [name]
+		fulltext:= StrReplace( StrReplace( StrReplace( StrReplace( mtext, "/" ), "talkto " ), "`n"), "`r")
+		operator:= SubStr( fulltext , 1, InStr( fulltext, " ")-1 )
+		text	:= SubStr( fulltext, InStr( fulltext, " ")+1 )
+		; MsgBox % fulltext "`n" operator "`n" text
+		s =
+			(
+				IF NOT EXISTS (SELECT * FROM [Telegram].[dbo].[command] WHERE [command] LIKE '%operator%][%text%][`%' AND [return] IS NULL)
+					INSERT INTO
+						[Telegram].[dbo].[command]
+						([command])
+					VALUES
+						('%operator%][%text%][%message_id%][%from_id%')
+			)
+		sql( s, 3 )
+		SendText( html_encode( "Mensagem enviada, aguardando execução na máquina do operador " ) operator )
 	Return
 ;
 ^+END::

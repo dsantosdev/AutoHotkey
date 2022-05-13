@@ -25,6 +25,8 @@ F1::
 F2::
 	InputBox, userad, Buscar Informações de Conta no AD, Insira o NOME COMPLETO do usuário que deseja consultar:
 	Goto executa
+F3::
+	Goto teste
 
 executa:
 	; for o in ComObjGet("winmgmts:").ExecQuery("Select * From Win32_UserAccount where FullName = '" userad "'" )
@@ -42,3 +44,8 @@ executa:
 				.	"`nEstado :`t`t"			o.status
 	}
 ExitApp
+
+teste:
+	for o in ComObjGet("winmgmts:").ExecQuery("Select * From Win32_UserAccount WHERE FullName = 'Djeison Andrei Diel' " )
+		MsgBox % o.Name "`n" o.FullName "`n" o.status
+Return

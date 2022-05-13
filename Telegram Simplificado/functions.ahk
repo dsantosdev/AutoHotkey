@@ -185,7 +185,7 @@ Request(url)											{
 		if( debug = 3 )
 			OutputDebug	%	"`t`tMSXML2:`n" req.responseText
 		return	req.responseText
-		}
+	}
 	if( debug = 3 )
 		OutputDebug	%	"`t`tWinHttp:`n"	req.responseText
 	return	req.responseText

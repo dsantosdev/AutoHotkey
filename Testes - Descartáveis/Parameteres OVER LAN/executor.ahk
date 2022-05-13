@@ -1,0 +1,1 @@
+﻿Run, "%A_AhkPath%" "C:\Users\dsantos\Desktop\AutoHotkey\Testes - Descartáveis\Parameteres OVER LAN\client.ahk" 192.9.100.112:27015 "C:\Dguard Advanced\msg.ahk" MyScriptArgument1 MyScriptArgument2

@@ -132,7 +132,7 @@ Class	dguard {
 			MsgBox Arquivo não existe
 	}
 
-	http( url , token , data="" )												{
+	http( url , token="" , data="" )												{
 		; data:={"username":"demo","password":"test123"} ; key-val data to be posted
 		; if StrLen( data ) {
 		; 	try	{
