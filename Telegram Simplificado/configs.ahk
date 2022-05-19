@@ -1,7 +1,7 @@
 #SingleInstance	Force
 #Persistent
-Global	comandos	:=	["ignore","Restore","dbstatus"]
-	,	comandos_adm:=	["ignore","Restore","dbstatus","getpicture","getinfo","talkto","reload"]
+Global	comandos	:=	["ignore","Restore","dbstatus","resetabanheiro"]
+	,	comandos_adm:=	["ignore","Restore","dbstatus","getpicture","getinfo","talkto","reload","reboot"]
 	,	debug
 	,	fail		:=	{}
 	,	from_id

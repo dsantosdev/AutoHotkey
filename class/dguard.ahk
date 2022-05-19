@@ -81,9 +81,9 @@ Class	dguard {
 		DllCall( "AttachConsole" , "UInt" , pid )
 		WshShell := ComObjCreate( "Wscript.Shell" )
 		if ( StrLen( tipo ) > 0 && StrLen( server ) > 0 )	{												;	Tem servidor e tipo
-			; clipboard := "curl -X " tipo " " StrReplace( comando , "servidor" , server ) 
+			clipboard := "curl -X " tipo " " StrReplace( comando , "servidor" , server ) 
 			exec := WshShell.Exec( "cmd /c curl -X " tipo " " StrReplace( comando , "servidor" , server ) )
-			}
+		}
 		else if ( StrLen( tipo ) > 0 && StrLen( server ) = 0 )												;	Não tem servidor e tem tipo
 			exec := WshShell.Exec( "cmd /c curl -X " tipo " " comando )
 		else if ( StrLen( tipo ) = 0 && StrLen( server ) > 0 )												;	Tem servidor e não tem tipo
@@ -92,6 +92,7 @@ Class	dguard {
 			exec := WshShell.Exec( "cmd /c curl -X " comando )
 		else																								;	Tipo GET
 			exec := WshShell.Exec( "cmd /c curl -X GET " comando " -d" )
+
 		DllCall( "FreeConsole" )
 		Process Close,%	pid
 		return exec.StdOut.ReadAll()
@@ -132,27 +133,48 @@ Class	dguard {
 			MsgBox Arquivo não existe
 	}
 
-	http( url , token="" , data="" )												{
+	html_encode(str)															{
+		f:=A_FormatInteger
+		SetFormat, Integer, Hex
+		If RegExMatch(str, "^\w+:/{0,2}", pr)
+			StringTrimLeft, str, str, StrLen(pr)
+		str:=StrReplace(str, "%","%25")
+		Loop
+			If RegExMatch(str, "i)[^\w\.~%]", char)
+				str:=	Asc(char)="0xA"
+				?		StrReplace(str,char,"%0" SubStr(Asc(char),3,1))
+				:		StrReplace(str,char,"%" SubStr(Asc(char),3))
+			Else Break
+		if(InStr(str,"%9")>0)
+		str:=StrReplace(str,"%9","%09")
+		SetFormat, Integer, %f%
+		Return, pr . str
+	}
+
+	http( url , token="" , data="", method="GET" )								{
 		; data:={"username":"demo","password":"test123"} ; key-val data to be posted
 		; if StrLen( data ) {
-		; 	try	{
-		; 	createFormData(rData,rHeader,data) ; formats the data, stores in rData, header info in rHeader
-		; 	hObject:=comObjectCreate("WinHttp.WinHttpRequest.5.1") ; create WinHttp object
-		; 	hObject.setRequestHeader("Content-Type",rHeader) ; set content header
-		; 	hObject.open("POST",endpoint) ; open a post event to the specified endpoint
-		; 	hObject.send(rData) ; send request with data
-			
-		; 	}
-		; 	catch e	{
-		; 		return e.message
-		; 	}
+			; try	{
+			; createFormData(rData,rHeader,data) ; formats the data, stores in rData, header info in rHeader
+			; hObject:=comObjectCreate("WinHttp.WinHttpRequest.5.1") ; create WinHttp object
+			; hObject.setRequestHeader("Content-Type",rHeader) ; set content header
+			; hObject.open("POST",endpoint) ; open a post event to the specified endpoint
+			; hObject.send(rData) ; send request with data
+			; 
+			; }
+			; catch e	{
+				; return e.message
+			; }
 		; }
 		; Else	{
+			if	data
+				; CreateFormData(postData, hdr_ContentType, data)
 			static req := ComObjCreate( "Msxml2.XMLHTTP" )
-			req.open( "GET", url, false )
+			req.open( method, url, false )
+			OutputDebug % url "`n" method
 			req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
-			req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
-			req.send()
+			req.SetRequestHeader( "content-type: application/json" )
+			req.send(data)
 			return	% req.responseText
 		; }
 	}

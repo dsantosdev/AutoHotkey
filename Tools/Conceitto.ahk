@@ -22,16 +22,16 @@ Set_AHK_Version=1
 	inicio	:=	A_Now
 	#Persistent
 	#SingleInstance Force
-	#Include ..\class\array.ahk
-	; #Include ..\class\cor.ahk
-	#Include ..\class\dguard.ahk
-	#Include ..\class\functions.ahk
-	#Include ..\class\gui.ahk
-	; #Include ..\class\mail.ahk
-	; #Include ..\class\safe_data.ahk
-	#Include ..\class\string.ahk
-	#Include ..\class\sql.ahk
-	; #Include ..\class\windows.ahk
+	#Include C:sers\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include C:sers\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	#Include C:sers\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	#Include C:sers\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	#Include C:sers\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	; #Include C:sers\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include C:sers\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
+	#Include C:sers\dsantos\Desktop\AutoHotkey\class\string.ahk
+	#Include C:sers\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	; #Include C:sers\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	Definições
@@ -62,6 +62,7 @@ Set_AHK_Version=1
 		OutputDebug % StrLen( token_4 ) > 0
 										? "-Obtido token 4`n`t" token_4 "`n"
 										: "Falha ao obter token 4`n"
+	MsgBox % Clipboard := token_4
 ;
 
 ;	Informações das câmeras contidas no d-guard

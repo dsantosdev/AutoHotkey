@@ -1,4 +1,4 @@
-﻿File_Version=0.0.0.16
+﻿File_Version=0.1.16
 Save_To_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\cam.ico
 
@@ -185,7 +185,7 @@ Save_To_Sql=1
 												: "KeyOk"
 
 		}
-		
+		MsgBox % clipboard := key_vdm04
 		Menu, Tray, Tip , Atualizador [dguard].[dbo].[cameras]`nVersão %Current_Version%
 		Return
 
@@ -215,7 +215,6 @@ Save_To_Sql=1
 									,	"{"
 									,	"}" )
 				remove_deletados.= "'" guid "',"
-
 				receiver		:= dguard.contact_id( "vdm" indice ".cotrijal.local", guid, key_vdm%indice% )
 				info			:= dguard.cameras_info( "vdm" indice											;	dados da câmera seleciona
 											,	guid

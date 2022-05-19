@@ -11,7 +11,7 @@ Class	Folder	{
 			FileDelete,%	A_LoopFileFullPath "\DVRWorkDirectory"
 			Folder.Clear( A_LoopFileFullPath )
 		}
-		FileRemoveDir,%	A_LoopFileFullPath
+		FileRemoveDir,%	A_LoopFileFullPath, 1
 		return
 	}
 

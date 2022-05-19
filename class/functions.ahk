@@ -3,12 +3,17 @@
 Global	inc_functions = 1
 
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
+#Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 
 ; auto_update( software, version, script_dir, full_path ) {	;	Auto update do sistema via versão nova na base de dados
-auto_update( software, version ) {	;	NECESSITA TESTE - Auto update do sistema via versão nova na base de dados	
-	if InStr( software, ".exe" )
-		software := SubStr( software, 1, -4 )
+auto_update( version, software="" ) {	;	NECESSITA TESTE - Auto update do sistema via versão nova na base de dados	
+	if Software
+		if InStr( software, ".exe" )
+			software := SubStr( software, 1, -4 )
+	Else
+		software := SubStr( A_ScriptName, 1, -4 )
+
 	s =
 		(
 			SELECT	TOP(1)
@@ -24,13 +29,25 @@ auto_update( software, version ) {	;	NECESSITA TESTE - Auto update do sistema vi
 			DESC 
 		)
 	sql	:=	sql( s, 3 )
-	if ( sql.count(-1 = 0) )
-		Return "Atualizado"
+	if ( sql.count()-1 = 0 )
+		Return "Sem atualização disponível."
 
 	version_sql := StrSplit( sql[ 2, 3 ], "." )
 	version_file:= StrSplit( version, "." )
-	Loop, 4	;	Compara versão do executável com a base de dados
-		if ( version_sql[A_Index] > version_file[A_Index] )	{	;	se qualquer um dos campos de versão na base de dados for maior, atualiza
+
+	Loop, 3	{ ;	Compara versão do executável com a base de dados
+		if (A_Index = 3)
+			sql_version := version_sql[A_Index]-1
+		Else
+			sql_version := version_sql[A_Index]
+		; OutputDebug % sql_version " " version_file[A_Index]
+		if ( sql_version > version_file[A_Index] )	{	;	se qualquer um dos campos de versão na base de dados for maior, atualiza
+			MsgBox, 4, Atualização Disponível,% "Atualização disponível, gostaria de atualizar?"
+				IfMsgBox No
+				{
+					skip = 1
+					Return
+				}
 			base64.FileDec( sql[ 2, 2 ], A_ScriptDir "\" software "_new.exe" )
 			Loop	{
 				Sleep, 1000
@@ -38,9 +55,14 @@ auto_update( software, version ) {	;	NECESSITA TESTE - Auto update do sistema vi
 					Break
 				Else If ( A_Index > 25 ) {	;	se não criou o executável após 25 segundos, retorna falha e interrompe a atualização
 					fail = 1
+					mail.new(	"dsantos@cotrijal.com.br"
+						.	,	"Falha ao atualizar o software " software
+						.	,	"Falha ao atualizar o software " software " na máquina " A_IPAddress1 ", usuário logado " A_UserName " em " datetime() )
 					Break
 				}
 			}
+			if	Skip
+				Return "Skip"
 			if	Fail	;	se não criou executável, retorna mensagem de falha 
 				Return "Falha ao criar o executável."
 			;	bloco de update
@@ -57,8 +79,9 @@ auto_update( software, version ) {	;	NECESSITA TESTE - Auto update do sistema vi
 						.	"`nRun, "		A_ScriptFullPath	;	executa o novo executável
 						.	"`nExitapp"	;	sai do script de update
 			new_instance( update_software )	;	executa a atualização assíncrona
+			ExitApp
 		}
-	return	"Atualizado"
+	}
 }
 
 chrome_history() {	;	Bloqueia a exclusao de historico
@@ -80,7 +103,9 @@ chrome_incognito() {	;	Bloqueia modo anonimo
 }
 
 datetime( sql=0, date="", format="" ) {
-	if Strlen(sql) = 14
+	sql	:= RegExReplace( sql, "[^\d]+" )
+	date:= RegExReplace( date, "[^\d]+" )
+	if Strlen( sql ) = 14	;	 se a data foi passada no campo de sql, ajusta as variáveis
 		is_date:=sql, sql:=0, date:=is_date
 	If(	sql = 2
 	&&	StrLen( date ) = 0 )	{
@@ -88,21 +113,30 @@ datetime( sql=0, date="", format="" ) {
 		Return
 	}
 	If( sql = 1 )
-		Return SubStr( A_Now, 1, 4 ) "-"  SubStr( A_Now, 5, 2 ) "-"  SubStr( A_Now, 7, 2 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 ) ".000"
-	else If ( sql = 2 )	{
-		date := RegExReplace(date, "\D")
-		Return SubStr( date, 5, 4 ) "-"  SubStr( date, 3, 2 ) "-"  SubStr( date, 1, 2 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
-	}
+		Return		SubStr( A_Now, 1, 4 ) "-"  SubStr( A_Now, 5, 2 ) "-"  SubStr( A_Now, 7, 2 )
+			.	" " SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 ) ".000"
+	else If ( sql = 2 )
+		Return		SubStr( date, 5, 4 ) "-"  SubStr( date, 3, 2 ) "-"  SubStr( date, 1, 2 )
+			.	" " SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
 	else If(	sql	=	3
-	&&			date!=	"" )	{	;	valor passado junto
-		date := RegExReplace(date, "\D")
-		Return SubStr( date, 1, 4 ) "-"  SubStr( date, 5, 2 ) "-"  SubStr( date, 7, 2 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
-	}
+	&&			date!=	"" )	;	valor passado junto
+		Return		SubStr( date, 1, 4 ) "-"  SubStr( date, 5, 2 ) "-"  SubStr( date, 7, 2 )
+			.	" " SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
 	Else If(	sql	=	0
 	&&			date!=  "")
-		return SubStr( date, 7, 2 ) "/"  SubStr( date, 5, 2 ) "/"  SubStr( date, 1, 4 ) " "  SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
+		return		SubStr( date, 7, 2 ) "/"  SubStr( date, 5, 2 ) "/"  SubStr( date, 1, 4 )
+			.	" " SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
 	Else
-		Return SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 ) " "  SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
+		Return		SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 )
+			.	" " SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
+}
+
+debug( linha, params* ) {
+	; Return
+	output := "`n"
+	for i, v in params
+		output .= v "`n`t"
+	OutputDebug % SubStr( output, 1, -2 ) "`n`tLinha:`t" linha
 }
 
 email_notificador( is_test = "" )	{
@@ -639,7 +673,7 @@ unicode( text , accentXunicode="1" ) {
 		unicode["'"] := "\u0027"
 	 For Key, Value in unicode
 	 	if accentXunicode
-		 	text := RegExReplace( text, Key,		Value )
+			text := RegExReplace( text, Key,		Value )
 	 	Else
 		 	text := RegExReplace( text, "\" Value,	Key )
 	Return	text

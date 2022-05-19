@@ -1,4 +1,4 @@
-﻿File_version=0.0.0.1
+﻿File_version=0.1.0
 save_to_sql=1
 ;@Ahk2Exe-SetMainIcon	C:\AHK\icones\fun\conceitto.ico
 	#IfWinActive, Cadastro de Câmeras

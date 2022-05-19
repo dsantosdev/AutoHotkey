@@ -91,6 +91,63 @@ Class Array	{
 		return list.Count() = "" ? 0 : list
 	}
 
+	InDict2( Array, SearchText, key_is="", partial="0", fill="" )						{
+		; OutputDebug % SearchText
+
+		if !( IsObject(Array) )	{
+			throw Exception("Não é um dicionário!", -1, Array)
+			return 0
+		}
+
+		if ( fill = 1 )	{
+			list:=[]
+			For index in Array
+				list.Push(index)
+		}
+
+		if (StrLen( SearchText ) = 0
+		&&	StrLen( fill ) = 0 )
+			return 0
+
+		;
+			For index in Array
+				For key, ArrayText in Array[index]
+					msgbox % index "&&" key "&&"  ArrayText "`n"
+					; for_regex .= index "&&" key "&&"  ArrayText "`n"
+		;
+
+		if ( strLen( key_is)  = 0 )	{
+			For index in Array
+				For key, ArrayText in Array[index]
+					if ( ArrayText = SearchText )
+						return	index
+			}
+		if ( StrLen(key_is) != 0 and partial = 0 )	{
+			For index in Array
+				For key, ArrayText in Array[index]
+				{
+					; MsgBox % key "`t" key_is
+					if ( key = key_is )	{
+						; MsgBox % ArrayText "`n" SearchText
+						if ( ArrayText = SearchText )
+							return	index
+					}
+				}
+			}
+		if ( StrLen(key_is) != 0 and partial = 1 )	{
+			list:=[]
+			For index in Array
+				For key, ArrayText in Array[index]
+					if ( key = key_is )	{
+						; OutputDebug % "INARRAY:`n`t" ArrayText "`t" SearchText
+						if ( InStr( ArrayText, SearchText ) > 0 )
+							list.Push( index )
+						}
+			; OutputDebug % "Lista: " list.Count()
+			}
+		return list.Count() = "" ? 0 : list
+	}
+
 	QueryInDict( Array, params* )														{
 		if ( debug > 2 )
 			OutputDebug % params.Count()

@@ -1,4 +1,4 @@
-﻿File_Version=0.1.0
+﻿File_Version=0.1.1
 Save_To_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\mag.ico
 
@@ -21,6 +21,7 @@ Save_To_Sql=1
 ;
 
 ;	Variáveis
+	#SingleInstance Force
 	show_tooltip	:=	A_Args[1]
 	if ( A_UserName = "dsantos" )
 		show_tooltip = 1
@@ -74,7 +75,7 @@ Save_To_Sql=1
 		contatos_oracle	:=	sql( contatos_oracle , 2 )
 		OutputDebug % contatos_oracle.Count()-1 " contatos encontrados no oracle"
 		if ( strlen( sql_le ) > 0 )			;	Se der erro na consulta, retorna sem atualizar e sem gerar erro
-		Return								;	criar sistema para notificar o módulo principal do erro
+			Return							;	criar sistema para notificar o módulo principal do erro
 ;
 
 ;	Prepara contatos e atualiza o banco do monitoramento
@@ -198,7 +199,7 @@ Save_To_Sql=1
 		atualiza_dados := sql( atualiza_dados , 3 )
 		if InStr( cargo, "agente de monitoramento" ) {
 			OutputDebug % "Atualizando usuário ad monitoramento`n`t" nome
-			Run,	operadores_update_ad_user.%ext% "%nome%"
+			Run,	C:\Dieisson\Motion Detection\operadores_update_ad_user.%ext% "%nome%"
 		}
 
 	}

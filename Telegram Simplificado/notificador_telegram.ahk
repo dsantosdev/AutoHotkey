@@ -1,3 +1,5 @@
+File_Version=0.6.0
+Save_to_SQL=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\telegram.ico
 
 #Include	configs.ahk
@@ -225,6 +227,21 @@ Return
 		mensagem := html_encode("Banco de dados não recuperado... ")
 		SendText( mensagem " \xF0\x9F\x98\x95" )
 	Return
+
+	resetabanheiro:
+		u =
+			(
+				UPDATE [ASM].[dbo].[_registro_saidas]
+				SET [retorno] = getdate()
+					,[duracao] = 9999
+				WHERE retorno is NULL
+			)
+		sql( u, 3 )
+		if sql_le
+			SendText( "Erro de SQL:`n" sql_le ) 
+		Else
+			SendText( "Banheiro restaurado!" ) 
+	Return
 ;
 ;	Elevated commands
 	getpicture:
@@ -272,6 +289,11 @@ Return
 		Reload
 	Return
 
+	reboot:
+		url = http://admin:tq8hSKWzy5A@10.2.255.216/cgi-bin/magicBox.cgi?action=reboot
+		SendText( Request( url ) )
+	Return
+
 	getinfo:
 
 	Return
@@ -295,6 +317,7 @@ Return
 		sql( s, 3 )
 		SendText( html_encode( "Mensagem enviada, aguardando execução na máquina do operador " ) operator )
 	Return
+	
 ;
 ^+END::
 	ExitApp

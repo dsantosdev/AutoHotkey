@@ -107,6 +107,6 @@ if !file_ahk
 			)
 		sql( insert_new_exe, 3 )
 	}
-	FileMove,% file_exe, C:\Users\dsantos\Desktop\Executáveis\%file_name% %file_new_version%.exe, 1
+	FileMove,% file_exe, C:\Users\dsantos\Desktop\Executáveis\%file_name%.exe, 1
 ;
 ExitApp

@@ -1,20 +1,5 @@
-﻿/*
-	* * * Compile_AHK SETTINGS BEGIN * * *
-	[AHK2EXE]
-		Exe_File=C:\users\dsantos\desktop\executáveis\ServidordeDeteccoes.exe
-		Created_Date=1
-	[VERSION]
-		Set_Version_Info=1
-		Company_Name=Heimdall
-		File_Description=
-		File_Version=0.0.0.1
-		Inc_File_Version=1
-		Product_Name=ServidordeDeteccoes
-		Product_Version=1.1.33.2
-		Set_AHK_Version=1
-	* * * Compile_AHK SETTINGS END * * *
-*/
-
+﻿File_Version=0.2.0
+Save_to_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
 	BD = MotionDetection
@@ -24,12 +9,18 @@
 	19/02/2021	-	Incrementado sistema de sinistro
 	04/04/2021	-	Adicionado sub função Restaura_Sinistro para finalizar sinistros expirados e não encerrados pelo cliente
 	03/04/2022	-	Migrado para o Visual Code
+	17/05/2022	-	Alterado banco de dados para o banco automático do dguard e alterado o sistema de arrays
 */
 
+/*	Bancos de Dados
+	[Dguard].[dbo].[cameras]
+	[Dguard].[dbo].[cameras_mac]
+	[MotionDetection].[dbo].[operadores]
+*/
 
 ;	Includes
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
@@ -39,7 +30,7 @@
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
@@ -47,39 +38,55 @@
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
-#SingleInstance, Force
-If !A_IsAdmin || !(DllCall("GetCommandLine","Str")~=" /restart(?!\S)")
-	Try RunWait, % "*RunAs """ (A_IsCompiled?A_ScriptFullPath """ /restart":A_AhkPath """ /restart """ A_ScriptFullPath """")
+;	Configurações
+	#Persistent
+	#SingleInstance, Force
+	
+	If( A_IsCompiled )	{
+		If !A_IsAdmin
+		|| !( DllCall( "GetCommandLine", "Str" ) ~= " /restart(?!\S)" )
+			Try
+				RunWait, % "*RunAs """ ( A_IsCompiled ? A_ScriptFullPath """ /restart" : A_AhkPath """ /restart """ A_ScriptFullPath """" )
+		Menu,	Tray, NoStandard
+		FileInstall,	C:\AHK\icones\_gray\2motion.ico,	%A_ScriptDir%\Log\2motion.ico,1
+		FileInstall,	C:\AHK\icones\_gray\2motionp.ico,	%A_ScriptDir%\Log\2motionp.ico,1
+	}
 
-ger_vers = Gerenciador de Imagens 1.2.11	-	19/04/2022
+	ger_vers = Gerenciador de Imagens %File_Version% - 15/05/2022
+	Debug( A_LineNumber, "Traytip=`n`t" ger_vers )
 
-If( A_IsCompiled )	{
-	Menu,	Tray, NoStandard
-	FileInstall,	C:\AHK\icones\_gray\2motion.ico,	%A_ScriptDir%\Log\2motion.ico,1
-	FileInstall,	C:\AHK\icones\_gray\2motionp.ico,	%A_ScriptDir%\Log\2motionp.ico,1
-}
+	geradas	:=	[]
 
-ToolTip	Rodando em 1 segundo...
-	Sleep	1000
-ToolTip
+	ToolTip	Executando em 1 segundo...
+		Sleep	1000
+	ToolTip
 
-#Persistent
 	Menu	Tray,	Tip,	Gerenciador de Imagens
-	if ( A_UserName = "dsantos" )
+
+	if ( A_UserName = "dsantos" ) {
 		Motion	=	\\srvftp\Monitoramento\FTP\Motion\
-	Else
+		FTP		=	\\srvftp\Monitoramento\FTP\
+	}
+	Else	{
 		Motion	=	D:\FTP\monitoramento\FTP\Motion\
-	gosub	prepara_array
-	SetTimer,	prepara_imagens,	1000
+		FTP		=	D:\FTP\monitoramento\FTP\
+	}
+
+		Debug( A_LineNumber, "Preparando Array" )
+	Gosub	prepara_array
+		Debug( A_LineNumber, "Array Preparado" )
+	
+	SetTimer,	move_imagens_para_distribuir,	1000
 	SetTimer,	Restaura_Sinistro,	300000
-	SetTimer,	distribuição,		999
+	SetTimer,	distribui_imagens_por_operador,		999
 return
 
 prepara_array:	;	SQL
-	SetTimer,	prepara_imagens,	Off
-	SetTimer,	distribuição,		Off
+	SetTimer,	move_imagens_para_distribuir,	Off
+	SetTimer,	distribui_imagens_por_operador,		Off
 	Sleep,		2000
-	reset_bd	=	;	Reseta o bando de dados motiondetection
+
+	reset_bd	=	;	Reseta o banco de dados motiondetection
 		(
 			alter database [MotionDetection] set offline with rollback immediate;
 			alter database [MotionDetection] set online
@@ -87,66 +94,55 @@ prepara_array:	;	SQL
 		sql( reset_bd, 3 )
 		Sleep,	2000
 
-	;	Rotina de array de cameras e imagens geradas
+	;	Rotina de array de cameras
 		s	=
 			(
 				Select
-					 [ip]
-					,[mac]
-					,[nome]
-					,[setor]
-					,[em_sinistro]
+					 c.[ip]
+					,m.[mac]
+					,c.[name]
+					,c.[operador]
+					,c.[sinistro]
+					,LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1)
 				FROM
-					[motiondetection].[dbo].[cameras]
-				WHERE
-					[ip] LIKE '`%' + '.' + '`%' + '.' + '`%' + '.' + '`%'
+					[Dguard].[dbo].[cameras] c
+				LEFT JOIN
+					[Dguard].[dbo].[cameras_mac] m
+				ON
+					c.[ip] = m.[ip]
 			)
 		s	:=	sql( s, 3 )
 
 		IF ( s.Count() - 1 ) > 1	{
-			cameras	:=	{}
-			geradas	:=	[]
-			Loop,%	s.Count()-1
-				cameras.push({	ip			: s[A_Index+1,1]
-							,	mac			: s[A_Index+1,2]
-							,	nome		: s[A_Index+1,3]
-							,	operador	: s[A_Index+1,4]
-							,	sinistro	: s[A_Index+1,5]	} )
+			cameras := {}
+			foscam	:= {}
+			Loop,%	s.Count()-1 {
+				cameras[s[A_Index+1,1]]	:= (s[A_Index+1,2] = "" ? "0000" : s[A_Index+1,2]) "&&"
+										.	s[A_Index+1,3] "&&"
+										.	(s[A_Index+1,4] = "" ? "0000" : s[A_Index+1,4]) "&&"
+										.	(s[A_Index+1,5] = "" ? "0000" : s[A_Index+1,5])
+				if ( s[A_Index+1,6] = "Foscam" )
+					foscam[s[A_Index+1,2]] := s[A_Index+1,1]
+			}
 		}
+		Else
+			mail.new(	"dsantos@cotrijal.com.br"
+					,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
+					,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
+	;
 
-	;	Rotina de informações de operadores
-		s	=
-			(
-				SELECT
-					 [ip]
-					,[patrimonio]
-					,[sinistro]
-					,[inicio]
-					,[fim]
-					,[finalizado]
-				FROM
-					[MotionDetection].[dbo].[operadores]
-			)
-		s	:=	sql( s , 3 )
-		sinistro	:=	{}
-		Loop,%	s.Count()-1
-			sinistro.push({	ip			:	s[A_Index+1,1]
-						,	cpc			:	s[A_Index+1,2]
-						,	estado		:	s[A_Index+1,3]
-						,	inicio		:	s[A_Index+1,4]
-						,	fim			:	s[A_Index+1,5]
-						,	finalizado	:	s[A_Index+1,6]	})
 	SetTimer,	prepara_array,	-3600000
-	SetTimer,	prepara_imagens,	On
-	SetTimer,	distribuição,	On
+	SetTimer,	move_imagens_para_distribuir,	On
+	SetTimer,	distribui_imagens_por_operador,	On
 return
 
-prepara_imagens:	;	SEM SQL
-	IfWinExist,	ServidordeDeteccoes.exe		;	Fecha janela de erro?
+move_imagens_para_distribuir:	;	SEM SQL
+	IfWinExist,	ServidordeDeteccoes.exe
 		WinClose,	ServidordeDeteccoes.exe
-	;	Reseta Inibidos
-		rdia	:=	A_YDay
-		rsec	:=	( A_Hour * 60 * 60 ) + ( A_Min * 60 ) + A_Sec
+	Debug( A_LineNumber, "Movendo Imagens" )
+	
+	;	Reseta Inibidos quando tempo expirado
+		segundo_do_dia	:=	( A_Hour * 60 * 60 ) + ( A_Min * 60 ) + A_Sec	;	É inserido na tabela quando uma câmera é inibida	
 		u		=
 			(
 				UPDATE
@@ -155,55 +151,59 @@ prepara_imagens:	;	SEM SQL
 					 [restaurado]	=	GETDATE()
 					,[geradas]		=	''
 				WHERE
-					[encerraDia]	<=	'%rdia%'
+					[encerraDia]	<=	'%A_YDay%'
 				AND
-					[encerraHorario]<=	'%rsec%'
+					[encerraHorario]<=	'%segundo_do_dia%'
 				AND
 					[restaurado] IS NULL
 			)
 		sql( u, 3 )
+	;
+
 	;	Foscam
 		Loop, Files, %Motion%Foscam\*.jpg, R
 		{
 			p_foscam:=	StrSplit( A_LoopFileFullPath, "\" )
-			mac		:=	SubStr( p_foscam[7], instr( p_foscam[7], "_" ) + 1 )
-			data	:=	SubStr( p_foscam[9], InStr( p_foscam[9], "_" ) + 1 , 8 )
-			hora	:=	SubStr( p_foscam[9], InStr( p_foscam[9], "_" ) + 10, 6 )
-			ip		=
-			ip		:=	cameras[ Array.InDict( cameras, mac, "mac" ) ].ip
+			mac		:=	SubStr( p_foscam[p_foscam.Count()-2], instr( p_foscam[p_foscam.Count()-2], "_" ) + 1 )
+			data	:=	SubStr( p_foscam[p_foscam.Count()], InStr( p_foscam[p_foscam.Count()], "_" ) + 1 , 8 )
+			hora	:=	SubStr( p_foscam[p_foscam.Count()], InStr( p_foscam[p_foscam.Count()], "_" ) + 10, 6 )
+			ip		:=	foscam[ mac ]
 			If( StrLen( ip ) = 0 )	{	;	Gera log se a consulta não retornar nome de câmera
-				FileAppend,%	datetime() " | Mac = " mac " | Data = " data " | Hora = " hora " | IP = " ip "`n", D:\FTP\Monitoramento\FTP\Log\Não achou no DB.txt
-				FileMove,%	A_LoopFileFullPath,	D:\FTP\monitoramento\FTP\AddBD\MAC - %mac% - %A_LoopFileName%
+				FileAppend,%	SubStr( datetime(), 1, 10 ) " | Mac = " mac " | Data = " data " | Hora = " hora " | IP = " ip "`n", %FTP%Log\Não achou no DB.txt
+				; MsgBox %Motion%%ip%_%data%-%hora%.jpg
+				FileMove,%	A_LoopFileFullPath,	%FTP%AddBD\MAC - %mac% - %A_LoopFileName%
 			}
-			Else	{
-				FileAppend,%	datetime() "|Mac = " mac "|" A_LoopFileFullPath "`n", D:\FTP\Monitoramento\FTP\Log\Geradas\Foscam %A_MM% - %A_DD%.txt
+			Else{
+				; MsgBox %Motion%%ip%_%data%-%hora%.jpg
 				FileMove,%	A_LoopFileFullPath, %Motion%%ip%_%data%-%hora%.jpg,	1
 			}
+
 		}
+	;
 
 	;	Dahua
 		Loop, Files, %Motion%Dahua\*.jpg, R
 		{
-			StringSplit,	path,	A_LoopFileFullPath,	\
-			If( path0 = 10 )	{
-				horario	:=	StrReplace( SubStr( path10, 1, instr( path10, "[" ) - 1 ), "." )
-				ip		:=	StrReplace( path7, "_", "." )
-				novonome:=	ip "_" StrReplace( path8, "-" ) "-" horario ".jpg"
+			path:=	StrSplit( A_LoopFileFullPath, "\" )
+			If( path.Count() = 10 )	{
+				horario	:=	StrReplace( SubStr( path[10], 1, instr( path[10], "[" ) - 1 ), "." )
+				ip		:=	StrReplace( path[7], "_", "." )
+				novonome:=	ip "_" StrReplace( path[8], "-" ) "-" horario ".jpg"
 			}
-			Else If( path0 = 12 )	{
-				tempo	:=	StrSplit( SubStr( path%path0%, 1, InStr( path%path0%, "[" ) - 1 ), "." )
+			Else If( path.Count() = 12 )	{
+				tempo	:=	StrSplit( SubStr( path[12], 1, InStr( path[12], "[" ) - 1 ), "." )
 				horario	:=	tempo[1] tempo[2]
-				ip		:=	StrReplace( path7, "_", "." )
-				novonome:=	ip "_" StrReplace( path8, "-" ) "-" path11 horario ".jpg"
+				ip		:=	StrReplace( path[7], "_", "." )
+				novonome:=	ip "_" StrReplace( path[8], "-" ) "-" path[11] horario ".jpg"
 			}
 			Else	{
-				segundos:=	SubStr( path13, 1, InStr( path13, "[" ) - 1 )
-				ip		:=	StrReplace( path7, "_", "." )
-				novonome:=	ip "_" StrReplace( path8, "-" ) "-" path11 path12 segundos ".jpg"
+				segundos:=	SubStr( path[13], 1, InStr( path[13], "[" ) - 1 )
+				ip		:=	StrReplace( path[7], "_", "." )
+				novonome:=	ip "_" StrReplace( path[8], "-" ) "-" path[11] path[12] segundos ".jpg"
 			}
-			FileAppend,%	datetime() " | "	novonome "`tpath="	path0	"`n", D:\FTP\Monitoramento\FTP\Log\Geradas\Dahua %A_MM% - %A_DD%.txt
 			FileMove,%	A_LoopFileFullPath,%	Motion novonome,	1
 		}
+	;
 
 	;	Intelbras
 		Loop, Files, %Motion%Intelbras\*.jpg, R
@@ -226,143 +226,131 @@ prepara_imagens:	;	SEM SQL
 						.	segundos ".jpg"					;	Horário
 			}
 			else	{	;	temporário
-				FileAppend,%	A_LoopFileFullPath "`n", D:\FTP\Monitoramento\FTP\Log\Erro De Split.txt
+				FileAppend,%	A_LoopFileFullPath "`n", %FTP%Log\Erro De Split.txt
 				FileDelete,%	A_LoopFileFullPath
 				Return
 			}
 			FileMove,%	A_LoopFileFullPath,%	Motion novonome,	1
 		}
+	;
+
 	;	Limpa folders vazios
 		Folder.Clear( Motion "Dahua" )
 		Folder.Clear( Motion "Intelbras" )
 		Folder.Clear( Motion "Foscam" )
+	;
 return
 
-distribuição:
-	If( A_Hour < 6 && A_Hour > 0 )
-		dia_ano	:=	A_YDay - 1
-	else
-		dia_ano	:=	A_YDay
-
-	Loop, Files,% motion "*.jpg"
-	{
-		img	:= local := setor := ""
-		;	Trata Exceções
-			If( InStr( A_LoopFileName, "schedule" ) > 0 )	{
-				FileDelete,%	A_LoopFileLongPath
-				continue
-			}
-			else If( InStr( A_LoopFileName, "MOTION_DETECTION" ) > 0 )	{	;	Hikvision Settings
-				StringSplit, imgx, A_LoopFileName,	_
-				img	:=	imgx1 "_" SubStr( imgx3, 1, 8 ) "-" SubStr( imgx3, 9, 6 )
-				StringSplit, img, img,	_
-			}
+distribui_imagens_por_operador:
+	;	Loop de distribuição
+		Loop, Files,% Motion "*.jpg"
+		{
+			img	:= local := setor := ""	;	limpa variáveis
+			
+			;	Trata Exceções
+				If( InStr( A_LoopFileName, "schedule" ) > 0 )	{
+					FileDelete,%	A_LoopFileLongPath
+					continue
+				}
+				Else If( InStr( A_LoopFileName, "MOTION_DETECTION" ) > 0 )	{	;	Hikvision Settings
+					StringSplit, imgx, A_LoopFileName,	_
+					img	:=	imgx1 "_" SubStr( imgx3, 1, 8 ) "-" SubStr( imgx3, 9, 6 )
+					StringSplit, img, img,	_
+				}
+			;
 			Else
-				StringSplit, img, A_LoopFileName,	_
-		;
-		Gosub	verificaInibidos	;	Verifica se a câmera está inibida
-		If( inibida = 1 )	{
-			geradas.push( "('" img1 "',CONVERT(DateTime,'" cdii_hora "',120),'Inibido')" )
-			continue
-		}
-		If( Array.InDict( cameras, img1 ) = 0 )	{			;	Se não constar no CADASTRO, gera log , move e vai pra próxima
-			FileRead, sem_cadastro, D:\FTP\Monitoramento\FTP\Log\Sem cadastro - %dia_ano%.txt
-			if( RegExMatch( sem_cadastro, img1 ) = 0 ) {	;	Se não consta registro, registra e move o arquivo
-				FileAppend,%	img1 "`n", D:\FTP\Monitoramento\FTP\Log\Sem cadastro - %dia_ano%.txt
-				FileMove,%	A_LoopFileFullPath,	D:\FTP\monitoramento\FTP\AddBD\%img1%.jpg
-			}
-			Else
-				FileDelete,%	A_LoopFileFullPath
-			continue
-		}
+				img	:=	StrSplit( A_LoopFileName, "_" )
+					Debug( A_LineNumber, "variável de imagens:", img[1], img[2], "Arquivo " A_LoopFileName )
 
-		local		:=	cameras[ Array.InDict( cameras, img1 ) ].nome			;	Nome da Câmera
-		setor		:=	"000" cameras[ Array.InDict( cameras, img1 ) ].operador	;	Operador 
-			If( setor = "000" )	;	Se não estiver registrada para algum operador, define como operador 6
-				setor = 0006
+			;	Verifica se a câmera está inibida ou se não está cadastrada 
+					Debug( A_LineNumber, "Verificando se a câmera está inibida" )
+				Gosub	verificaInibidos
+					Debug( A_LineNumber, "Câmera ip " ip ", " ( inibida = 1 ? "está" : "não está" ) " inibida" )
+				If( inibida = 1 )	{
+						Debug( A_LineNumber, "Deletado imagem da câmera " ip ", adicionando a lista de geradas" )	
+					geradas.push( "('" img[1] "','" hora_imagem "','Inibido')" )
+					continue
+				}
+				If( cameras[img[1]] = "" )	{	;	Se não constar no CADASTRO, gera log , move e vai pra próxima
+						Debug( A_LineNumber, "Câmera " ip ", não consta na base de dados, gerando relatório." )	
+					FileRead, sem_cadastro, %FTP%Log\Sem cadastro.txt
+					if( RegExMatch( sem_cadastro, img[1] ) = 0 ) {	;	Se não consta registro, registra e move o arquivo
+							Debug( A_LineNumber, "Não consta no arquivo de sem cadastro" )
+						FileAppend,%	img[1] "`n", %FTP%Log\Sem cadastro.txt
+						FileMove,%	A_LoopFileFullPath,%	FTP "AddBD\" img[1] ".jpg"
+					}
+					Else {
+							Debug( A_LineNumber, "deletando imagem" )						
+						FileDelete,%	A_LoopFileFullPath
+					}
+					continue
+				}
+			;
 
-		data_e_hora	:=	SubStr( img2, 1, 15 )									;	Data e Horário
-		op_sinistro	:=	"000" cameras[ Array.InDict( cameras, img1 ) ].sinistro	;	Operador quando em sinistro
-			If( op_sinistro = "000" )
-				op_sinistro=0006
+			;	Distribui imagem para o operador
+					Debug( A_LineNumber, "Buscando nome da câmera" )
+				cam_data := StrSplit( cameras[img[1]], "&&" )
+				local		:=	cam_data[2]				;	Nome da Câmera
+				setor		:=	"000" cam_data[3]		;	Operador 
+				data_e_hora	:=	SubStr( img[2], 1, 15 )	;	Data e Horário
+				op_sinistro	:=	"000" cam_data[4]		;	Operador quando em sinistro
+					If( op_sinistro = "000" )
+						op_sinistro=0000
 
-		If( IS_TOOLTIP_ON = 1 )	;	DEBUG APENAS
-			ToolTip,%	data_e_hora	"_" img1 "_" local "`nInibida:"	inibida
-					.	"`n" datetime()
-					.	"`n" setor
-					.	"`n`tModo dia = " dia "`nImagens em log para inserção no BD(insere a cada 100)= " geradas.count(),	10, 10
-		Else
-			ToolTip
+				If( IS_TOOLTIP_ON = 1 )		;	DEBUG APENAS
+					ToolTip,%	data_e_hora	"_" img[1] "_" local "`nInibida:"	inibida
+							.	"`n" datetime()
+							.	"`n" setor
+							.	"`n`tModo dia = " dia "`nImagens em log para inserção no BD(insere a cada 100)= " geradas.count(),	10, 10
+				Else
+					ToolTip
 
-		If( dia != 1 )	{	;	tooltip
-			If( SubStr( A_Now, 9 ) > "190500"	;	 Se fora da faixa de horário
-			&&	SubStr( A_Now, 9 ) < "195500" ) {
-				FileRead, faixa_de_horario, D:\FTP\Monitoramento\FTP\Log\Faixa de Horário Incorreta - %dia_ano%.txt
-				if RegExMatch( faixa_de_horario, img1 ) = 0
-					FileAppend,	%A_LoopFileName%`t-`t%img1%`n, D:\FTP\Monitoramento\FTP\Log\Faixa de Horário Incorreta - %dia_ano%.txt
-			}
-			Else {
-				If( geradas.Count() >= 100	;	Se pronto para inserir
-				||	comando_inserir = 1 )	{
-					SetTimer,	prepara_imagens,	Off
-					SetTimer,	distribuição,		Off
+				If( geradas.Count() >= 100		;	Se pronto para inserir
+				||	comando_inserir = 1 )	{	;	Se inserção forçada
+						Debug( A_LineNumber, "Preparando para inserir no banco de dados as 100 imagens geradas" )
+					SetTimer,	move_imagens_para_distribuir,	Off
+					SetTimer,	distribui_imagens_por_operador,	Off
 					For i, v in geradas
-						If( i = geradas.count() )	;	Quando tiver 100 eventos
+						If( i = geradas.count() )	{																					;	Quando tiver 100 eventos
 							insere_	.=	geradas[i]
-						Else If( i = 1 )		;	No primeiro evento
+								Debug( A_LineNumber, insere_ )
+						}
+						Else If( i = 1 )	{																							;	No primeiro evento
 							insere_	.=	"INSERT INTO  [MotionDetection].[dbo].[Geradas] (ip,horario,folder) VALUES " geradas[i]	",`n"
-						Else	;	Durante os eventos
+								Debug( A_LineNumber, insere_ )
+						}
+						Else	{																										;	Durante os eventos
 							insere_ .= geradas[i]	",`n"
+								Debug( A_LineNumber, insere_ )
+						}
+					Try	;	executa inserção no banco de dados sem gerar msg de erro
+						sql( insere_, 3 )
 
-					Try sql( insere_, 3 )
-					If( debug = 1 )
-						If( Strlen( sql_le ) > 0 )
-							MsgBox % sql_le "`n`n" Clipboard := insere_
 					insere_			=
 					geradas			:=	[]
 					comando_inserir	=	0
-					SetTimer,	prepara_imagens,	On
-					SetTimer,	distribuição,		On
+					SetTimer,	move_imagens_para_distribuir,	On
+					SetTimer,	distribui_imagens_por_operador,	On
 				}
 				Else	{
-					img2x		:=	StrReplace( img2, "-" )
-					cdii_hora	:=	SubStr( img2x, 1, 4 ) "-" SubStr( img2x, 5, 2 ) "-" SubStr( img2x, 7, 2 ) " " SubStr( img2x, 9, 2 ) ":" SubStr( img2x, 11, 2) ":" SubStr( img2x, 13, 2 )
-					geradas.push( "('" img1 "',CONVERT(DateTime,'" cdii_hora "',120),'" setor "')" )
-				}
-			}
-		}
+					geradas.push( "('" img[1] "','" hora_imagem "','" setor "')" )
+						Debug( A_LineNumber, "('" img[1] "','" hora_imagem "','" setor "')" )
 
-		local	:=	StrRep(local,"+", "\+-", "/+-", "|+-", "<+-", ">+-", "*+-", ":+-", """+-", "?+-", "`n", "`r" )
-		FileMove,%	A_LoopFileFullPath,	D:\FTP\monitoramento\FTP\%setor%\%data_e_hora%_%img1%_%local%_%op_sinistro%.jpg	;	Adicionado ultimo parametro
-	}
+					local	:=	StrRep( local, "+",	"\+-",	"/+-",	"|+-",	"<+-",	">+-",	"*+-",	":+-",	"""+-",	"?+-",	"`n",	"`r" )
+					FileMove,%	A_LoopFileFullPath,%	FTP setor "\" data_e_hora "_" img[1] "_" local "_" op_sinistro ".jpg", 1	;	Adicionado ultimo parametro
+						Debug( A_LineNumber, "Erro ao mover "	ErrorLevel "`n" FTP setor "\" data_e_hora "_" img[1] "_" local "_" op_sinistro ".jpg`n" A_LoopFileFullPath )
+					Return
+				}
+			local	:=	StrRep( local, "+",	"\+-",	"/+-",	"|+-",	"<+-",	">+-",	"*+-",	":+-",	"""+-",	"?+-",	"`n",	"`r" )
+			FileMove,%	A_LoopFileFullPath,%	FTP setor "\" data_e_hora "_" img[1] "_" local "_" op_sinistro ".jpg", 1	;	Adicionado ultimo parametro
+				Debug( A_LineNumber, "movendo 2 "	ErrorLevel )
+		}
+	;
 return
 
 verificaInibidos:
-	anot	:=	SubStr( StrReplace( img2, "-" ), 1 ,4 )
-	mest	:=	SubStr( StrReplace( img2, "-" ), 5 ,2 )
-	diat	:=	SubStr( StrReplace( img2, "-" ), 7 ,2 )
-	hort	:=	SubStr( StrReplace( img2, "-" ), 9 ,2 )
-	mint	:=	SubStr( StrReplace( img2, "-" ), 11, 2 )
-	segt	:=	SubStr( StrReplace( img2, "-" ), 13, 2 )
-	time	:=	anot "/" mest "/" diat " " hort ":" mint ":" segt
-	; MsgBox % time	;	ERRO REFERENTE A DATAS, VERIFICAR AQUI
-	last_image	=	;	Atualiza quando foi a última imagem gerada
-		(
-			UPDATE
-				[MotionDetection].[dbo].[Cameras]
-			SET
-				[last_md] = CONVERT( DATETIME, '%time%', 120 )
-			WHERE
-				[ip]	=	'%img1%'
-		)
-	; MsgBox % Clipboard:=last_image
-	last_image	:=	Try sql( last_image, 3 )
-	If( debug = 1 )
-		If( Strlen( sql_le ) > 0 )	{
-			MsgBox % sql_le "`n`n update" Clipboard:=last_image
-			Pause
-		}
 	inibida	=	0
+	ip	:=	img[1]
 	i	=
 		(
 			SELECT
@@ -372,24 +360,16 @@ verificaInibidos:
 			WHERE
 				[ip] = '%img1%'
 			AND
-				[restaurado] is null
+				[restaurado] IS NULL
 		)
-	ii	:=	sql( i, 3 )
-	If( debug = 1 )
-		If( Strlen( sql_le ) > 0 )
-			MsgBox % sql_le "`n`n inibida?"
-	If( ii.count() - 1 > = 1 )	{	;	 Se está inibida
+	_inibido :=	sql( i, 3 )
+	If( _inibido.count()-1 > = 1 )	{	;	 Se está inibida
 		inibida		=	1
-		img2		:=	StrReplace( StrReplace( img2, "-" ), ".jpg" )
-		cdii_hora	:=	SubStr( img2, 1, 4 ) "-" SubStr( img2, 5, 2 ) "-" SubStr( img2, 7, 2 ) " " SubStr( img2, 9, 2 ) ":" SubStr( img2, 11, 2 ) ":" SubStr( img2, 13, 2 )
-		If( A_Hour < 6 && A_Hour > 0 )
-			dia_ano	:=	A_YDay - 1
-		Else
-			dia_ano	:=	A_YDay
 		FileDelete,%	A_LoopFileFullPath
 	}
 	Else	;	Caso não esteja inibida
 		inibida	=	0
+	hora_imagem := datetime( 1, img[2] ) ; usado no sql
 Return
 
 Restaura_Sinistro:
@@ -433,7 +413,7 @@ Return
 	If( IS_TOOLTIP_ON = 1 )	{
 		If( debug = 0 )
 			Menu,	Tray,	Icon,	%A_ScriptDir%\Log\2motionp.ico
-		ToolTip,%	data_e_hora	"_" img1 "_" local "`nInibida:" inibida
+		ToolTip,%	data_e_hora	"_" img[1] "_" local "`nInibida:" inibida
 				.	"`n"	datetime()
 				.	"`n" setor
 				.	"`n`tModo dia = " dia
@@ -453,13 +433,13 @@ return
 		IS_TOOLTIP_ON	:=	!IS_TOOLTIP_ON = 1
 		If( debug = 0 )
 			Menu,	Tray,	Icon,	%A_ScriptDir%\Log\2motionp.ico
-		ToolTip,%		data_e_hora	"_" img1 "_" local "`nInibida:" inibida "`n"	datetime() "`n" setor "`n`tModo dia = " dia "`nImagens em log para inserção no BD(insere a cada 100)= " geradas.count(),	10, 10
+		ToolTip,%		data_e_hora	"_" img[1] "_" local "`nInibida:" inibida "`n"	datetime() "`n" setor "`n`tModo dia = " dia "`nImagens em log para inserção no BD(insere a cada 100)= " geradas.count(),	10, 10
 		MsgBox,	,	Verificar Dia,	Ativado, 1
 	}
 	Else	{
 		MsgBox,	,	Verificar Dia,	Desativado, 1
 		If( IS_TOOLTIP_ON = 1 )
-			ToolTip,%	data_e_hora	"_" img1 "_" local
+			ToolTip,%	data_e_hora	"_" img[1] "_" local
 					.	"`nInibida:" inibida
 					.	"`n"	datetime()
 					.	"`n"	setor
