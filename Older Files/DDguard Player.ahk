@@ -3,6 +3,7 @@ Save_to_sql=1
 
 ;@Ahk2Exe-SetMainIcon	C:\Seventh\Backup\ico\2sm.ico
 ;	Configs
+	SetTitleMatchMode, 2
 	#SingleInstance, Force
 	if(need_admin=1)
 		if !A_IsAdmin || !(DllCall("GetCommandLine","Str")~=" /restart(?!\S)")
@@ -164,8 +165,9 @@ Return
 	; }
 ; return
 
-F1::		;	Eventos
-	executar("MDRelatorios")
+~F1::		;	Eventos
+	If !WinActive( "Visual Studio Code" )
+		executar("MDRelatorios")
 return
 
 ^F10::		;	Adiciona E-mails e chamados
@@ -176,7 +178,9 @@ F10::		;	E-Mails, ocomon e registros
 	executar("Agenda_user")
 return
 
-^ins::
+~^ins::
+	If WinActive( "TeamViewer" )
+		Return
 	pass =
 	InputBox,	pass,	Comando Sistema Monitoramento,	,	HIDE	;{
 	if( pass = "" )
@@ -185,11 +189,11 @@ return
 			ExitApp
 	else if( pass = "path" )
 			MsgBox % "C:\Users\dsantos\Desktop\AutoHotkey\Older Files\DDguard Player.ahk"
-	else if( pass = "toasty" ) {
+	else if( pass = "toasty" )		{
 			email_notificador( "toasty" )
 		Return
 		}
-	else if( pass = "hahaha" ) {
+	else if( pass = "hahaha" )		{
 		disable_hahaha := !disable_hahaha
 		Return
 		}
@@ -232,6 +236,8 @@ return
 
 		;	Registro de backup para restauro
 			runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_" pass " /s /f" )
+			if ( A_UserName = "dsantos" )
+				runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\" A_UserName " /s /f" )
 			regWrite( "REG_SZ" , "HKCU\SOFTWARE\Seventh\_" pass, "_BackupAtualizado", datetime() )
 			; RegWrite, REG_SZ, HKCU\SOFTWARE\Seventh\_%pass%, _BackupAtualizado,% datetime()
 		;
@@ -542,12 +548,16 @@ return
 			}
 			else if reg_backup_srv	;	caso não, busca remotamente
 				runCmd( "REG COPY \\" reg_backup_srv "\HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_" restore_period " /s /f" )
-			MsgBox
 			runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_" restore_period " /s /f" )	;	ATUALIZA backup pois não existia
 			RegWrite, REG_SZ,% "HKCU\SOFTWARE\Seventh\_" restore_period, _BackupAtualizado,% datetime()				;	atualiza marca de atualização
 		}
-		Else
-			runCmd( "REG COPY HKCU\SOFTWARE\Seventh\_" restore_period " HKCU\SOFTWARE\Seventh\DguardCenter /s /f" )
+		Else	{
+
+			if ( A_UserName = "dsantos" )
+				runCmd( "REG COPY HKCU\SOFTWARE\Seventh\" A_UserName " HKCU\SOFTWARE\Seventh\DguardCenter /s /f" )
+			Else
+				runCmd( "REG COPY HKCU\SOFTWARE\Seventh\_" restore_period " HKCU\SOFTWARE\Seventh\DguardCenter /s /f" )
+		}
 
 		executar( "Dguard","C:\Seventh\DGuardCenter\" )
 		Send,			{LCtrl Up}

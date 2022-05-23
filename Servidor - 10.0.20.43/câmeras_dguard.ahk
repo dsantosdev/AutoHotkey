@@ -20,6 +20,7 @@ Save_To_Sql=1
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\timer.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
+
 	timer("Inicio")
 
 ;	Arrays
@@ -107,7 +108,6 @@ Save_To_Sql=1
 					,	[sinistro]
 					,	[url]
 					,	[api_get]
-					,	[recording]
 				FROM
 					[Dguard].[dbo].[Cameras]
 				ORDER BY
@@ -141,10 +141,7 @@ Save_To_Sql=1
 							,	operador	:	bd[ A_Index+1 , 14]
 							,	sinistro	:	bd[ A_Index+1 , 15]
 							,	url			:	bd[ A_Index+1 , 16]
-							,	api_get		:	bd[ A_Index+1 , 17]
-							,	recording	:	bd[ A_Index+1 , 18]	=	"-1"
-																		?	"True"
-																		:	"False"	})
+							,	api_get		:	bd[ A_Index+1 , 17]	})
 		}
 	;
 
@@ -185,7 +182,7 @@ Save_To_Sql=1
 												: "KeyOk"
 
 		}
-		MsgBox % clipboard := key_vdm04
+		; MsgBox % clipboard := key_vdm04
 		Menu, Tray, Tip , Atualizador [dguard].[dbo].[cameras]`nVersão %Current_Version%
 		Return
 
@@ -206,7 +203,6 @@ Save_To_Sql=1
 				indice := A_index
 			Else
 				indice := "0" A_index
-
 			cameras	:=	dguard.cameras( "vdm" indice, key_vdm%indice% )
 				OutputDebug % "`t" cameras.servers.Count() " a serem inseridas no map"
 			Loop,%	cameras.servers.Count()	{	;	câmeras do dguard para o map
@@ -217,8 +213,8 @@ Save_To_Sql=1
 				remove_deletados.= "'" guid "',"
 				receiver		:= dguard.contact_id( "vdm" indice ".cotrijal.local", guid, key_vdm%indice% )
 				info			:= dguard.cameras_info( "vdm" indice											;	dados da câmera seleciona
-											,	guid
-											,	key_vdm%indice% )
+													,	guid
+													,	key_vdm%indice% )
 				for_id			:= StrSplit( info.server.address , "." )
 				dguard_câmeras.Push({	name		:	info.server.name										;	Insere as informações no map para comparação posterior
 									,	guid		:	guid
@@ -243,8 +239,7 @@ Save_To_Sql=1
 									,	url			:	StrRep( info.server.url,, "\" )
 									,	api_get		:	receiver.contactId.receiver != "10001"
 																					?	"http://conceitto:cjal2021@vdm" indice ".cotrijal.local:85/camera.cgi?receiver=" receiver.contactId.receiver "&server=" info.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
-																					:	""
-									,	recording	:	info.server.recording	})
+																					:	""	})
 				;
 			}
 		}
@@ -265,9 +260,11 @@ Save_To_Sql=1
 			}
 
 			if (dguard_câmeras[ A_index ].name			!= bd_câmeras[ index ].name
-				&&	name		= 1)
+				&&	name		= 1) {
+				value_bd:=	bd_câmeras[ index ].name
 				Gosub, name
 
+				}
 			if (dguard_câmeras[ A_index ].active		!= bd_câmeras[ index ].active
 				&&	active		= 1)
 				Gosub, active
@@ -308,12 +305,6 @@ Save_To_Sql=1
 				}
 				Else
 					off_change := 0
-				; */
-
-			; /*
-			if (dguard_câmeras[ A_index ].recording		!= bd_câmeras[ index ].recording
-				&&	recording	= 1)
-				Gosub, recording
 				; */
 
 			; /*
@@ -420,7 +411,6 @@ Save_To_Sql=1
 		receiver		:=	dguard_câmeras[ A_index ].receiver
 		partition		:=	dguard_câmeras[ A_index ].partition
 		id				:=	dguard_câmeras[ A_index ].id
-		recording		:=	dguard_câmeras[ A_index ].recording
 		value_dg		:=	dguard_câmeras[ A_index ].name
 		pre				:=	"[n]┌<b><u>[t]" name "</u></b>"
 						.	"[n]└┬[t]<b>Cadastrada</b> no Servidor<code> " server "</code>"
@@ -460,7 +450,6 @@ Save_To_Sql=1
 						,	[api_get]
 						,	[receiver]
 						,	[partition]
-						,	[recording]
 						,	[id]	)
 					VALUES
 						(	 '%name%'			--name
@@ -478,7 +467,6 @@ Save_To_Sql=1
 							,'%api_get%'		--api
 							,'%receiver%'		--receiver
 							,'%partition%'		--partition
-							,'%recording%'		--recording
 							,'%id%'	)			--id	;
 
 					INSERT INTO [ASM].[dbo].[_agenda]
@@ -509,7 +497,6 @@ Save_To_Sql=1
 		name:		;	18/11
 			set		:=	"name"
 			pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>[n]└┬[t]<b>Nome</b>[n][t] └┬  Antigo:   <code>"
-			value_bd:=	bd_câmeras[ indice ].name
 			value_dg:=	dguard_câmeras[ A_index ].name
 			Gosub,	update
 		Return
@@ -606,17 +593,6 @@ Save_To_Sql=1
 			Gosub,	update
 		Return
 
-		recording:	;	18/11
-			set		:=	"recording"
-			; pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
-					; .	"[n]└┬[t]<b>Status de Gravação</b>"
-					; .	"[n]├─[t]Antigo[t]<code>"
-			value_bd:=	bd_câmeras[ indice ].recording
-			value_dg:=	dguard_câmeras[ A_index ].recording
-			if ( off_change = 0 )
-				Gosub,	update
-		Return
-
 		connected:	;	18/11
 			set		:=	"connected"
 			; pre		:=	"[n]┌<b><u>[t]" dguard_câmeras[ A_index ].name "</u></b>"
@@ -695,8 +671,9 @@ Save_To_Sql=1
 		tel_value	:=	value_dg	;	prepara variável para o telegram
 
 		if ( câmera_nova != 1
-		&& InStr( mensagens , pre . value_bd ) = 0)
+		&& InStr( mensagens , pre . value_bd ) = 0) {
 			mensagens	.= pre . value_bd "</code>[n][t][t][t]└[t]Novo:     <code>" tel_value "</code>º"
+		}
 		Else if	(	câmera_nova = 1
 		&&			InStr( mensagens , pre ) = 0) {
 			câmera_nova = 0

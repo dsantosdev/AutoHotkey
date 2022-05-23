@@ -48,33 +48,35 @@ return
 		URL				:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=setConfig"
 		LANGUAGE		:=	url "&Language=English"
 		MACHINE_NAME	:=	url "&General.MachineName=" StrReplace( ip , "." , "_" )
-		NTP				:=	url "&NTP.Enable=true&NTP.Address=192.9.200.113"
+		NTP				:=	url "&NTP.Enable=true&NTP.Address=192.9.200.113&NTP.TimeZone=22&NTP.TimeZoneDesc=Brasilia"
+		MOTION_DETECTION:=	url "&MotionDetect[0].Enable=false"
 		DAY_NIGHT		:=	url "&VideoInOptions[0].DayNightColor=0"
 		SNAPSHOT		:=	url "&Encode[0].SnapFormat[1].Video.Quality=6"
-		if is_cargo {
-			OVERLAY		:=	url "&VideoWidget[0].ChannelTitle.PreviewBlend=false"
-							.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
-			ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.264"
-							.	"&Encode[0].MainFormat[0].Video.BitRate=768"
-							.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
-							.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
-							.	"&Encode[0].MainFormat[0].Video.FPS=12"
-							.	"&Encode[0].MainFormat[0].Video.GOP=24"
-							.	"&Encode[0].MainFormat[0].Video.Quality=6"
-		}
-		Else	{
-			OVERLAY		:=	url "&VideoWidget[0].ChannelTitle.PreviewBlend=false"
-							.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
-							.	"&VideoWidget[0].TimeTitle.PreviewBlend=false"
-							.	"&VideoWidget[0].TimeTitle.EncodeBlend=false"
-			ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
-							.	"&Encode[0].MainFormat[0].Video.BitRate=768"
-							.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
-							.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
-							.	"&Encode[0].MainFormat[0].Video.FPS=12"
-							.	"&Encode[0].MainFormat[0].Video.GOP=24"
-							.	"&Encode[0].MainFormat[0].Video.Quality=6"
-		}
+		;	OVERLAY && ENCODE
+			if is_cargo {
+				OVERLAY		:=	url "&VideoWidget[0].ChannelTitle.PreviewBlend=false"
+								.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
+				ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.264"
+								.	"&Encode[0].MainFormat[0].Video.BitRate=768"
+								.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
+								.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
+								.	"&Encode[0].MainFormat[0].Video.FPS=12"
+								.	"&Encode[0].MainFormat[0].Video.GOP=24"
+								.	"&Encode[0].MainFormat[0].Video.Quality=6"
+			}
+			Else	{
+				OVERLAY		:=	url "&VideoWidget[0].ChannelTitle.PreviewBlend=false"
+								.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
+								.	"&VideoWidget[0].TimeTitle.PreviewBlend=false"
+								.	"&VideoWidget[0].TimeTitle.EncodeBlend=false"
+				ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
+								.	"&Encode[0].MainFormat[0].Video.BitRate=768"
+								.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
+								.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
+								.	"&Encode[0].MainFormat[0].Video.FPS=12"
+								.	"&Encode[0].MainFormat[0].Video.GOP=24"
+								.	"&Encode[0].MainFormat[0].Video.Quality=6"
+			}
 		DESTINATION		:=	url "&RecordStoragePoint[0].VideoDetectSnapShot.FTP=true"
 							.	"&RecordStoragePoint[0].VideoDetectSnapShot.Local=false"
 							.	"&RecordStoragePoint[0].AlarmSnapShot.Local=false"
@@ -85,24 +87,26 @@ return
 							.	"&NAS[0].UserName=cameras"
 							.	"&NAS[0].Password=c4m3r45"
 							.	"&NAS[0].Directory=FTP/Motion/Dahua"
+		CAM_MODEL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo"
 	Goto	array
 ;
 
 ;	Arrays
 	array:
 		command := []
-			command.Push( LANGUAGE )
-			command.Push( MACHINE_NAME )
-			command.Push( NTP )
-			command.Push( ENCODE )
-			command.Push( DAY_NIGHT )
-			command.Push( SNAPSHOT )
-			command.Push( OVERLAY )
-			command.Push( DESTINATION )
-			command.Push( FTP )
+			command.Push( LANGUAGE )			;	1
+			command.Push( MACHINE_NAME )		;	2
+			command.Push( NTP )					;	3
+			command.Push( ENCODE )				;	4
+			command.Push( DAY_NIGHT )			;	5
+			command.Push( SNAPSHOT )			;	6
+			command.Push( OVERLAY )				;	7
+			command.Push( DESTINATION )			;	8
+			command.Push( FTP )					;	9
+			command.Push( MOTION_DETECTION )	;	10
+			command.Push( CAM_MODEL 		)	;	11	| retorno | deviceType=
 	Goto,	Run
 ;
-
 
 ;	Interface
 	interface:
@@ -117,10 +121,12 @@ return
 		;
 		Gui,Add,CheckBox,%	first_cb	Gui.Font( "cWhite" , "Bold" )	"	vdefault		gdefault"				,	Definições padrão
 		Gui,Add,CheckBox,%	"ys												vis_cargo		gis_cargo"				,	Câmera de Pesagem
+		Gui,Add,CheckBox,%	ts	"	Checked									vcamera"								,	Configurar Câmera 
+		Gui,Add,CheckBox,%	t	"	Checked									vdguard"								,	Configurar DGuard
 		Gui,Add,Edit,%		ts	Gui.Font( "cWhite" , "Bold" )														,	IP da Câmera
-		Gui,Add,Edit,%		t	Gui.Font()								"	vip"									,	10.2.6.224
+		Gui,Add,Edit,%		t	Gui.Font()								"	vip"									,	
 		Gui,Add,Edit,%		ts 	Gui.Font( "cWhite" , "Bold" )														,	Nome da Câmera
-		Gui,Add,Edit,%		t	Gui.Font()								"	vcam_name"								,	LTC | B. Carga
+		Gui,Add,Edit,%		t	Gui.Font()								"	vcam_name"								,	
 		Gui,Add,Edit,%		ts	Gui.Font( "cWhite" , "Bold" )														,	Usuário da Câmera
 		Gui,Add,Edit,%		t	Gui.Font()								"	vusername"								,	admin
 		Gui,Add,Edit,%		ts	Gui.Font( "cWhite" , "Bold" )														,	Senha da Câmera
@@ -136,10 +142,8 @@ return
 		Gui,Add,Edit,%		ys											"	vmodel_filter	gsearch"				,	DH-IPC-HDBW2320RN-ZS
 		Gui,Add,ListView,%	lv		"		Grid					R9		vlv_model		gs_model	AltSubmit "	,	Modelo|Guid
 			Gui.Font( "cWhite" , "s10" )
-		; Gui,Add,Edit,%		"xm	w760		ReadOnly				h142	vdebug_output"							,	Output Debug...
 		Gui,Add,Edit,%		"xm	w760		ReadOnly				h500	vdebug_output"							,	Output Debug...
 		Gui,Add,Button,%	"xm	w760															gVars"				,	Configurar	;	Executa configuração
-		; Gui,Add,Button,%	"xm	w760															gDguard"			,	Configurar	;	Executa cadastro ou atualização
 		clear_config()
 			Gosub	search
 		Gui,Show,																									,	Dahua Config
@@ -148,6 +152,9 @@ return
 
 ;	Code
 	run:
+		if (dguard = 1
+		&&	camera = 0 )
+			Goto	dguard
 		Loop,% command.Count()	{
 			debug	.=	A_Index	= 1
 								? "Configurando a câmera '" ip "'`n`n...`n" http( command[A_index] ) " ao configurar idioma.`n"
@@ -164,8 +171,12 @@ return
 					:  A_Index	= 7
 								? http( command[A_index] ) " ao configurar a exibição de texto sobre a imagem da câmera.`n"
 					:  A_Index	= 8
-								? http( command[A_index] ) " ao configurar a geração de imagens em detecção de movimento.`n"
-								: http( command[A_index] ) " ao configurar o servidor FTP.`n"
+								? http( command[A_index] ) " ao configurar o diretório de imagens em caso de transposição de linhas de passagem.`n"
+					:  A_Index	= 9
+								? http( command[A_index] ) " ao configurar o servidor FTP.`n"
+					:  A_Index	= 10
+								? http( command[A_index] ) " ao desabilitar a detecção de movimento.`n"
+								: cam_model	:=	http( command[A_index], , 1 )
 			GuiControl, , debug_output,% debug
 			SendMessage,0x115,7,0,Edit13,Dahua Config
 		}
@@ -174,61 +185,55 @@ return
 																												; ? "`nCâmera configurada!`n`nReiniciando a câmera agora..."
 																												; : "`nCâmera configurada!`n`nFalha ao reiniciar a câmera, reinicie a câmera manualmente."
 		SendMessage,0x115,7,0,Edit13,Dahua Config
-	; Return
+	If ( dguard = 0)
+		Return
 
-	; Dguard:
+	Dguard:
+		if	dguard = 0
+			Return
 		Gui.Submit()
-		debug .= "`n------------------------------------------`nIniciando cadastro de câmera no D-Guard`n------------------------------------------`n"
+		debug .= "`n------------------------------------------`nIniciando cadastro de câmera no D-Guard`n------------------------------------------`nVerificando existência de câmera nos servidores...`n"
 		GuiControl, , debug_output,% debug
 		SendMessage,0x115,7,0,Edit13,Dahua Config
-		; Loop,	4 {	;	Servidores
+		
+		s = 
+			(
+				SELECT
+					 [name]			--	1
+					,[active]		--	2
+					,[connected]	--	3
+					,[ip]			--	4
+					,[server]		--	5
+					,[operador]		--	6
+					,[sinistro]		--	7
+					,[cam_model]	--	8
+					,[data_cadastro]--	9
+				FROM
+					[Dguard].[dbo].[cameras]
+				WHERE
+					[name] = '%cam_name%'
+				OR
+					[ip] = '%ip%'
+			)
+		s	:=	sql( s, 3 )
+		If ( s.Count()-1 > 0 ) {
+			MsgBox, 48, Duplicidade,%	"O NOME câmera ou IP cadastrados para essa câmera já estão em uso em:`n"
+									.	"Servidor = "		s[A_Index+1, 5]
+									.	"`nCâmera = "		s[A_Index+1, 1]
+									.	"`nIP = "			s[A_Index+1, 4]
+									.	"`nConectada = "	s[A_Index+1, 3] = 1 ? "Sim" : "Não"
+									.	"`nAtiva = "		s[A_Index+1, 2] = 1 ? "Sim" : "Não"
+									.	"`nOperador = "		s[A_Index+1, 6]
+									.	"`nSinistro = "		s[A_Index+1, 7]
+									.	"`nModelo = "		s[A_Index+1, 8]
+									.	"`nCadastrada = "	s[A_Index+1, 9]
 
-			; main_index			:= A_Index
-			; token_%A_Index%		:= dguard.token( "vdm0" A_Index )
-			; license_%A_Index%	:= json( dguard.http( "http://%dns%" A_Index ":8081/api/licenses/projects" , token_%A_Index% ) )
-
-			; servers_%A_Index%	:=	json( servidores := dguard.http( "http://%dns%" A_Index ":8081/api/servers" , token_%A_Index% ) )
-
-			; ; MsgBox % Clipboard:=unicode(servidores)
-			; StringReplace,	servidores, servidores, "active":true, "active":true	, UseErrorLevel
-			; 	ativas	:= ErrorLevel
-
-			; sigla := SubStr( cam_name, 1, InStr( cam_name , " |" )-1 )
-			; StringReplace,	servidores, servidores, "%sigla% |	, "%sigla% |	, UseErrorLevel
-			; 	existentes_mesma_unidade := ErrorLevel
-
-			; Loop,% license_%A_Index%.licenses.Count() {	;	Contagem de licenças para saber em qual server adicionar
-
-			; 	if		(license_%main_index%.licenses[A_index].name = "DGPIP4" )
-			; 		dgip_%main_index%	:= license_%main_index%.licenses[A_index].ipcameras
-
-			; 	else if ( license_%main_index%.licenses[A_index].name = "DGPDVR" )
-			; 		dgdvr_%main_index%	:= license_%main_index%.licenses[A_index].dvrs
-
-			; }
-
-		; 	ip_livres_%A_Index%	:=	( dgip_%A_Index% + dgdvr_%A_Index% ) - servers_%A_Index%.servers.Count()
-		; 	; MsgBox % ativas "`n" dgip_%main_index% "`n" dgdvr_%main_index%
-		; }
-		; Loop, 4
-			; MsgBox %	"Licenças IP`t"		dgip_%A_Index%
-			; 	.		"`nIp Cam`t`t"		servers_%A_Index%.servers.Count()
-			; 	.		"`nDvr's`t`t"		dgdvr_%A_Index%
-			; 	.		"`nDisponíveis`t"	ip_livres_%A_Index%
-
-		; StringReplace,	servidores, servidores, "active":true, "active":true	, UseErrorLevel
-		; 	ativas	:= ErrorLevel
-		; StringReplace,	servidores, servidores, "%sigla% |	, "%sigla% |	, UseErrorLevel
-		; 	existentes	:= ErrorLevel
-		; OutputDebug %	existentes "`n" ativas
-		; OutputDebug %	dgip - ativas
-		; Loop,%	servers.servers.Count()
-			; MsgBox % servers.servers[A_Index].active
-
+		}
+		MsgBox
 		Gui, Listview, lv_vendor
-		LV_GetText(vendor_guid, 1, 2 )
+			LV_GetText( vendor_guid, 1, 2 )
 		Gui, Listview, lv_model
-		LV_GetText(model_guid, 1, 2 )
+			LV_GetText( model_guid, 1, 2 )
 
 		token	:= for_output := dguard.token( "vdm0" server )
 				if InStr( for_output, """Error"":" ) {
@@ -430,6 +435,16 @@ return
 					v.[name] LIKE '`%%vendor_filter%`%'
 				AND
 					m.[Name] LIKE '`%%model_filter%`%'
+				AND
+					v.[name] IN (	'Dahua Technology Co., LTD',
+									'Samsung Techwin Co., Ltd.',
+									'Intelbras',
+									'Hanwha Techwin',
+									'Sony Corporation',
+									'Intelbras',
+									'Intelbras',
+									'Intelbras',
+									'Motorola')
 				ORDER BY
 					v.[Name]
 			)

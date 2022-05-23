@@ -1,22 +1,5 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\DDguard Player.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe"
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Version=0.2.7.4
-Inc_File_Version=0
-Internal_Name=ddguard player
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
+﻿File_Version=0.2.0
+Save_to_sql=0
 ;@Ahk2Exe-SetMainIcon	C:\Seventh\Backup\ico\2sm.ico
 ;	Configs
 	#SingleInstance, Force

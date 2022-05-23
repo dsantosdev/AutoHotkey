@@ -192,7 +192,7 @@ Save_to_sql=1
 		; MsgBox % search_mode "`n" _button "`n" _Delay "`n" _enter
 ;
 ;	GUI
-	Gui,	-DPIScale ; +HWNDMain
+	Gui,	-DPIScale
 	Gui,	Add,	Edit,%	"x5		y5	w200						h20		vmat "	(search_mode = "Delay" ? "gsubmit" : "") ; autosearch
 	if 		( search_mode = "delay" ) {
 		Gui,	Add,	Edit,			y5	w50						h20		vdelay2	gSet_Delay	Number		%_delay%

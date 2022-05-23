@@ -13,7 +13,7 @@ Class	dguard {
 				?	"localhost"
 				:	server
 		url := "http://" server ":8081/api/servers"
-		retorno := Dguard.http( url , token )
+		retorno := Dguard.Request( url , token )
 		return	json( retorno )
 	}
 	
@@ -52,7 +52,7 @@ Class	dguard {
 				?	"localhost"
 				:	server
 		url := "http://" server ":8081/api/servers/`%7B" StrRep( guid ,, "{", "}" ) "`%7D"
-		retorno := Dguard.http( url , token )
+		retorno := Dguard.Request( url , token )
 		return	json( retorno )
 	}
 
@@ -69,7 +69,7 @@ Class	dguard {
 				?	"localhost"
 				:	server
 		url := "http://" server ":8081/api/servers/`%7B" StrRep( guid ,, "{", "}" ) "`%7D/contact-id"
-		retorno := Dguard.http( url , token )
+		retorno := Dguard.Request( url , token )
 		return	json( retorno )
 	}
 
@@ -151,34 +151,6 @@ Class	dguard {
 		Return, pr . str
 	}
 
-	http( url , token="" , data="", method="GET" )								{
-		; data:={"username":"demo","password":"test123"} ; key-val data to be posted
-		; if StrLen( data ) {
-			; try	{
-			; createFormData(rData,rHeader,data) ; formats the data, stores in rData, header info in rHeader
-			; hObject:=comObjectCreate("WinHttp.WinHttpRequest.5.1") ; create WinHttp object
-			; hObject.setRequestHeader("Content-Type",rHeader) ; set content header
-			; hObject.open("POST",endpoint) ; open a post event to the specified endpoint
-			; hObject.send(rData) ; send request with data
-			; 
-			; }
-			; catch e	{
-				; return e.message
-			; }
-		; }
-		; Else	{
-			if	data
-				; CreateFormData(postData, hdr_ContentType, data)
-			static req := ComObjCreate( "Msxml2.XMLHTTP" )
-			req.open( method, url, false )
-			OutputDebug % url "`n" method
-			req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
-			req.SetRequestHeader( "content-type: application/json" )
-			req.send(data)
-			return	% req.responseText
-		; }
-	}
-
 	layouts( server , token )													{
 		/*	utilização do retorno em loop, var.layouts.count()
 			var.layouts[A_Index].guid
@@ -201,7 +173,7 @@ Class	dguard {
 
 		url		:=	"http://" server ":8081/api/layouts"
 
-		retorno	:=	Dguard.http( url , token )
+		retorno	:=	Dguard.Request( url , token )
 
 		return	json( retorno )
 	}
@@ -220,7 +192,7 @@ Class	dguard {
 
 		url		:= "http://" server ":8081/api/layouts/%7B" layoutGuid "%7D/cameras"
 		
-		retorno := Dguard.http( url , token )
+		retorno := Dguard.Request( url , token )
 		
 		return	json( retorno )
 	}
@@ -234,7 +206,7 @@ Class	dguard {
 				?	"localhost"
 				:	server
 		; url := 
-		return	json( Dguard.http( "http://" server ":8081/api/servers" , token ) )
+		return	json( Dguard.Request( "http://" server ":8081/api/servers" , token ) )
 	}
 
 	Mover( win_id := "", win_title := "A" )										{
@@ -249,6 +221,35 @@ Class	dguard {
 		OutputDebug % "Monitor:`t" MonitorPrimary "`n`nName:`t" MonitorName "`nX:`t" MonitorLeft "`nY:`t" MonitorTop "`nW:`t" MonitorRight-MonitorLeft "`nH`t" MonitorBottom-MonitorTop
 		WinMove, ahk_id %win_id%, ,% MonitorLeft,% MonitorTop  ;,% MonitorRight-MonitorLeft,% MonitorBottom-MonitorTop
 		return
+	}
+
+	request( url , token="" , data="", method="GET" )								{
+		; data:={"username":"demo","password":"test123"} ; key-val data to be posted
+		; if StrLen( data ) {
+			; try	{
+			; createFormData(rData,rHeader,data) ; formats the data, stores in rData, header info in rHeader
+			; hObject:=comObjectCreate("WinHttp.WinHttpRequest.5.1") ; create WinHttp object
+			; hObject.setRequestHeader("Content-Type",rHeader) ; set content header
+			; hObject.open("POST",endpoint) ; open a post event to the specified endpoint
+			; hObject.send(rData) ; send request with data
+			; 
+			; }
+			; catch e	{
+				; return e.message
+			; }
+		; }
+		; Else	{
+			static req := ComObjCreate( "Msxml2.XMLHTTP" )
+			req.open( method, url, false )
+			; OutputDebug % url "`n" method
+			req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
+			; req.SetRequestHeader( "content-type: application/json" )
+			if	data
+				req.send(data)
+			Else
+				req.send()
+			return	% req.responseText
+		; }
 	}
 
 	select_server( haystack_obj , value , key , return_key = "" , warn = 0 )	{
@@ -269,7 +270,7 @@ Class	dguard {
 				?	"localhost"
 				:	server
 		url := "http://" server ":8081/api/servers/`%7B" StrReplace( StrReplace( guid , "{" ) , "}" ) "`%7D"
-		retorno := Dguard.http( url , token )
+		retorno := Dguard.Request( url , token )
 		return	json( retorno )
 	}
 

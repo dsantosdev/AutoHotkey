@@ -1,37 +1,20 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\Documentos_importantes\Facilitador\Ferramentas\Conceitto.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "" "1.0.0.3" "Atualizador de dados das câmeras no banco de dados""
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Description=Atualizador de dados das câmeras no banco de dados
-File_Version=1.0.0.3
-Inc_File_Version=1
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
+﻿File_Version=0.2.0
+Save_to_sql=0
 ;@Ahk2Exe-SetMainIcon	C:\AHK\icones\fun\conceitto.ico
 	#IfWinActive, Cadastro de Câmeras
 	inicio	:=	A_Now
 	#Persistent
 	#SingleInstance Force
-	#Include C:sers\dsantos\Desktop\AutoHotkey\class\array.ahk
-	; #Include C:sers\dsantos\Desktop\AutoHotkey\class\cor.ahk
-	#Include C:sers\dsantos\Desktop\AutoHotkey\class\dguard.ahk
-	#Include C:sers\dsantos\Desktop\AutoHotkey\class\functions.ahk
-	#Include C:sers\dsantos\Desktop\AutoHotkey\class\gui.ahk
-	; #Include C:sers\dsantos\Desktop\AutoHotkey\class\mail.ahk
-	; #Include C:sers\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
-	#Include C:sers\dsantos\Desktop\AutoHotkey\class\string.ahk
-	#Include C:sers\dsantos\Desktop\AutoHotkey\class\sql.ahk
-	; #Include C:sers\dsantos\Desktop\AutoHotkey\class\windows.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	Definições
@@ -62,20 +45,20 @@ Set_AHK_Version=1
 		OutputDebug % StrLen( token_4 ) > 0
 										? "-Obtido token 4`n`t" token_4 "`n"
 										: "Falha ao obter token 4`n"
-	MsgBox % Clipboard := token_4
+
 ;
 
 ;	Informações das câmeras contidas no d-guard
 		OutputDebug % "-Armazenando os dados das câmeras do dguard em array."
 	dados_das_cameras_no_dguard := {}
 
-	json_return := json( Dguard.http( "http://vdm01:8081/api/servers", token_1 ) )
+	json_return := json( Dguard.Request( "http://vdm01:8081/api/servers", token_1 ) )
 		Loop,% json_return.servers.Count()	{
 		ToolTip,% "-Armazenando os dados das câmeras do servidor 1 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
-			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
-			receiver := json( http( "http://vdm01:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_1, 1 ) )
+			_guid		:= StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
+			receiver	:= json( http( "http://vdm01:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_1, 1 ) )
 			json_camera := Dguard.Server( "vdm01" , _guid , token_1 )
-			ID			:=	StrSplit( json_camera.server.address , "." )
+			ID			:= StrSplit( json_camera.server.address , "." )
 			if ( receiver.contactId.receiver != "10001" )
 				api_get	:=	"http://conceitto:cjal2021@vdm01.cotrijal.local:85/camera.cgi?receiver=" receiver.contactId.receiver "&server=" json_camera.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
 			Else
@@ -88,7 +71,6 @@ Set_AHK_Version=1
 											,	port		:	json_camera.server.port
 											,	vendor		:	json_camera.server.vendorModelName
 											,	contactid	:	json_camera.server.contactIdCode
-											,	offline		:	json_camera.server.offlineSince
 											,	setor		:	SubStr( json_camera.server.notes , 1 , 1 )
 											,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 )
 											,	url			:	StrReplace( json_camera.server.url , "\" )
@@ -97,10 +79,6 @@ Set_AHK_Version=1
 											,	id			:	id
 											,	server		:	"1"
 											,	api			:	api_get	})
-			date_off	:=	json_camera.server.offlineSince
-			offline		:=	date_off = "-"
-									? "NULL"
-									: "CAST('" SubStr( date_off , 7 , 4 ) "-" SubStr( date_off , 4 , 2 ) "-" SubStr( date_off , 1 , 2 ) " " SubStr( date_off , 12 ) "' as datetime)"
 			active		:=	json_camera.server.active = "true"
 													? "1"
 													: "0"
@@ -118,7 +96,6 @@ Set_AHK_Version=1
 							.	"','" json_camera.server.port
 							.	"','" json_camera.server.vendorModelName
 							.	"','" json_camera.server.contactIdCode
-							.	"',"  offline
 							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
 							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
 							.	"','" url
@@ -129,7 +106,7 @@ Set_AHK_Version=1
 							.	"','" id[3] "'),`n"
 	}
 
-	json_return := json( Dguard.http( "http://vdm02:8081/api/servers", token_2 ) )
+	json_return := json( Dguard.Request( "http://vdm02:8081/api/servers", token_2 ) )
 		Loop,% json_return.servers.Count() {
 			ToolTip,% "-Armazenando os dados das câmeras do servidor 2 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
 			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
@@ -149,7 +126,6 @@ Set_AHK_Version=1
 											,	vendor		:	json_camera.server.vendorModelName
 											; ,	vendor		:	SubStr( json_camera.server.vendorModelName , 1 , InStr( json_camera.server.vendorModelName , " ")-1 )
 											,	contactid	:	json_camera.server.contactIdCode
-											,	offline		:	json_camera.server.offlineSince
 											,	setor		:	SubStr( json_camera.server.notes , 1 , 1 )
 											,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 )
 											,	url			:	StrReplace( json_camera.server.url , "/" )
@@ -158,10 +134,6 @@ Set_AHK_Version=1
 											,	id			:	id
 											,	server		:	"2"
 											,	api			:	api_get	})
-			date_off	:=	json_camera.server.offlineSince
-			offline		:=	date_off = "-"
-									? "NULL"
-									: "CAST('" SubStr( date_off , 7 , 4 ) "-" SubStr( date_off , 4 , 2 ) "-" SubStr( date_off , 1 , 2 ) " " SubStr( date_off , 12 ) "' as datetime)"
 			active		:=	json_camera.server.active = "true"
 													? "1"
 													: "0"
@@ -179,7 +151,6 @@ Set_AHK_Version=1
 							.	"','" json_camera.server.port
 							.	"','" json_camera.server.vendorModelName
 							.	"','" json_camera.server.contactIdCode
-							.	"',"  offline
 							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
 							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
 							.	"','" url
@@ -190,7 +161,7 @@ Set_AHK_Version=1
 							.	"','" id[3] "'),`n"
 	}
 
-	json_return := json( Dguard.http( "http://vdm03:8081/api/servers", token_3 ) )
+	json_return := json( Dguard.Request( "http://vdm03:8081/api/servers", token_3 ) )
 		Loop,% json_return.servers.Count() {
 			ToolTip,% "-Armazenando os dados das câmeras do servidor 3 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
 			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
@@ -210,7 +181,6 @@ Set_AHK_Version=1
 											,	vendor		:	json_camera.server.vendorModelName
 											; ,	vendor		:	SubStr( json_camera.server.vendorModelName , 1 , InStr( json_camera.server.vendorModelName , " ")-1 )
 											,	contactid	:	json_camera.server.contactIdCode
-											,	offline		:	json_camera.server.offlineSince
 											,	setor		:	SubStr( json_camera.server.notes , 1 , 1 )
 											,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 )
 											,	url			:	StrReplace( json_camera.server.url , "/" )
@@ -219,10 +189,6 @@ Set_AHK_Version=1
 											,	id			:	id
 											,	server		:	"3"
 											,	api			:	api_get	})
-			date_off	:=	json_camera.server.offlineSince
-			offline		:=	date_off = "-"
-									? "NULL"
-									: "CAST('" SubStr( date_off , 7 , 4 ) "-" SubStr( date_off , 4 , 2 ) "-" SubStr( date_off , 1 , 2 ) " " SubStr( date_off , 12 ) "' as datetime)"
 			active		:=	json_camera.server.active = "true"
 													? "1"
 													: "0"
@@ -240,7 +206,6 @@ Set_AHK_Version=1
 							.	"','" json_camera.server.port
 							.	"','" json_camera.server.vendorModelName
 							.	"','" json_camera.server.contactIdCode
-							.	"',"  offline
 							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
 							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
 							.	"','" url
@@ -251,7 +216,7 @@ Set_AHK_Version=1
 							.	"','" id[3] "'),`n"
 	}
 
-	json_return := json( Dguard.http( "http://vdm04:8081/api/servers", token_4 ) )
+	json_return := json( Dguard.Request( "http://vdm04:8081/api/servers", token_4 ) )
 		ToolTip,% "-Armazenando os dados das câmeras do servidor 4 do dguard em array." , 50 , 100
 		Loop,% json_return.servers.Count() {
 			ToolTip,% "-Armazenando os dados das câmeras do servidor 4 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
@@ -272,7 +237,6 @@ Set_AHK_Version=1
 											,	vendor		:	json_camera.server.vendorModelName
 											; ,	vendor		:	SubStr( json_camera.server.vendorModelName , 1 , InStr( json_camera.server.vendorModelName , " ")-1 )
 											,	contactid	:	json_camera.server.contactIdCode
-											,	offline		:	json_camera.server.offlineSince
 											,	setor		:	SubStr( json_camera.server.notes , 1 , 1 )
 											,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 )
 											,	url			:	StrReplace( json_camera.server.url , "/" )
@@ -281,10 +245,6 @@ Set_AHK_Version=1
 											,	id			:	id
 											,	server		:	"4"
 											,	api			:	api_get	})
-			date_off	:=	json_camera.server.offlineSince
-			offline		:=	date_off = "-"
-									? "NULL"
-									: "CAST('" SubStr( date_off , 7 , 4 ) "-" SubStr( date_off , 4 , 2 ) "-" SubStr( date_off , 1 , 2 ) " " SubStr( date_off , 12 ) "' as datetime)"
 			active		:=	json_camera.server.active = "true"
 													? "1"
 													: "0"
@@ -303,7 +263,6 @@ Set_AHK_Version=1
 							.	"','" json_camera.server.port
 							.	"','" json_camera.server.vendorModelName
 							.	"','" json_camera.server.contactIdCode
-							.	"',"  offline
 							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
 							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
 							.	"','" url
@@ -321,7 +280,6 @@ Set_AHK_Version=1
 							.	"','" json_camera.server.port
 							.	"','" json_camera.server.vendorModelName
 							.	"','" json_camera.server.contactIdCode
-							.	"',"  offline
 							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
 							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
 							.	"','" url
@@ -335,13 +293,13 @@ Set_AHK_Version=1
 
 ;	Popula a tabela sql com as informações
 	ToolTip, Populando o Banco de Dados , 50 , 100
-	d =
-		(
-			DELETE FROM
-				[Dguard].[dbo].[cameras];
-			DBCC CHECKIDENT ('[Dguard].[dbo].[cameras]', RESEED, 0);
-		)
-		sql( d , 3 )
+	; d =
+		; (
+			; DELETE FROM
+				; [Dguard].[dbo].[cameras];
+			; DBCC CHECKIDENT ('[Dguard].[dbo].[cameras]', RESEED, 0);
+		; )
+		; sql( d , 3 )
 	i =
 		(
 		INSERT INTO
@@ -354,7 +312,6 @@ Set_AHK_Version=1
 				,[port]
 				,[vendormodel]
 				,[contactId]
-				,[offlineSince]
 				,[operador]
 				,[sinistro]
 				,[url]
