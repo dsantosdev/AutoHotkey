@@ -2,17 +2,17 @@ File_Version=0.6.0
 Save_to_SQL=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\telegram.ico
 
-#Include	configs.ahk
+#Include	%A_ScriptDir%\configs.ahk
 	OutputDebug % "config carregado"
-#Include	executa_comandos.ahk
+#Include	%A_ScriptDir%\executa_comandos.ahk
 	OutputDebug % "executa_comandos carregado"
-#Include	functions.ahk
+#Include	%A_ScriptDir%\functions.ahk
 	OutputDebug % "functions carregado"
-#Include	telegram.ahk
+#Include	%A_ScriptDir%\telegram.ahk
 	OutputDebug % "telegram carregado"
-#Include	registro.ahk
+#Include	%A_ScriptDir%\registro.ahk
 	OutputDebug % "registro carregado"
-#Include	json.ahk
+#Include	%A_ScriptDir%\json.ahk
 	OutputDebug % "json carregado"
 #Persistent
 debug	=	1
@@ -78,8 +78,6 @@ SetTimer,	webhook,%	poolTime
 	OutputDebug % "Webhook setado"
 return
 
-
-
 webhook:
 	dados	:=	{}
 	updates	:=	GetNewMessages( ( offset+1 ) )
@@ -117,21 +115,27 @@ webhook:
 			OutputDebug % from_id "`n" mtext "`n" first_name "`n" last_name "`n" username "`n" message_id "`n" offset "`n______________"
 
 			If MAP( usuarios, from_id, "ChatID" ) {
+
 				if	Inline	{
-					OutputDebug % "Resposta Inline`n`t" A_LineNumber
+					OutputDebug % "Resposta Inline`n`t" A_LineNumber "`nComando`t" SubStr( mtext, 1, InStr( mtext, "_" )-1 )
 					RemoveKeyb()
-					Goto getpicture
+					Goto,%	SubStr( mtext, 1, InStr( mtext, "_" )-1 )
 				}
+
 				if	( usuarios[MAP( usuarios, from_id, "ChatID" )].admin = 99 ) {	;	admin MAX commands 
 					if	InStr(mtext, " ")
 						comando_recebido	:=	SubStr( mtext, 1, InStr( mtext, " " )-1 )
 					Else
 						comando_recebido	:=	mtext
-					OutputDebug % comando_recebido "`n`t" A_LineNumber
-					if pos := InArray( comandos_adm, StrReplace( comando_recebido, "/" ) ) {
-						OutputDebug % "Executando comando ADM`n`t" A_LineNumber
+					OutputDebug % "Executando comando ADM`n" comando_recebido
+								. "`n`t" A_LineNumber
+								. "`ncomando`t-" SubStr( comando_recebido, InStr( comando_recebido, "_" )+1 ) "-"
+
+					if	(pos := InArray( comandos_adm, StrReplace( SubStr( comando_recebido, InStr( comando_recebido, "_" )+1 ), "/" ) )
+					&&	 !InStr( mtext, "/" ) )
 						Goto,%	comandos_adm[pos]
-					}
+					Else
+						Goto,%	Clipboard := StrReplace( comando_recebido, "/" )
 					OutputDebug % "Não encontrou nos comandos`n`t" A_LineNumber
 				}
 				else if pos := InArray( comandos, StrReplace( mtext, "/" ),1 ) {
@@ -165,19 +169,22 @@ Return
 					:	status = "OFFLINE"
 					?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
 					:	status = "RECOVERING"
-					?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
+					?	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9C\x85 " status " \xF0\x9F\xA5\xB6"
 					:	html_encode("Banco de dados de Detecção está:`n`n`t") "\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
 		SendText( mensagem )
 
 		; status=INDISPONÍVEL
-		if ( status = "INDISPONÍVEL" )	{
+		if ( status = "INDISPONÍVEL" 
+		||	 status = "OFFLINE" 
+		||	 status = "RECOVERING" 
+		||	 status = "RECOVERY_PENDING" )	{
 			no	:=	html_encode("Não")
 			is_keyb= 1
 			keyb=
 				(JOIN
 				{"inline_keyboard"		:	[ [
-				{"text": "Sim"	, "callback_data" 	: "Restore"},
-				{"text": "%no%"	, "callback_data" 	: "Ignore"}
+				{"text": "Sim"	, "callback_data" 	: "Restore_bd"},
+				{"text": "%no%"	, "callback_data" 	: "Ignore_bd"}
 				] ]									, "resize_keyboard" : true }
 				)
 			mensagem:=	html_encode( "Tentar recuperar o banco de dados?"	)
@@ -188,8 +195,10 @@ Return
 	Return
 
 	Restore:
-		if	is_keyb = 1, is_keyb =0
+		if	(is_keyb = 1)	{
+			 is_keyb = 0
 			RemoveKeyb()
+		}
 
 		mensagem := html_encode( "Executando restauração, por favor aguarde..." )
 		SendText( mensagem )
@@ -215,7 +224,7 @@ Return
 					:	status = "OFFLINE"
 					?	"\xE2\x9D\x8C " html_encode("INDISPONÍVEL") " \xF0\x9F\xA5\xB6"
 					:	status = "RECOVERING"
-					?	"\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
+					?	"\xE2\x9C\x85 " status " \xF0\x9F\xA5\xB6"
 					:	"\xE2\x9C\x85 " status " \xF0\x9F\x99\x8F"
 		Sleep, 1000
 		mensagem := html_encode("Tentativa de recuperação efetuada.`n`n`nEstado atual do banco de dados de Detecção de Movimento é:`n`n`t`t"  )
@@ -244,10 +253,10 @@ Return
 	Return
 ;
 ;	Elevated commands
-	getpicture:
-		OutputDebug % "Executando getpicture(rotina)`n`t" A_LineNumber
-		param = [name]
-		cam_name := StrReplace( StrReplace( StrReplace( StrReplace( mtext, "/" ), "getpicture " ), "`n"), "`r")
+	pic:
+		OutputDebug % "Executando pic(rotina)`n`t" A_LineNumber
+		param	= [name]
+		cam_name:= StrReplace( StrReplace( StrReplace( StrReplace( mtext, "/" ), "pic " ), "`n"), "`r")
 		if inline	{
 			param	= [guid]
 			cam_name:=	 mtext
@@ -294,7 +303,7 @@ Return
 		SendText( Request( url ) )
 	Return
 
-	getinfo:
+	info:
 
 	Return
 

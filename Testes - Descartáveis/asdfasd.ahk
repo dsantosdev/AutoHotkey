@@ -1,15 +1,15 @@
-ï»¿File_Version=0.2.0
+File_Version=0.2.0
 Save_to_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
 	BD = MotionDetection
 	16/01/2021	-	Alterado para inserir as imagens geradas apenas a cada 100 eventos
 	28/01/2021	-	Ajustado o nome "local" na variavel de distribuicao para remover nova linha e evitar erros ao mover
-	11/02/2021	-	Inserido linha para restart do banco de dados MotionDetection ANTES de recriar o array de cÃ¢meras
+	11/02/2021	-	Inserido linha para restart do banco de dados MotionDetection ANTES de recriar o array de câmeras
 	19/02/2021	-	Incrementado sistema de sinistro
-	04/04/2021	-	Adicionado sub funÃ§Ã£o Restaura_Sinistro para finalizar sinistros expirados e nÃ£o encerrados pelo cliente
+	04/04/2021	-	Adicionado sub função Restaura_Sinistro para finalizar sinistros expirados e não encerrados pelo cliente
 	03/04/2022	-	Migrado para o Visual Code
-	17/05/2022	-	Alterado banco de dados para o banco automÃ¡tico do dguard e alterado o sistema de arrays
+	17/05/2022	-	Alterado banco de dados para o banco automático do dguard e alterado o sistema de arrays
 */
 
 /*	Bancos de Dados
@@ -19,31 +19,31 @@ Save_to_Sql=1
 */
 
 ;	Includes
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\date.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\folder.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\timer.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\alarm.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\array.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\base64.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\convert.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\cor.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\dguard.ahk
+	#Include D:\FTP\Monitoramento\FTP\VS Code\class\date.ahk
+	#Include D:\FTP\Monitoramento\FTP\VS Code\class\folder.ahk
+	#Include D:\FTP\Monitoramento\FTP\VS Code\class\functions.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\gui.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\listview.ahk
+	#Include D:\FTP\Monitoramento\FTP\VS Code\class\mail.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\safe_data.ahk
+	#Include D:\FTP\Monitoramento\FTP\VS Code\class\sql.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\string.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\telegram.ahk
+	#Include D:\FTP\Monitoramento\FTP\VS Code\class\timer.ahk
+	; #Include D:\FTP\Monitoramento\FTP\VS Code\class\windows.ahk
 ;
 
-;	ConfiguraÃ§Ãµes
+;	Configurações
 	#Persistent
 	#SingleInstance, Force
 	SetBatchLines, -1
-	
+
 	If( A_IsCompiled )	{
 		If !A_IsAdmin
 		|| !( DllCall( "GetCommandLine", "Str" ) ~= " /restart(?!\S)" )
@@ -62,7 +62,7 @@ Save_to_Sql=1
 	OnExit( "close_preparaImagens" )
 
 	ger_vers = Gerenciador de Imagens %File_Version% - 15/05/2022
-	Debug( A_LineNumber, "Traytip`n`t" ger_vers )
+	Debug( A_LineNumber, "Traytip=`n`t" ger_vers )
 
 	geradas	:=	[]
 
@@ -84,7 +84,7 @@ Save_to_Sql=1
 		Debug( A_LineNumber, "Preparando Array" )
 	Gosub	prepara_array
 		Debug( A_LineNumber, "Array Preparado" )
-	
+
 	SetTimer,	distribui_imagens_por_operador,		999
 return
 
@@ -100,15 +100,9 @@ prepara_array:	;	SQL
 		sql( reset_bd, 3 )
 		Sleep,	2000
 
-	;	Rotina de array de cameras e limpeza de log de imagens geradas de perÃ­odo maior que 40 dias(mesmo perÃ­odo de gravaÃ§Ãµes)
+	;	Rotina de array de cameras e limpeza de log de imagens geradas de período maior que 40 dias(mesmo período de gravações)
 		s	=
 			(
-				DELETE
-					FROM
-						[MotionDetection].[dbo].[Geradas]
-					WHERE
-						[horario] < DATEADD( day, -40, GETDATE()) ;
-
 				Select
 					 c.[ip]
 					,m.[mac]
@@ -122,74 +116,53 @@ prepara_array:	;	SQL
 					[Dguard].[dbo].[cameras_mac] m
 				ON
 					c.[ip] = m.[ip];
+
+				DELETE
+					FROM
+						[MotionDetection].[dbo].[Geradas]
+					WHERE
+						[horario] < DATEADD( day, -40, GETDATE()) ;
 			)
 		s	:=	sql( s, 3 )
 
 		IF ( s.Count() - 1 ) > 1	{
 			cameras := {}
 			Loop,%	s.Count()-1 {
-				cameras[s[A_Index+1,1]]	:=	(s[A_Index+1,2] = "" ? "0000" : s[A_Index+1,2]) "&&"	;	ip : mac&&nome&&0000&&0001
+				cameras[s[A_Index+1,1]]	:=	(s[A_Index+1,2] = "" ? "0000" : s[A_Index+1,2]) "&&"
 										.	 s[A_Index+1,3] "&&"
 										.	(s[A_Index+1,4] = "" ? "0000" : s[A_Index+1,4]) "&&"
 										.	(s[A_Index+1,5] = "" ? "0000" : s[A_Index+1,5])
-				if ( s[A_Index+1,6] = "Foscam" )													;	mac:ip
+				if ( s[A_Index+1,6] = "Foscam" )
 					foscam	.=	 s[A_Index+1,2] "__" s[A_Index+1,1] "`n"
 			}
 		}
 		Else
 			mail.new(	"dsantos@cotrijal.com.br"
-					,	"Falha Servidor de DetecÃ§Ãµes" Substr(datetime(), 1, 10 )
-					,	"Busca SQL nÃ£o retornou nenhuma cÃ¢mera para montar o array de consulta" )
+					,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
+					,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
 	;
-	SetTimer,	prepara_array,	-3600000	;	de hora em hora recarrega os dados do banco de dados
 
-	If (A_Hour = "19") {	;	 somente atualiza o preparador de imagens uma vez, antes das 20 horas
-		s	=
-			(
-				SELECT TOP (1)
-					[bin]
-				FROM
-					[ASM].[dbo].[Softwares]
-				WHERE
-					[name] = 'preparaimagens'
-				ORDER BY
-					[pkid]
-				DESC
-			)
-			bins := sql( s, 3 )
-
-		Process, Close, preparaimagens.exe
-			Sleep, 1000
-		FileDelete,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
-		Base64.FileDec( bins[2, 1] , "D:\FTP\Monitoramento\FTP\preparaimagens.exe" )	;	Transforma o arquivo base64 em executÃ¡vel
-		Loop																			;	Delay apÃ³s criaÃ§Ã£o do exe e antes de executar o mesmo
-			If FileExist("D:\FTP\Monitoramento\FTP\preparaimagens.exe")
-				Break
-		Sleep,	2000
-		Run,%	"D:\FTP\Monitoramento\FTP\preparaimagens.exe " SubStr( foscam, 1, -1 )
-	}
+	SetTimer,	prepara_array,	-3600000
+	Run,%	A_ScriptDir "\preparaimagens" ext " " SubStr( foscam, 1, -1 )
 	SetTimer,	distribui_imagens_por_operador,	On
 return
 
 distribui_imagens_por_operador:
-	Loop, Files,%	Motion "*.jpg"
+	Loop, Files,% Motion "*.jpg"
 	{
-		If (SubStr( A_Now, 9 ) > 193000
-		&&	SubStr( A_Now, 9 ) < 193003)
-			Reload
-		StartTime	:= A_TickCount
-		img			:= local := setor := ""	;	limpa variÃ¡veis
-		img			:=	StrSplit( A_LoopFileName, "_" )
-		;	Verifica se a cÃ¢mera nÃ£o estÃ¡ cadastrada
+		StartTime := A_TickCount
+		img	:= local := setor := ""	;	limpa variáveis
+		img	:=	StrSplit( A_LoopFileName, "_" )
+		;	Verifica se a câmera não está cadastrada
 			ip			:= img[1]
 			hora_imagem := datetime( 1, img[2] )
-			If( cameras[ ip ] = "" )	{	;	Se nÃ£o constar no CADASTRO, gera log , move e vai pra prÃ³xima
+			If( cameras[ ip ] = "" )	{	;	Se não constar no CADASTRO, gera log , move e vai pra próxima
 				FileRead, sem_cadastro, %FTP%Log\Sem cadastro.txt
-				if( RegExMatch( sem_cadastro, img[1] ) = 0 ) {	;	Se nÃ£o consta registro, registra e move o arquivo
+				if( RegExMatch( sem_cadastro, img[1] ) = 0 ) {	;	Se não consta registro, registra e move o arquivo
 					FileAppend,%	ip "`n", %FTP%Log\Sem cadastro.txt
-					FileMove,%		A_LoopFileFullPath,%	FTP "AddBD\" ip " " A_Hour "-" A_Min ".jpg"
+					FileMove,%		A_LoopFileFullPath,%	FTP "AddBD\" ip ".jpg"
 				}
-				Else				
+				Else
 					FileDelete,%	A_LoopFileFullPath
 				continue
 			}
@@ -197,15 +170,15 @@ distribui_imagens_por_operador:
 
 		;	Distribui imagem para o operador
 			cam_data 	:=	StrSplit( cameras[ ip ], "&&" )
-			local		:=	cam_data[2]					;	Nome da CÃ¢mera
-			setor		:=	"000" cam_data[3]			;	Operador 
-			data_e_hora	:=	SubStr( img[2], 1, 15 )		;	Data e HorÃ¡rio
+			local		:=	cam_data[2]					;	Nome da Câmera
+			setor		:=	"000" cam_data[3]			;	Operador
+			data_e_hora	:=	SubStr( img[2], 1, 15 )		;	Data e Horário
 			op_sinistro	:=	"000" cam_data[4]	= 000	;	Operador quando em sinistro
 												? "0000"
 												: "000" cam_data[4]
 
 			If( geradas.Count() >= 100					;	Se pronto para inserir
-			||	comando_inserir = 1 )	{				;	Se inserÃ§Ã£o forÃ§ada
+			||	comando_inserir = 1 )	{				;	Se inserção forçada
 				SetTimer,	distribui_imagens_por_operador,	Off
 				geradas2 := geradas
 				SetTimer,	distribui_imagens_por_operador,	On
@@ -216,7 +189,7 @@ distribui_imagens_por_operador:
 						insere_	.=	"INSERT INTO  [MotionDetection].[dbo].[Geradas] (ip,horario,folder) VALUES " geradas2[i]	",`n"
 					Else																										;	Durante os eventos
 						insere_ .= geradas2[i]	",`n"
-				Try																												;	executa inserÃ§Ã£o no banco de dados sem gerar msg de erro
+				Try																												;	executa inserção no banco de dados sem gerar msg de erro
 					sql( insere_, 3 )
 				insere_			=
 				geradas			:=	[]
@@ -242,7 +215,7 @@ return
 				.	"`n"	datetime()
 				.	"`n" setor
 				.	"`n`tModo dia = " dia
-				.	"`nImagens em log para inserÃ§Ã£o no BD(insere a cada 100)= " geradas.count(),	10, 10
+				.	"`nImagens em log para inserção no BD(insere a cada 100)= " geradas.count(),	10, 10
 	}
 	Else	{
 		If( debug = 0 )
@@ -263,7 +236,7 @@ return
 				.	"`n"			datetime()
 				.	"`n"			setor
 				.	"`n`tModo dia = " dia
-				.	"`nImagens em log para inserÃ§Ã£o no BD(insere a cada 100)= " geradas.count(),	10, 10
+				.	"`nImagens em log para inserção no BD(insere a cada 100)= " geradas.count(),	10, 10
 		MsgBox,	,	Verificar Dia,	Ativado, 1
 	}
 	Else	{
@@ -274,7 +247,7 @@ return
 					.	"`n"	datetime()
 					.	"`n"	setor
 					.	"`n`tModo dia = "	dia
-					.	"`nImagens em log para inserÃ§Ã£o no BD(insere a cada 100)= " geradas.count(),	10, 10
+					.	"`nImagens em log para inserção no BD(insere a cada 100)= " geradas.count(),	10, 10
 	}
 return
 
@@ -287,5 +260,5 @@ return
 	ExitApp
 
 close_preparaImagens( ) {
-	Process, Close,% "preparaimagens.exe" 
+	Process, Close,% "preparaimagens" ext
 }

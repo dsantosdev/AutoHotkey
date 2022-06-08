@@ -1,24 +1,4 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\notificador_telegram.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe "notificador_telegram" "0.0.0.4" """
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-File_Version=0.0.0.4
-Inc_File_Version=1
-Product_Name=notificador_telegram
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-[ICONS]
-Icon_1=C:\AHK\icones\telegram.ico
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
+﻿
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\telegram.ico
 
 ;	Includes

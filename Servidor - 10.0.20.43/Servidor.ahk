@@ -297,11 +297,11 @@ save_to_sql=1
 			Return
 		}
 		Sleep, 3000
-		
+
 		log2 .="`nVerificando se o software " _software " já existe em " path "`n"	FileExist( path "\" software ) = 1
 																					? "Existe"
 																					: "Não Existe"
-		
+
 		if ( FileExist( path "\" software ) = "" )	{			;	Garante a inexistência do executável
 			Base64.FileDec( bins[2, 1] , path "\" software )	;	Transforma o arquivo base64 em executável
 			log2 .= "`nExecutável criado no destino"

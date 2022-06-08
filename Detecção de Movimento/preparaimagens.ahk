@@ -1,5 +1,5 @@
-﻿File_Version=0.0.0
-Save_To_Sql=0
+﻿File_Version=0.2.0
+Save_To_Sql=1
 
 If	!A_Args
 	ExitApp
@@ -35,7 +35,6 @@ If	!A_Args
 */
 
 ;	Configurações
-	; #NoTrayIcon
 	split	:=	StrSplit( A_Args[1], "`n" )
 	foscam	:= {}
 	Loop,%	split.Count() {
@@ -44,7 +43,7 @@ If	!A_Args
 			foscam[ dados[1] ]	:=	dados[2]
 	}
 	#SingleInstance, Force
-	; #NoTrayIcon
+	#NoTrayIcon
 	if A_IsCompiled
 		ext	=	.exe
 	Else
@@ -60,25 +59,7 @@ If	!A_Args
 ;	Code
 	Loop {
 		Debug( A_LineNumber, "Movendo Imagens" )
-	;	Reseta Inibidos quando tempo expirado
-		segundo_do_dia	:=	( A_Hour * 60 * 60 ) + ( A_Min * 60 ) + A_Sec	;	É inserido na tabela quando uma câmera é inibida	
-		u		=
-			(
-				UPDATE
-					[MotionDetection].[dbo].[inibidos]
-				SET
-					 [restaurado]	=	GETDATE()
-					,[geradas]		=	''
-				WHERE
-					[encerraDia]	<=	'%A_YDay%'
-				AND
-					[encerraHorario]<=	'%segundo_do_dia%'
-				AND
-					[restaurado] IS NULL
-			)
-		sql( u, 3 )
-	;
-
+		Gosub, reseta_inibidos
 	;	Foscam
 		Loop, Files, %motion_folder%Foscam\*.jpg, R
 		{
@@ -164,3 +145,24 @@ If	!A_Args
 		Folder.Clear( motion_folder "Foscam" )
 	;
 	}
+Return
+
+
+reseta_inibidos:
+	segundo_do_dia	:=	( A_Hour * 60 * 60 ) + ( A_Min * 60 ) + A_Sec	;	É inserido na tabela quando uma câmera é inibida	
+	u	=
+		(
+			UPDATE
+				[MotionDetection].[dbo].[inibidos]
+			SET
+				 [restaurado]	=	GETDATE()
+				,[geradas]		=	''
+			WHERE
+				[encerraDia]	<=	'%A_YDay%'
+			AND
+				[encerraHorario]<=	'%segundo_do_dia%'
+			AND
+				[restaurado] IS NULL
+		)
+	sql( u, 3 )
+Return

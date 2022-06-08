@@ -3,10 +3,12 @@
 */
 if	inc_dguard
 	Return
-Global inc_dguard = 1
+Global	inc_dguard = 1
+
+#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 
 Class	dguard {
-	
+
 	cameras( server = "" , token = "" )											{
 		;	Retorna guid, name, active e connected das câmeras cadastradas no servidor do dguard
 		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
@@ -56,6 +58,35 @@ Class	dguard {
 		return	json( retorno )
 	}
 
+	cam_to_layout( layout_guid, cam_guid, sequence )										{
+		a		:=	"\"""
+		comando	:=	"POST ""http://localhost:8081/api/layouts/%7B" layout_guid "%7D/cameras"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+				.	" -H ""Content-Type: application/json"""
+				.	" -d ""{ " a "aspectRatio"		a ": 1,"
+				.			"" a "zoom"				a ": 1,"
+				.			"" a "sequence"			a ": " sequence ","
+				.			"" a "serverGuid"		a ": " a "{" cam_guid "}" a ","
+				.			"" a "cameraId"			a ": 0 ,"
+				.			"" a "allowDuplicates"	a ": true }"
+		this.curl( comando )
+	}
+
+	comando( params* )	{
+		token	=	REPLACE_TOKEN
+		a		:=	"\"""
+		comando	:=	" -H ""accept: application/json"""
+				.	"`n -H ""Authorization: bearer " token """"
+				.	"`n -H ""Content-Type: application/json"""
+				.	"`n -d ""{"
+		for	i, v in params
+					comando	.=	StrReplace( v, "\", a ) ", "
+		comando	:=	SubStr( comando, 1, -2 )
+		comando	.=	"}"""
+		Return comando
+	}
+
 	contact_id( server = "" , guid = "" , token = "" )							{
 		/* Exemplo de Retorno: 
 			"contactId": {
@@ -80,22 +111,34 @@ Class	dguard {
 		WinWait ahk_pid %pid%
 		DllCall( "AttachConsole" , "UInt" , pid )
 		WshShell := ComObjCreate( "Wscript.Shell" )
-		if ( StrLen( tipo ) > 0 && StrLen( server ) > 0 )	{												;	Tem servidor e tipo
-			clipboard := "curl -X " tipo " " StrReplace( comando , "servidor" , server ) 
+		if (StrLen( tipo ) > 0
+		&& 	StrLen( server ) > 0 )	{												;	Tem servidor e tipo
+			; clipboard := "curl -X " tipo " " StrReplace( comando , "servidor" , server ) 
 			exec := WshShell.Exec( "cmd /c curl -X " tipo " " StrReplace( comando , "servidor" , server ) )
 		}
-		else if ( StrLen( tipo ) > 0 && StrLen( server ) = 0 )												;	Não tem servidor e tem tipo
+		else if (	StrLen( tipo ) > 0
+		&&			StrLen( server ) = 0 )											;	Não tem servidor e tem tipo
 			exec := WshShell.Exec( "cmd /c curl -X " tipo " " comando )
-		else if ( StrLen( tipo ) = 0 && StrLen( server ) > 0 )												;	Tem servidor e não tem tipo
+		else if (	StrLen( tipo ) = 0
+		&&			StrLen( server ) > 0 )											;	Tem servidor e não tem tipo
 			exec := WshShell.Exec( "cmd /c curl -X " StrReplace( comando , "servidor" , server ) )
-		else if ( ( StrLen( TIPO ) = 0 && StrLen( SERVER ) = 0 ) && InSTr( COMANDO , "GET" ) = 0 )			;	Não tem servidor e não tem tipo, mas não é do tipo GET
+		else if ( (	StrLen( TIPO ) = 0 && StrLen( SERVER ) = 0 )
+		&&			InSTr( COMANDO , "GET" ) = 0 ) {								;	Não tem servidor e não tem tipo, mas não é do tipo GET
+			; Clipboard := "cmd /c curl -X " comando
 			exec := WshShell.Exec( "cmd /c curl -X " comando )
-		else																								;	Tipo GET
+		}
+		else																		;	Tipo GET
 			exec := WshShell.Exec( "cmd /c curl -X GET " comando " -d" )
-
 		DllCall( "FreeConsole" )
 		Process Close,%	pid
 		return exec.StdOut.ReadAll()
+	}
+
+	delete_layout( guid )														{
+		del_comando	:=	"DELETE ""http://localhost:8081/api/layouts/%7B" StrRep( guid,, "{", "}" ) "%7D"""
+					.	" -H ""accept: application/json"""
+					.	" -H ""Authorization: bearer " token """"
+		this.curl( del_comando )
 	}
 
 	get_image( guid_da_camera , token = "" )									{	;	não está pronto
@@ -151,7 +194,7 @@ Class	dguard {
 		Return, pr . str
 	}
 
-	layouts( server , token )													{
+	layouts( server="" , token="" )													{
 		/*	utilização do retorno em loop, var.layouts.count()
 			var.layouts[A_Index].guid
 			var.layouts[A_Index].name
@@ -171,11 +214,10 @@ Class	dguard {
 				?	"localhost"
 				:	server
 
+		If	!Token
+			token	:=	this.token( server )
 		url		:=	"http://" server ":8081/api/layouts"
-
-		retorno	:=	Dguard.Request( url , token )
-
-		return	json( retorno )
+		return	json( Dguard.Request( url , token ) )
 	}
 
 	lista_cameras_layout( server , token , layoutGuid )							{
@@ -223,7 +265,30 @@ Class	dguard {
 		return
 	}
 
-	request( url , token="" , data="", method="GET" )								{
+	new_layout( Name="" ){
+		if	!Name
+			Name = Temp
+		a		:=	"\"""
+		comando	:=	"POST ""http://localhost:8081/api/layouts"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+				.	" -H ""Content-Type: application/json"""
+				.	" -d ""{ " a "name" a ": " a Name a "}"""
+		new	:=	Json( this.curl( comando ) )
+		if new.error.guid {
+			name	:=  name " "	randomName(4, 10)
+			a		:=	"\"""
+			comando	:=	"POST ""http://localhost:8081/api/layouts"""
+					.	" -H ""accept: application/json"""
+					.	" -H ""Authorization: bearer " token """"
+					.	" -H ""Content-Type: application/json"""
+					.	" -d ""{ " a "name" a ": " a Name a "}"""
+			new	:=	Json( this.curl( comando ) )
+		}
+		return	new.layout.guid
+	}
+
+	request( url , token="" , data="", method="GET" )							{
 		; data:={"username":"demo","password":"test123"} ; key-val data to be posted
 		; if StrLen( data ) {
 			; try	{
@@ -241,9 +306,7 @@ Class	dguard {
 		; Else	{
 			static req := ComObjCreate( "Msxml2.XMLHTTP" )
 			req.open( method, url, false )
-			; OutputDebug % url "`n" method
 			req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
-			; req.SetRequestHeader( "content-type: application/json" )
 			if	data
 				req.send(data)
 			Else
@@ -278,7 +341,6 @@ Class	dguard {
 		/*	Usado pelos sistemas abaixo
 			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
 		*/
-
 		ip_s = 99									;	Prepara var com os ips do monitoramento
 			Loop, 25
 				monitoramento .= ip_s + A_Index ","
@@ -298,8 +360,8 @@ Class	dguard {
 													?	"admin"	:	pass
 												:	pass
 											:	pass
-		if (ip[4] > 100
-		&&	ip[4] < 126 )							;	Se o servidor solicitado for coluna de operador define a senha de administrador
+		if ( (ip[4] >= 100
+		||	ip[4] < 126) && pass = "" )							;	Se o servidor solicitado for coluna de operador define a senha de administrador
 			pass := "@dm1n"
 		url	=	"http://%server%:8081/api/login" -H "accept: application/json"  -H "Content-Type: application/json" -d "{ \"username\": \"%user%\", \"password\": \"%pass%\"}"
 		OutputDebug % "Classe Dguard:`n`t" server
@@ -307,7 +369,70 @@ Class	dguard {
 					. "`n`t" pass
 		retorno	:=	StrReplace(	Dguard.curl( url , server , "POST" ) , """" )
 		retorno	:=	SubStr( StrReplace( retorno , "{login:{") , 1 , InStr( retorno , ",serverDate")-9 )
+		; MsgBox % Dguard.curl( url , server , "POST" )  "`n" Clipboard := url
 		return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
+	}
+
+	virtual_matrix( server="" , token="" )										{
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+
+		If	!Token
+			token	:=	this.token( server )
+		a		:=	"\"""
+		comando	:=	"PUT ""http://localhost:8081/api/virtual-matrix"""
+				.	"`n -H ""accept: application/json"""
+				.	"`n -H ""Authorization: bearer " token """"
+				.	"`n -H ""Content-Type: application/json"""
+				.	"`n -d ""{ "	a "machineName" 	a ": " a A_ComputerName a ",`n "
+				.	" " 		a "enabled"			a ": true,`n "
+				.	" "			a "activationMode"	a ": 1}"
+		return	this.curl( comando )
+	}
+
+	workstation( tipo="GET" ,server="" , token="", guid_layout="", guid_monitor="", guid_virtual="" )									{
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
+		?	"localhost"
+		:	server
+		If	!Token
+			token	:=	this.token( server )
+		If (tipo = "GET"){
+			/*	utilização do retorno em
+				loop,% var.workstations.count() {
+					Msgbox	%	"`n" var.workstations[A_Index].guid
+							.	"`n" var.workstations[A_Index].name
+					Loop,% var.workstations.monitors.Count() {
+						msgbox	%	"`n" var.workstations.monitors[A_Index].guid
+								.	"`n" var.workstations.monitors[A_Index].name
+								.	"`n" var.workstations.monitors[A_Index].enabled
+					}
+				}
+			*/
+			url		:=	"http://" server ":8081/api/virtual-matrix/workstations"
+			retorno := Dguard.Request( url , token )
+			if ( retorno = "{""workstations"":[]}" )
+				retorno  = 
+					(
+						{
+							"workstations": [
+								{
+								"guid": "ERRO"
+								}
+							]
+						}
+					)
+			return	json( retorno )
+		}
+		Else IF (tipo = "PUT") {
+			comando := "PUT ""http://" server ":8081/api/virtual-matrix"
+					.	"/workstations/%7B"	guid_virtual "%7D"
+					.	"/monitors/%7B"		guid_monitor "%7D"
+					.	"/layout""" this.comando( "\layoutGuid\: \{2F4F57EE-E44F-4424-BA80-C6085AC75E93}\" )
+			comando	:=	StrRep( comando,, "REPLACE_TOKEN:" token )
+			Clipboard:=comando
+			MsgBox % this.curl( comando )
+		}
 	}
 
 }

@@ -75,6 +75,7 @@ Save_To_Sql=1
 		OutputDebug % "Comparação de dados finalizada"
 
 	OutputDebug % timer("finalizado")
+		Run,% A_ScriptDir "\"
 	ExitApp
 ;
 
@@ -108,6 +109,7 @@ Save_To_Sql=1
 					,	[sinistro]
 					,	[url]
 					,	[api_get]
+					,	[cam_model]
 				FROM
 					[Dguard].[dbo].[Cameras]
 				ORDER BY
@@ -141,7 +143,8 @@ Save_To_Sql=1
 							,	operador	:	bd[ A_Index+1 , 14]
 							,	sinistro	:	bd[ A_Index+1 , 15]
 							,	url			:	bd[ A_Index+1 , 16]
-							,	api_get		:	bd[ A_Index+1 , 17]	})
+							,	api_get		:	bd[ A_Index+1 , 17]
+							,	cam_model	:	bd[ A_Index+1 , 18]	})
 		}
 	;
 
@@ -249,7 +252,6 @@ Save_To_Sql=1
 		OutputDebug % "`tCâmeras no Banco de Dados`t= " bd.Count()-1
 		OutputDebug % "`tCâmeras no dguard`t`t= " dguard_câmeras.Count()
 
-		; msgbox %	dguard_câmeras.Count() "`n" bd_câmeras.Count()
 		Loop,%	dguard_câmeras.Count()	{
 			OutputDebug % asdffds
 			index	:=	array.InDict( bd_câmeras, dguard_câmeras[ A_index ].guid, "guid" )	;	busca o INDEX no map de câmeras do BD com GUID igual ao da câmera atual do dguard
@@ -364,7 +366,6 @@ Save_To_Sql=1
 		Loop,%	deleted_cam.Count()-1 {
 			index			:=	array.InDict( dguard_câmeras, deleted_cam[ A_index+1, 1 ], "guid" )
 			name_excluded	:=	dguard_câmeras[ index ].name
-			MsgBox % name_excluded
 			pre				:=	"[n]<b>" deleted_cam[ A_index+1, 2 ] "</b>[n]└┬[t]<b>Excluída</b>[n][t] └─  Servidor:   <code>" deleted_cam[ A_index+1, 3 ] "</code>"
 			notifica_email	=
 				(
@@ -450,6 +451,7 @@ Save_To_Sql=1
 						,	[api_get]
 						,	[receiver]
 						,	[partition]
+						,	[cam_model]
 						,	[id]	)
 					VALUES
 						(	 '%name%'			--name
@@ -467,6 +469,7 @@ Save_To_Sql=1
 							,'%api_get%'		--api
 							,'%receiver%'		--receiver
 							,'%partition%'		--partition
+							,'%cam_model%'		--cam_model
 							,'%id%'	)			--id	;
 
 					INSERT INTO [ASM].[dbo].[_agenda]
@@ -689,8 +692,8 @@ Save_To_Sql=1
 							.			" " SubStr( dguard_câmeras[ A_index ].offline , 12 ) "' AS datetime)"
 		}
 		; MsgBox % set "`n" value_dg
-		if (value_dg = "NULL"
-		||	InStr(value_dg, "CAST(") != 0 )
+		If	(value_dg = "NULL"
+		||	 InStr( value_dg, "CAST(") != 0 )
 			u	=
 				(
 					UPDATE

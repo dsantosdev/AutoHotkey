@@ -60,19 +60,33 @@
 ;	Code
 	select_cameras =
 		(
-			SELECT		a.[ip], a.[VendorModel], b.[mac]
-			FROM		[Dguard].[dbo].[cameras] a
-			LEFT JOIN	[Dguard].[dbo].[cameras_mac] b
-			ON			a.[ip]	=	b.[ip]
-			WHERE		( a.[ip] LIKE '`%' + '.' + '`%' + '.' + '`%' + '.' + '`%' )
+			SELECT
+				a.[ip],
+				a.[VendorModel],
+				b.[mac]
+			FROM
+				[Dguard].[dbo].[cameras] a
+			LEFT JOIN
+				[Dguard].[dbo].[cameras_mac] b
+			ON
+				a.[ip]	=	b.[ip]
+			WHERE
+				( a.[ip] LIKE '`%' + '.' + '`%' + '.' + '`%' + '.' + '`%' )
 			--AND			a.VendorModel like 'HANWHA`%'
-			ORDER BY	a.[IP]
+			--AND			b.[mac] is null
+			ORDER BY
+				a.[IP]
 		)
 		dados := sql( select_cameras, 3 )
 		OutputDebug % "Total " dados.Count()
 
-	Loop,% dados.Count()	{
-		mac 	:=	cameras.mac( dados[A_Index+1, 1], dados[A_Index+1, 2] )
+	Loop,% dados.Count()-1	{
+		if !ping( dados[A_Index+1, 1] ) {
+			OutputDebug % dados[A_Index+1, 1] "`tFalha de ping`t" A_Index
+			continue
+		}
+
+		mac :=	cameras.mac( dados[A_Index+1, 1], dados[A_Index+1, 2] )
 			if !instr( mac, "NULL" )
 				mac := "'" mac "'"
 			Else
@@ -82,13 +96,11 @@
 
 		ip		:=	dados[A_index+1, 1]
 		brand	:=	dados[A_index+1, 2]
-			
 	
 		OutputDebug % ip "`t" mac "`t" A_Index
 
 		update =
 			(
-
 				IF NOT EXISTS (SELECT * FROM [Dguard].[dbo].[cameras_mac] WHERE [ip] = '%ip%' )
 
 					INSERT INTO [Dguard].[dbo].[cameras_mac]

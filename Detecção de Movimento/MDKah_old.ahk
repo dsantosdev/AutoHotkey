@@ -1,18 +1,18 @@
-﻿File_version=2.5.0
+﻿File_version=1.5.2
 Save_to_sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
-	[MotionDetection]
+BD = MotionDetection
 */
 
 ;	Includes
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\auth.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\date.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
@@ -28,35 +28,33 @@ Save_to_sql=1
 Menu,	Tray,	Icon,	C:\Seventh\Backup\ico\2motion.ico
 #Persistent
 #SingleInstance, Force
-sys_vers	= Detecção de Movimento %File_version% - 04/06/2022
+	sys_vers	= Detecção de Movimento %File_version% - 13/05/2022
+	2_operadores= 0
 ;
 
 ;	Configuração
 	;	Variáveis
-		Global	Token
-
 		ip	:=	StrSplit( A_IPAddress1, "." )
 		If ip[4] not in ( "100", "102", "106", "109", "114", "118", "123" )
 			ExitApp
 
+		Global	debug
+			,	x
+			,	nomedacamera
+			,	id
+
 		Gui.ScreenSizes()
-
+		2_operadores=	0
+		mjpeg		:=	"mjpegstream.cgi?camera="
 		ip_cam		=	999.999.999.999		;	Não pode ser vazio
+		http		:=	"http://admin:@dm1n@localhost/"
 
-		cam_return := StrSplit( HttpGet( "http://localhost/camerasnomes.cgi" ), "&")
-		ids			:=	{}
-		Loop,%	cam_return.Count() {
-			dados		:= StrSplit( cam_return[A_Index], "=" )
-			nome		:= SubStr( dados[2], 1, StrLen(dados[2])/2 )
-			ids[nome]	:= dados[1]
-		}
-
+	;	Folders
 		Folder		=	\\srvftp\monitoramento\FTP\
-
 
 		If( A_UserName	= "dsantos"			;	Define operador
 		||	A_IPAddress1= "192.9.100.100" )
-			oper = 0005						;	!= 0000 é debug
+			oper = 0005
 		Else	{
 			if(		 A_IPAddress1 = "192.9.100.102" )
 				oper = 0001
@@ -72,15 +70,13 @@ sys_vers	= Detecção de Movimento %File_version% - 04/06/2022
 				oper = 0006
 			Menu, Tray, Nostandard
 		}
-		folder_operador	=	\\srvftp\monitoramento\FTP\%oper%\*.jpg
 
-		SetTimer,	verifica_imagens,	1000
+		buscar	=	\\srvftp\monitoramento\FTP\%oper%\*.jpg
+
+		SetTimer,	verifica_imagens,	2000
 return
 
 verifica_imagens:
-	;	Recarrega dados
-		If (SubStr( A_Now, 1 , 8) > )
-	;
 	;	Verifica se está em pause
 		if	paused = 1
 			Return
@@ -95,8 +91,38 @@ verifica_imagens:
 		}
 		Else
 			ico			=	2motion
-		Menu,	Tray,	Icon,	C:\Seventh\Backup\ico\%ico%.ico
-		Menu	Tray,	Tip,%	sys_vers
+	;
+
+	; 2 Operadores Sala 1 - Intervalo	-DESATIVADO 27-04-2022
+		; OutputDebug % "2 Operadores Sala 1 - Intervalo"
+		; If( A_IPAddress1 = "192.9.100.106" ) {
+			; If( (	SubStr( A_Now, 9, 4 ) > 2100
+			; &&		SubStr( A_Now, 9, 4 ) < 2330 )
+			; ||	(	SubStr( A_Now, 9, 4 ) > 0300
+			; &&		SubStr( A_Now, 9, 4 ) < 0415 ) ) {
+				; Menu,	Tray,	Icon,	C:\Seventh\Backup\ico\2motion.ico
+				; 2_operadores	=	1
+			; }
+			; Else
+				; 2_operadores	=	0
+		; }
+		; Else {
+			; If( 2_operadores = 1 )
+				; 2_operadores = 1
+			; Else
+				; 2_operadores = 0
+		; }
+	;
+
+	Menu,	Tray,	Icon,	C:\Seventh\Backup\ico\%ico%.ico
+
+
+	;	Sinistro ativo
+		OutputDebug % "Sinistro ativo"
+		; If( 2_operadores = 1 )
+			; Menu Tray, Tip,%	sys_vers "`nModo 2 operadores ou Sinistro Ativo"
+		; Else
+			Menu Tray, Tip,%	sys_vers
 	;
 
 	;	Impede de abrir duas detecções simultaneamente
@@ -107,7 +133,7 @@ verifica_imagens:
 
 	;	Loop imagens
 		OutputDebug % "Imagens"
-		Loop, Files,%	folder_operador
+		Loop, Files,%	buscar
 		{
 			If((Substr( A_Now, 9 ) > "060000"
 			&&	Substr( A_Now, 9 ) < "203000")
@@ -119,51 +145,39 @@ verifica_imagens:
 			arquivo			:=	StrSplit( A_LoopFileName, "_" )
 			data_e_hora		:=	StrRep( arquivo[1],, "-" )
 			ip_cam			:=	arquivo[2]
-			nome_da_camera	:=	StrReplace( arquivo[3], "-", "|", , 1 )
+			nome_da_camera	:=	arquivo[3]
 			op_sinistro		:=	StrReplace( arquivo[4], ".jpg" )
+		
+			; If( 2_operadores = 1 )	{	;	Move para o operador correspondente ao sinistro
+				; Loop,	\\srvftp\monitoramento\FTP\%oper%\*.jpg
+					; FileMove,%	A_LoopFileFullPath,	\\srvftp\monitoramento\FTP\%op_sinistro%\%A_LoopFileName%
+				; Continue	;	13/04/2022
+			; }
 
-		;	Verifica Inibidos e desinibe
-			segundo_do_dia	:=	( A_Hour * 60 * 60 ) + ( A_Min * 60 ) + A_Sec
-			sql_inibido	=
-				(
-					DELETE FROM
-						[MotionDetection].[dbo].[Inibidos]
-					WHERE
-						[inibido] < DATEADD( day, -40, GETDATE() ) ;
+			;	Verifica Inibidos
+				infos	=
+					(
+						SELECT TOP(1)
+							 [restaurado]
+						FROM
+							[MotionDetection].[dbo].[inibidos]
+						WHERE
+							[ip] = '%ip_cam%'
+						ORDER BY
+							[id]
+						DESC
+					)
+				infos	:=	sql( infos, 3 )
 
-					UPDATE
-						[MotionDetection].[dbo].[inibidos]
-					SET
-						 [restaurado]	=	GETDATE()
-						,[geradas]		=	''
-					WHERE
-						[encerraDia]	<=	'%A_YDay%'
-					AND
-						[encerraHorario]<=	'%segundo_do_dia%'
-					AND
-						[restaurado] IS NULL;
-
-					SELECT TOP(1)
-						[restaurado]
-					FROM
-						[MotionDetection].[dbo].[inibidos]
-					WHERE
-						[ip] = '%ip_cam%'
-					ORDER BY
-						[id]
-					DESC;
-				)
-			sql_inibido	:=	sql( sql_inibido, 3 )
-
-			If( A_IPAddress1 != "192.9.100.100" )	;	Operadores	-	Se estiver em período de inibido
-				If( sql_inibido.Count()-1 = 1				;	Está nos inibidos
-				&& StrLen( sql_inibido[2,1] ) = 0 ) {		;	e não há horário de ter sido encerrado o tempo de inibir
-					Loop, Files,%	folder_operador
-						If	RegExMatch( A_LoopFileFullPath, ip_cam )
-							FileDelete,% A_LoopFileFullPath
-					Continue	;	ERA RETURN - Imagem preta?
-				}
-		;
+				If( A_IPAddress1 != "192.9.100.100" )	;	Operadores	-	Se estiver em período de inibido
+					If( infos.Count()-1 = 1				;	Está nos inibidos
+					&& StrLen( infos[2,1] ) = 0 ) {		;	e não há horário de ter sido encerrado o tempo de inibir
+						Loop, Files,%	buscar
+							If	RegExMatch( A_LoopFileFullPath, ip_cam )
+								FileDelete,% A_LoopFileFullPath
+						Continue	;	ERA RETURN - Imagem preta?
+					}
+			;
 
 			displayed	:=	datetime()
 			fullfile	:=	A_LoopFileFullPath
@@ -189,7 +203,6 @@ Interface:
 	Gui, Add,	Button,%		"x10	y" work_h-25 "	w150	h25		gsem_motivo		vnada	-TabStop			", Sem motivo aparente
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_movimento	vmov	-TabStop			", Evento devido a...
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_inibir		vini	-TabStop			", Inibir eventos
-	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_all_cam		vall_cam -TabStop			", Criar Layout da Unidade
 	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_sinistro		vSini	-TabStop			", Sinistro em Andamento
 	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
 	Gui, Add,	Button,%		"xp+302	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
@@ -202,55 +215,56 @@ Interface:
 	Gui, Add,	Text,%			"x200	y0																	cGreen	", % StrRep( nome_da_camera,".jpg" ) " | "	datetime( data_e_hora )
 	Gui, Add,	Button,%		"x10	y0								gao_vivo		vlive	-TabStop			",	Verificar Ao Vivo
 		Gui, Font
+		; GuiControl,, Pic,%	"							*w1260			 *h720 " 
 		Gui, Color,	000000, FFFFFF
 	Gui, Show ,%				"x0		y0				 w" monitor_w-7 " h"	work_h								 , Detecção de Movimento
-	Gosub, b_all_cam
 	Sleep	1000
 		WinWaitClose, Detecção de Movimento
 return
 
-;	Botões
-	^F1::
-	b_all_cam:
-		ip_	:=	SubStr( ip_cam, 1, InStr( ip_cam, ".",,-1 ) )	
-		token	:=	Dguard.token()
-		var		:=	Dguard.layouts()
-		loop,%	var.layouts.count()
-			If	RegExMatch( var.layouts[A_Index].name, "Layout4" )
-				layout4_guid	:=	var.layouts[A_Index].guid
-		;	Modo SQL
-			cam_operador =
-				(
-					SELECT
-						[name],
-						[guid]
-					FROM
-						[dguard].[dbo].[cameras]
-					WHERE
-						[ip] LIKE '%IP_%`%'
-				)
-				cam_operador:=	sql( cam_operador, 3 )
-			if ( cam_operador.Count()-1 > 0 ) {
-				Layout_guid	:=	Dguard.new_layout( StrRep( nome_da_camera,, "|:-") )
-				Loop,%	cam_operador.Count()-1
-					dguard.cam_to_layout( Layout_guid, cam_operador[A_Index+1, 2], A_Index-1 )
-				
+get:	;	configuração de câmera aberto em operador
+	if(A_Hour	>	6		and	A_Hour	<	20)
+		return
+	SetTimer,	get, off
+	Loop
+	{
+		Sleep	500
+		WinGet,	saida,	ProcessName, A
+		if(instr(saida,"chrome")>0 or instr(saida,"firefox")>0 or instr(saida,"iexplore")>0 )	{
+			WinGetTitle,	page,	A
+			if(	instr( page, "wisenet" ) > 0
+			||	instr( page, "settings" ) > 0
+			||	instr( page, "ipcam" ) > 0
+			||	instr( page, "configuração" ) > 0
+			||	instr( page, "live" ) > 0)	{
+				if( instr( page, "wisenet" ) > 0 )
+					what = samsung
+				if( instr( page, "settings" ) > 0)
+					what = dahua
+				if( instr( page, "ipcam" ) > 0 )
+					what = foscam
+				if( instr( page, "configuração" ) > 0 )
+					what = sony
+				if( instr( page, "live" ) > 0 )
+					what = dahua
+				WinGetPos,	x1, y1, w1, h1, A
+				x1		:=	x1+10
+				y1		:=	y1+10
+				w1		:=	w1-10
+				h1		:=	h1-10
+				ptok	:=	Gdip_Startup()
+				img		:=	Gdip_Bitmapfromscreen(x1 "|" y1 "|" w1 "|" h1)
+				Gdip_SaveBitmapToFile(img, "\\srvftp\Monitoramento\FTP\Acessos Indevidos\" A_IPAddress1	" - " what	"-" A_Now ".png")
+				FileAppend,	%	A_IPAddress1	" - "	what	" - " datetime() "`n", \\srvftp\Monitoramento\FTP\Log\Acesso Configuração de Câmera.txt
+				Gdip_DisposeImage(img)
+				Gdip_Shutdown(ptok)
+				Sleep,	15000
 			}
-		;
-		
-		array	:= Dguard.workstation()
-		if	(	array.workstations[1].guid	=	"ERRO" ) {
-			Dguard.virtual_matrix()
-			array	:= Dguard.workstation()
 		}
-		monitor	:=	{}
-		Loop,% array.workstations[1].monitors.Count()
-			monitor[array.workstations[1].monitors[A_Index].name]	:=	array.workstations[1].monitors[A_Index].guid
-		workstation	:=	array.workstations[1].guid
+	}
+return
 
-		Dguard.workstation("PUT", , token, Layout_guid, StrRep( monitor["Monitor2"], , "{", "}" ), StrRep( workstation, , "{", "}" ) )
-	Return
-
+;	Botões
 	confirmar:
 		Gui, Submit, NoHide
 		If( StrLen( motivo ) < 10
@@ -290,17 +304,18 @@ return
 					i_a			:=	Round( i_a )
 				if( StrLen( m ) = "1" )
 					m	:=	"0" m
-				FileMove,% fullfile ,% Folder "Inibidos\" ip_cam " - " oper " - " StrRep( nome_da_camera,, ".jpg", "|:-" ) " - " SubStr( A_Now, 1, 8 ) "_" SubStr( A_Now, 9 ) " - " inibe ".jpg", 1
+				FileMove,% fullfile ,% Folder "Inibidos\" ip_cam " - " oper " - " StrReplace( nome_da_camera, ".jpg" ) " - " SubStr( A_Now, 1, 8 ) "_" SubStr( A_Now, 9 )	" - " inibe ".jpg", 1
 			}
 			if( ocorrencia = 1 ){	
 				dia_verificar	:= MOD( A_YDay, 2 ) = 1 ? "Dia 1" : "Dia 2"
-				move_path		:=	Folder														;	\\srvftp\monitoramento\FTP\
+				move_path		:=	Folder								;	\\srvftp\monitoramento\FTP\
 							.	"Verificados\" dia_verificar "\"
-							.	SubStr( data_e_hora, 1, 8 ) "-"	SubStr( data_e_hora, 9 ) "_"	;	YYYYMMDD-HHmmss_
-							.	ip_cam "_"														;	10.1.52.118
-							.	oper "_"														;	0000
-							.	StrRep( nome_da_camera,, ".jpg", "|:-" )						;	SD | M. Sede Caixas 1 a 4
-							.	".jpg"															;	extensão
+							.	SubStr( data_e_hora, 1, 8 ) "-"			;	YYYYMMDD-
+							.	SubStr( data_e_hora, 9 ) "_"			;	HHmmss_
+							.	ip_cam "_"								;	10.1.52.118
+							.	oper "_"								;	0000
+							.	StrRep( nome_da_camera,, ".jpg" )		;	SD - M. Sede Caixas 1 a 4
+							.	".jpg"									;	extensão
 				FileMove,% fullfile ,% move_path, 1
 			}
 			exibido=
@@ -383,22 +398,22 @@ return
 		Gui,	Destroy
 		Gui,	live:Destroy
 		dia_verificar	:= MOD( A_YDay, 2 ) = 1 ? "Dia 1" : "Dia 2"
-		; MsgBox % Clipboard := Folder							;	\\srvftp\monitoramento\FTP\
-				; .	"Verificados\" dia_verificar "\"	
-				; .	SubStr( data_e_hora, 1, 8 ) "-"				;	YYYYMMDD-
-				; .	SubStr( data_e_hora, 9 ) "_"				;	HHmmss_
-				; .	ip_cam "_"									;	10.1.52.118
-				; .	oper "_"									;	0000
-				; .	StrRep( nome_da_camera,, ".jpg" )			;	SD - M. Sede Caixas 1 a 4
-				; .	".jpg"	
-		move_path	:=	Folder									;	\\srvftp\monitoramento\FTP\
-				.	"Verificados\" dia_verificar "\"	
-				.	SubStr( data_e_hora, 1, 8 ) "-"				;	YYYYMMDD-
-				.	SubStr( data_e_hora, 9 ) "_"				;	HHmmss_
-				.	ip_cam "_"									;	10.1.52.118
-				.	oper "_"									;	0000
-				.	StrRep( nome_da_camera,, ".jpg", "|:-" )	;	SD - M. Sede Caixas 1 a 4
-				.	".jpg"										;	extensão
+		; MsgBox % Clipboard := Folder						;	\\srvftp\monitoramento\FTP\
+				; .	"Verificados\" dia_verificar "\"
+				; .	SubStr( data_e_hora, 1, 8 ) "-"			;	YYYYMMDD-
+				; .	SubStr( data_e_hora, 9 ) "_"			;	HHmmss_
+				; .	ip_cam "_"								;	10.1.52.118
+				; .	oper "_"								;	0000
+				; .	StrRep( nome_da_camera,, ".jpg" )		;	SD - M. Sede Caixas 1 a 4
+				; .	".jpg"
+		move_path	:=	Folder								;	\\srvftp\monitoramento\FTP\
+				.	"Verificados\" dia_verificar "\"
+				.	SubStr( data_e_hora, 1, 8 ) "-"			;	YYYYMMDD-
+				.	SubStr( data_e_hora, 9 ) "_"			;	HHmmss_
+				.	ip_cam "_"								;	10.1.52.118
+				.	oper "_"								;	0000
+				.	StrRep( nome_da_camera,, ".jpg" )		;	SD - M. Sede Caixas 1 a 4
+				.	".jpg"									;	extensão
 		FileMove,% fullfile ,% move_path, 1
 		Gosub SQL
 	return
@@ -458,10 +473,10 @@ return
 ;
 
 dois_operadores:
-	ToolTip, Desabilitado...
-	Sleep, 5000
-	Tooltip
-	Return
+ToolTip, Desabilitado...
+Sleep, 5000
+Tooltip
+Return
 	2_operadores	:=	!2_operadores
 	If( 2_operadores= 1 )	{
 		Gui,	Destroy
@@ -504,7 +519,7 @@ Restauro:	;	restaura o Sinistro
 			UPDATE
 				[MotionDetection].[dbo].[operadores]
 			SET
-				[Finalizado] = GetDate()
+				[Finalizado] = CAST('%agora%' as datetime)
 			WHERE
 				[ip] = '%A_IPAddress1%'
 			AND
@@ -533,28 +548,33 @@ ao_vivo:
 	;	Prepara variáveis
 		WinSet,	AlwaysOnTop,	Off,	Detecção de Movimento
 		is_live			=	1
+		nomedacamera	:=	StrReplace( StrRep( nome_da_camera, ".jpg" ), "-", "|", , 1 )
 		Erro			=
-		ID	:=	ids[nome_da_camera]
-		if( ID = "" ) {
-			FileAppend,%	oper " - " nome_da_camera " - " A_IPAddress1 " `t " datetime() "`n", \\srvftp\Monitoramento\FTP\Log\Falha nos ID.txt
+		IDS	:=	HttpGet( http "camerasnomes.cgi", nomedacamera )
+		if( IDS = "Erro" ) {
+			FileAppend,%	oper " - " nomedacamera " - " A_IPAddress1 " `t "	http "camerasnomes.cgi | " datetime() "`n", \\srvftp\Monitoramento\FTP\Log\Falha nos ID.txt
 			MsgBox,,Câmera Indisponível para visualização, Câmera indisponível no momento para visualização.`nEm caso de emergência visualizar no Ctrl+3 - Layout TODAS
 			WinSet,	AlwaysOnTop,	On,	Detecção de Movimento
 			Goto	liveClose
 		}
 	;
-	vlcx.playlist.stop()	
+	ID	:=	SubStr( IDS, 1, Instr( IDS, "=" ) - 1 )
+	vivo:=	SubStr( IDS, Instr( IDS, "=" ) + 1 )
+	vlcx.playlist.stop()
+	url	:=	http mjpeg id
+	
 	options=""
 
 	If A_IsCompiled
 		Gui,	live: -Border +AlwaysOnTop	+ToolWindow
 		Gui,live:Font, S15 Bold
 	Gui,	live:Add, Button,	 x10		y0									gliveClose			,	Fechar visualização ao Vivo
-	Gui,	live:Add, Text,%	"x320	y0								vaovivo				cGreen"	,%  nome_da_camera
+	Gui,	live:Add, Text,%	"x320	y0								vaovivo				cGreen"	,%  vivo
 	Gui,	live:Add, ActiveX,%	"x10	y45	w" monitor_w " h" work_h "	vVlcx"						,	VideoLAN.VLCPlugin
 		Gui,live:Color, 000000,	FFFFFF
 	Gui,	live:Show,%			"x0		y0	w" monitor_w " h" work_h								,	Live
 		Gui,live:Font
-	vlcx.playlist.add( "http://admin:@dm1n@localhost/mjpegstream.cgi?camera=" id, "", options )
+	vlcx.playlist.add( url, "", options )
 	vlcx.playlist.play()
 return
 
@@ -595,7 +615,6 @@ sql:
 		campo2		:=	datetime( 1, data_e_hora )
 		campo3		:=	datetime( 1, displayed )
 		campo4		:=	datetime( 1, A_Now )
-
 		campo6		:=	StrRep( inibe,, " Minutos" )
 		campo9		:=	ip_cam
 		if( outroDia = 1 )
@@ -662,14 +681,38 @@ sql:
 	}
 return
 
-HttpGet( URL )	{
+HttpGet( URL, nomedacamera )	{
 	responseText=
+	OutputDebug % url "`n`t" nomedacamera
 	static	req	:=	ComObjCreate( "Msxml2.XMLHTTP" )
 	req.open( "GET", URL, false )
-	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
+	; req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )
 	req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )
+	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
 	req.send()
-	Return	req.responseText
+	o	:=	StrSplit( req.responseText, "&" )
+	Loop,%	o.Count()	{
+		oa	:=	StrReplace( o[A_Index], "`n" )
+		OutputDebug % oa
+		if( Instr( oa, "IPC" ) > 0 )
+			oa	:=	StrReplace( oa, "IPC", SubStr( oa, InStr( oa, "=" ) + 1, InStr( oa, ".IPC" ) - 5 ) )
+		if( Instr( oa, "camera 01" ) > 0 )
+			oa	:=	StrReplace( oa, "camera 01", SubStr( oa, InStr( oa, "=" ) + 1, InStr( oa, ".camera 01" ) - 11 ) )
+		oa2	:=	oa
+		oa	:=	StrReplace( StrReplace( oa, "`r" ), ". ", "_ " )
+		oa	:=	StrSplit( oa, "." )
+		oa	:=	StrReplace( oa[1], "_", "." )
+		id	:=	SubStr( oa, 1, InStr(oa ,"=" ) - 1 )
+		oa	:=	SubStr( oa, InStr( oa, "=" ) + 1 )
+		If( oa = nomedacamera )	;	se for igual, retorna o id para exibição do vídeo
+			break
+		Else
+			id	=
+	}
+	If( StrLen( id ) = 0 )
+		return "Erro"
+	Else 
+		return	id	"="	oa
 }
 
 ^END::
@@ -677,8 +720,8 @@ HttpGet( URL )	{
 	ExitApp
 ;
 
-; ^F1::
-	; paused = 1
-	; SetTimer, Pause_counter, -60000
-	; ListVars
-; Return
+^F1::
+	paused = 1
+	SetTimer, Pause_counter, -60000
+	ListVars
+Return

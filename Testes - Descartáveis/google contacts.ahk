@@ -1,4 +1,4 @@
-﻿File_Version=0.1.0
+﻿File_Version=0.0.0
 Save_To_Sql=0
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\pc.ico
 
@@ -14,7 +14,7 @@ Save_To_Sql=0
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\file.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\folder.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
@@ -31,30 +31,56 @@ Save_To_Sql=0
 
 */
 
-s =
-	(
-		select ip from [dguard].[dbo].[cameras]
-		where vendormodel like 'Dahu`%'
-	)
-	s := sql( s, 3 )
+#SingleInstance, Force
 
-Loop,% s.Count()	{
-	ip := s[A_index+1, 1]
-	r := StrSplit( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo", ,1 ), "`n" )
-	Loop,% r.Count() {
-		if	InStr( r[A_Index], "devicetype=" ) {
-			cam_model	:=	 StrRep( r[A_Index],, "Devicetype=", "`n", "`r" )
-			i =
-				(
-					UPDATE [Dguard].[dbo].[cameras]
-					SET
-						[cam_model] = '%cam_model%'
-					WHERE
-						[ip]		= '%ip%'
-				)
-				sql( i, 3 )
-		}
-	}
+s	=
+	(
+		SELECT
+			 [nome]			--1
+			,[matricula]	--2
+			,[cargo]		--3
+			,[email]		--4
+			,[telefone1]	--5
+			,[telefone2]	--6
+			,[c_custo]		--7
+			,[local]		--8
+			,[setor]		--9
+		FROM [ASM].[dbo].[_colaboradores]
+		WHERE sexo = 'f'
+		AND (Len(telefone1) > 1
+		OR Len(telefone2) > 1)
+	)
+ c := sql( s, 3 )
+Sleep, 500
+Loop,% c.Count()-1	{
+	ToolTip % a_index - c.Count()
+	; MsgBox % clipboard :=	"-" c[A_index+1, 1] "-`n"
+	; 		.	"-" c[A_index+1, 2] "-`n"
+	; 		.	"-" c[A_index+1, 3] "-`n"
+	; 		.	"-" c[A_index+1, 4] "-`n"
+	; 		.	"-" c[A_index+1, 5] "-`n"
+	; 		.	"-" c[A_index+1, 6] "-`n"
+	; 		.	"-" c[A_index+1, 7] "-`n"
+	; 		.	"-" c[A_index+1, 8] "-`n"
+	; 		.	"-" c[A_index+1, 9] "-"
+	a	:=	c[A_index+1, 8]	= "varejo"
+							? c[A_index+1, 7] 
+							: c[A_index+1, 8]	=	c[A_index+1, 7]
+												?	c[A_index+1, 8]
+							: c[A_index+1, 8] " - " c[A_index+1, 9]
+
+	contact	:= "`n"	a " | " c[A_index+1, 1]
+			.	","	a
+			.	","	c[A_index+1, 1]
+			.	","	c[A_index+1, 2]
+			.	",* Contatos Cotrijal"
+			.	","
+			.	","	c[A_index+1, 5] "`:`:`:"	c[A_index+1, 6]
+			.	","	c[A_index+1, 3]
+			.	",`* "
+			.	","	c[A_index+1, 4]
+		; MsgBox % StrReplace( contact, ",", "`n" )
+	FileAppend,% contact, contacts.csv
+	if ErrorLevel
+		MsgBox % StrReplace( contact, ",", "`n" )
 }
-MsgBox,,,Pronto, 2
-ExitApp

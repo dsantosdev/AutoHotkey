@@ -26,13 +26,14 @@ Save_to_sql=0
 	OutputDebug % "Iniciando construção da interface."
 	Gui.Cores()
 		Gui.Font( "S10" , "Bold" )
-	Gui, Add, Edit,		x10		y10		w300	h30		v_busca					Section
+	Gui, +DPIScale
+	Gui, Add, Edit,		x10		y10	w300					h30		v_busca					Section
 		Gui.Font( "cWhite" )
-	Gui, Add, Checkbox,	xs						h30		v_definidos	g_filtro	Section	, Exibir apenas câmeras já configuradas
-	Gui, Add, Checkbox,			ys				h30		v_run					Checked	, Abrir imagem no navegador ao gerar link
+	Gui, Add, Checkbox,	xs									h30		v_definidos	g_filtro	Section	, Exibir apenas câmeras já configuradas
+	Gui, Add, Checkbox,			ys							h30		v_run					Checked	, Abrir imagem no navegador ao gerar link
 		Gui.Font( )
 		Gui.Font( "S10" , "Bold" )
-	Gui, Add, ListView,	xs				w815	h700	v_listview				Grid	, Nome|Ip|Receptora|Conta|guid|id|Servidor|api|Marca
+	Gui, Add, ListView,%	"xs		w" A_ScreenWidth-20 "	h" A_ScreenHeight-200 " v_listview	Grid", Nome|Ip|Receptora|Conta|guid|id|Servidor|api|Marcae
 		LV_ModifyCol( 1 , 300 )
 		LV_ModifyCol( 2 , 100 )
 		LV_ModifyCol( 3 , 100 " integer" )
@@ -43,8 +44,8 @@ Save_to_sql=0
 		LV_ModifyCol( 8 , 0 )
 		LV_ModifyCol( 9 , 0 )
 		Gosub, preenche_listview
-	Gui, Add, Button,	xm				w400	h30					g_copyUrl	Section	, Copiar URL
-	Gui, Add, Button,			ys		w400	h30		gGuiClose						, Cancelar
+	Gui, Add, Button,	xm			w400					h30					g_copyUrl	Section	, Copiar URL
+	Gui, Add, Button,			ys	w400					h30		gGuiClose						, Cancelar
 	Gui, Show, x0 y0, Cadastro de Câmeras
 return
 
@@ -77,7 +78,11 @@ preenche_listview:
 			,	[vendormodel]
 		FROM
 			[Dguard].[dbo].[cameras]
-		WHERE [name] like '%_busca%`% | B`%' %definidos%
+		WHERE
+			[name] like '%_busca%`% | Ba`%'
+		--OR
+		-- [name] like '%_busca%`% | Ba`%'
+		%definidos%
 		ORDER BY
 			[name]
 		)
@@ -145,8 +150,8 @@ Return
 			URL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=setConfig"
 			OVERLAY	:=	url	"&VideoWidget[0].ChannelTitle.PreviewBlend=false"
 						.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
-						.	"&VideoWidget[0].TimeTitle.PreviewBlend=True"
-						.	"&VideoWidget[0].TimeTitle.EncodeBlend=True"
+						.	"&VideoWidget[0].TimeTitle.PreviewBlend=true"
+						.	"&VideoWidget[0].TimeTitle.EncodeBlend=true"
 			ENCODE	:=	url	"&Encode[0].MainFormat[0].Video.Compression=H.264"
 						.	"&Encode[0].MainFormat[0].Video.BitRate=768"
 						.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"

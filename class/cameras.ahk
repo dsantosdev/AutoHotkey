@@ -6,6 +6,8 @@ Global inc_cameras = 1
 Class Cameras	{
 	Mac( ip, model )	{
 		;	Retorna o mac da câmera solicitada
+		if InStr( model, "Motorola" )
+			Return	""
 		login	=	admin:tq8hSKWzy5A@
 		URL := SubStr( model, 1, InStr( model, " " )-1 )	=	"Foscam"
 															?	"http://" ip ":88/cgi-bin/CGIProxy.fcgi?cmd=getDevInfo&usr=admin&pwd=tq8hSKWzy5A"

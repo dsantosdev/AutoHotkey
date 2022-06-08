@@ -1,4 +1,4 @@
-﻿File_Version=0.1.0
+﻿File_Version=0.0.0
 Save_To_Sql=0
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\pc.ico
 
@@ -19,7 +19,7 @@ Save_To_Sql=0
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\sync_data.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
@@ -31,30 +31,27 @@ Save_To_Sql=0
 
 */
 
-s =
-	(
-		select ip from [dguard].[dbo].[cameras]
-		where vendormodel like 'Dahu`%'
-	)
-	s := sql( s, 3 )
+;	Configurações
+	; #NoTrayIcon
+	#SingleInstance, Force
 
-Loop,% s.Count()	{
-	ip := s[A_index+1, 1]
-	r := StrSplit( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo", ,1 ), "`n" )
-	Loop,% r.Count() {
-		if	InStr( r[A_Index], "devicetype=" ) {
-			cam_model	:=	 StrRep( r[A_Index],, "Devicetype=", "`n", "`r" )
-			i =
-				(
-					UPDATE [Dguard].[dbo].[cameras]
-					SET
-						[cam_model] = '%cam_model%'
-					WHERE
-						[ip]		= '%ip%'
-				)
-				sql( i, 3 )
-		}
-	}
+	show_tooltip	:=	A_Args[1]	;	recebe o argumento 1 para exibir
+		if ( A_UserName = "dsantos" )
+			show_tooltip = 1
+		CoordMode, ToolTip, Screen
+
+	if A_IsCompiled
+		ext	=	exe
+	Else
+		ext = ahk
+
+;
+
+;	Code
+r = 58
+Loop, 14 {
+	r++
+	outputdebug % http( "http://admin:tq8hSKWzy5A@10.2.78." r "/cgi-bin/configManager.cgi?action=setConfig&VideoInOptions[0].DayNightColor=1" )
 }
-MsgBox,,,Pronto, 2
-ExitApp
+; MsgBox % "-" SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@10.2.78.59/cgi-bin/magicBox.cgi?action=getSystemInfo",, 1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 ) "-"
+;
