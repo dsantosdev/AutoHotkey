@@ -1,4 +1,4 @@
-﻿File_version=2.5.0
+﻿File_version=2.6.0
 Save_to_sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
@@ -22,6 +22,7 @@ Save_to_sql=1
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\timer.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
@@ -34,7 +35,7 @@ sys_vers	= Detecção de Movimento %File_version% - 04/06/2022
 ;	Configuração
 	;	Variáveis
 		Global	Token
-
+		demo = 0
 		ip	:=	StrSplit( A_IPAddress1, "." )
 		If ip[4] not in ( "100", "102", "106", "109", "114", "118", "123" )
 			ExitApp
@@ -79,8 +80,9 @@ return
 
 verifica_imagens:
 	;	Recarrega dados
-		If (SubStr( A_Now, 1 , 8) > )
-	;
+		If (SubStr( A_Now, 9) > "200000" && SubStr( A_Now, 9) < "200005")
+			Reload
+	;	
 	;	Verifica se está em pause
 		if	paused = 1
 			Return
@@ -106,12 +108,13 @@ verifica_imagens:
 	;
 
 	;	Loop imagens
-		OutputDebug % "Imagens"
+		OutputDebug %	"Imagens"
 		Loop, Files,%	folder_operador
 		{
 			If((Substr( A_Now, 9 ) > "060000"
 			&&	Substr( A_Now, 9 ) < "203000")
-			&&	A_IPAddress1 != "192.9.100.100" )	{
+			&&	A_IPAddress1	!= "192.9.100.100"
+			&&	demo			!= 1	)	{
 				FileDelete,%	A_LoopFileFullPath
 				Continue
 			}
@@ -154,7 +157,6 @@ verifica_imagens:
 					DESC;
 				)
 			sql_inibido	:=	sql( sql_inibido, 3 )
-
 			If( A_IPAddress1 != "192.9.100.100" )	;	Operadores	-	Se estiver em período de inibido
 				If( sql_inibido.Count()-1 = 1				;	Está nos inibidos
 				&& StrLen( sql_inibido[2,1] ) = 0 ) {		;	e não há horário de ter sido encerrado o tempo de inibir
@@ -189,7 +191,7 @@ Interface:
 	Gui, Add,	Button,%		"x10	y" work_h-25 "	w150	h25		gsem_motivo		vnada	-TabStop			", Sem motivo aparente
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_movimento	vmov	-TabStop			", Evento devido a...
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_inibir		vini	-TabStop			", Inibir eventos
-	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_all_cam		vall_cam -TabStop			", Criar Layout da Unidade
+	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_all					-TabStop			", Criar Layout da Unidade
 	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_sinistro		vSini	-TabStop			", Sinistro em Andamento
 	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
 	Gui, Add,	Button,%		"xp+302	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
@@ -204,15 +206,13 @@ Interface:
 		Gui, Font
 		Gui, Color,	000000, FFFFFF
 	Gui, Show ,%				"x0		y0				 w" monitor_w-7 " h"	work_h								 , Detecção de Movimento
-	Gosub, b_all_cam
 	Sleep	1000
 		WinWaitClose, Detecção de Movimento
 return
 
 ;	Botões
-	^F1::
-	b_all_cam:
-		ip_	:=	SubStr( ip_cam, 1, InStr( ip_cam, ".",,-1 ) )	
+	b_all:
+		ip_		:=	SubStr( ip_cam, 1, InStr( ip_cam, ".",,-1 ) )	
 		token	:=	Dguard.token()
 		var		:=	Dguard.layouts()
 		loop,%	var.layouts.count()
@@ -228,27 +228,38 @@ return
 						[dguard].[dbo].[cameras]
 					WHERE
 						[ip] LIKE '%IP_%`%'
+					ORDER BY
+						[name]
 				)
 				cam_operador:=	sql( cam_operador, 3 )
 			if ( cam_operador.Count()-1 > 0 ) {
-				Layout_guid	:=	Dguard.new_layout( StrRep( nome_da_camera,, "|:-") )
-				Loop,%	cam_operador.Count()-1
-					dguard.cam_to_layout( Layout_guid, cam_operador[A_Index+1, 2], A_Index-1 )
-				
+				layouts			:=	Dguard.new_layout( StrRep(StrReplace( nome_da_camera, "-", "|",, 0 ),, "|:\u007c" )  )
+				new_layout_guid	:=	StrSplit( layouts, "&&" )
+				Loop,%	cam_operador.Count()-1 {
+					if	(new_layout_guid[2]	= cam_operador.Count()-1 )
+						Continue
+					dguard.cam_to_layout( new_Layout_guid[1], cam_operador[A_Index+1, 2], A_Index-1 )
+				}
 			}
 		;
-		
-		array	:= Dguard.workstation()
-		if	(	array.workstations[1].guid	=	"ERRO" ) {
-			Dguard.virtual_matrix()
-			array	:= Dguard.workstation()
-		}
-		monitor	:=	{}
-		Loop,% array.workstations[1].monitors.Count()
-			monitor[array.workstations[1].monitors[A_Index].name]	:=	array.workstations[1].monitors[A_Index].guid
-		workstation	:=	array.workstations[1].guid
-
-		Dguard.workstation("PUT", , token, Layout_guid, StrRep( monitor["Monitor2"], , "{", "}" ), StrRep( workstation, , "{", "}" ) )
+		enable_matrix	=	PUT "http://localhost:8081/api/virtual-matrix" -H "accept: application/json" -H "Authorization: bearer %token%" -H "Content-Type: application/json" -d "{ \"machineName\": \"%A_ComputerName%\", \"enabled\": true}"
+		get_workstation	=	GET "http://localhost:8081/api/virtual-matrix/workstations" -H "accept: application/json" -H "Authorization: bearer %token%"
+			retorno		:=	Dguard.workstation( get_workstation )
+			if(	retorno.workstations[1].guid = "ERRO" ) {
+				Dguard.virtual_matrix()
+				retorno	:= Dguard.workstation( get_workstation )
+			}
+			monitor		:=	{}
+			Loop,%	retorno.workstations[1].monitors.Count()
+				monitor[retorno.workstations[1].monitors[A_Index].name]	:=	retorno.workstations[1].monitors[A_Index].guid
+			workstation	:=	StrRep( retorno.workstations[1].guid,, "{", "}" )
+			If	ip[4] = 100
+				monitor		:=	StrRep( monitor["Monitor1"],, "{", "}" )
+			Else
+				monitor		:=	StrRep( monitor["Monitor4"],, "{", "}" )
+		show_layout		:=	"PUT ""http://localhost:8081/api/virtual-matrix/workstations/%7B" workstation "%7D/monitors/%7B" monitor "%7D/layout"" -H ""accept: application/json"" -H ""Authorization: bearer " token """ -H ""Content-Type: application/json"" -d ""{ \""layoutGuid\"": \""" new_Layout_guid[1] "\""}"""
+		OutputDebug % workstation "`n" monitor "`n" new_Layout_guid[1]
+		Dguard.Curly( show_layout )
 	Return
 
 	confirmar:
@@ -676,6 +687,14 @@ HttpGet( URL )	{
 	GuiClose:
 	ExitApp
 ;
+
+^Home::
+	demo := !demo
+	if demo
+		http( "http://admin:tq8hSKWzy5A@10.2.62.221/cgi-bin/configManager.cgi?action=setConfig&MotionDetect[0].Enable=true" )
+	Else
+		http( "http://admin:tq8hSKWzy5A@10.2.62.221/cgi-bin/configManager.cgi?action=setConfig&MotionDetect[0].Enable=false" )
+Return
 
 ; ^F1::
 	; paused = 1

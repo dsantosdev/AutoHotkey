@@ -406,7 +406,9 @@ login( @usuario, @senha, @admin = "" ) {
 
 new_instance( Script )	{	;	in development
     shell	:= ComObjCreate("WScript.Shell")
+    ; exec	:= shell.Exec( A_AhkPath )
     exec	:= shell.Exec( A_AhkPath " /ErrorStdOut *")
+	; MsgBox % Script
     exec.StdIn.Write( script )
     exec.StdIn.Close()
 }
@@ -517,7 +519,6 @@ progressBar( descriptionBGColor="" , description="" ) {
 						.	"w" A_ScreenWidth	"	"
 						,	Progress
 }
-
 
 randomName(MinLength=4, MaxLength=0)	{
 

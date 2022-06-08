@@ -3,8 +3,8 @@
 */
 if	inc_dguard
 	Return
-Global	inc_dguard = 1
-
+Global	inc_dguard	=	1
+	,	a			:=	"\"""
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 
 Class	dguard {
@@ -59,18 +59,19 @@ Class	dguard {
 	}
 
 	cam_to_layout( layout_guid, cam_guid, sequence )										{
-		a		:=	"\"""
-		comando	:=	"POST ""http://localhost:8081/api/layouts/%7B" layout_guid "%7D/cameras"""
-				.	" -H ""accept: application/json"""
-				.	" -H ""Authorization: bearer " token """"
-				.	" -H ""Content-Type: application/json"""
-				.	" -d ""{ " a "aspectRatio"		a ": 1,"
+		a		:=	"\"""""
+		comando	:=	"POST """"http://localhost:8081/api/layouts/`%7B" StrRep( layout_guid,, "{", "}" ) "`%7D/cameras"""""
+				.	" -H """"accept: application/json"""""
+				.	" -H """"Authorization: bearer " token """"""
+				.	" -H """"Content-Type: application/json"""""
+				.	" -d """"{ " a "aspectRatio"	a ": 1,"
 				.			"" a "zoom"				a ": 1,"
-				.			"" a "sequence"			a ": " sequence ","
+				; .			"" a "sequence"			a ": " sequence ","
 				.			"" a "serverGuid"		a ": " a "{" cam_guid "}" a ","
 				.			"" a "cameraId"			a ": 0 ,"
-				.			"" a "allowDuplicates"	a ": true }"
-		this.curl( comando )
+				.			"" a "allowDuplicates"	a ": false }"""
+		;
+		this.curly( comando, 1 )
 	}
 
 	comando( params* )	{
@@ -132,6 +133,37 @@ Class	dguard {
 		DllCall( "FreeConsole" )
 		Process Close,%	pid
 		return exec.StdOut.ReadAll()
+	}
+
+	curly( comando, assync="0" )															{
+		If	assync {
+			for_new_instance:=	"#NoTrayIcon"
+							.	"`nDetectHiddenWindows On"
+							.	"`nRun		`%ComSpec`%,, Hide, pid"
+							.	"`nWinWait ahk_pid `%pid`%"
+							.	"`nDllCall( ""AttachConsole"", ""UInt"", pid )"
+							.	"`nWshShell	:= ComObjCreate( ""Wscript.Shell"" )"
+							.	"`ne		:=	WshShell.Exec( ""cmd /c curl -X " comando ")"
+							.	"`nDllCall( ""FreeConsole"" )"
+							.	"`nProcess Close,`% pid"
+							; .	"`nMsgBox `% e.StdOut.ReadAll()"
+							.	"`nExitApp"
+							; OutputDebug % for_new_instance
+			new_instance( for_new_instance )
+			Return
+		}
+		Else	{
+			DetectHiddenWindows On
+			Run %ComSpec%,, Hide, pid
+			WinWait ahk_pid %pid%
+			DllCall( "AttachConsole" , "UInt" , pid )
+			WshShell	:= ComObjCreate( "Wscript.Shell" )
+			; OutputDebug % clipboard := comando
+			exec		:= WshShell.Exec( "cmd /c curl -X " comando )
+			DllCall( "FreeConsole" )
+			Process Close,%	pid
+			return exec.StdOut.ReadAll()
+		}
 	}
 
 	delete_layout( guid )														{
@@ -265,9 +297,17 @@ Class	dguard {
 		return
 	}
 
-	new_layout( Name="" ){
-		if	!Name
-			Name = Temp
+	new_layout( name, server="" ){
+		if !Server
+			server		=	localhost
+		token			:=	this.Token( server )
+		dguard_cameras	=	GET "http://%server%:8081/api/layouts" -H "accept: application/json" -H "Authorization: bearer %token%"
+		dguard_cameras	:=	Json( this.Curly( dguard_cameras ) )
+		Loop,% dguard_cameras.layouts.Count()
+			If	(dguard_cameras.layouts[A_Index].name = name ) {
+				; msgbox %  dguard_cameras.layouts[A_Index].guid
+				return dguard_cameras.layouts[A_Index].guid "&&" dguard_cameras.layouts[A_Index].camerasCount
+			}
 		a		:=	"\"""
 		comando	:=	"POST ""http://localhost:8081/api/layouts"""
 				.	" -H ""accept: application/json"""
@@ -275,44 +315,18 @@ Class	dguard {
 				.	" -H ""Content-Type: application/json"""
 				.	" -d ""{ " a "name" a ": " a Name a "}"""
 		new	:=	Json( this.curl( comando ) )
-		if new.error.guid {
-			name	:=  name " "	randomName(4, 10)
-			a		:=	"\"""
-			comando	:=	"POST ""http://localhost:8081/api/layouts"""
-					.	" -H ""accept: application/json"""
-					.	" -H ""Authorization: bearer " token """"
-					.	" -H ""Content-Type: application/json"""
-					.	" -d ""{ " a "name" a ": " a Name a "}"""
-			new	:=	Json( this.curl( comando ) )
-		}
-		return	new.layout.guid
+		return	new.layout.guid "&&0"
 	}
 
 	request( url , token="" , data="", method="GET" )							{
-		; data:={"username":"demo","password":"test123"} ; key-val data to be posted
-		; if StrLen( data ) {
-			; try	{
-			; createFormData(rData,rHeader,data) ; formats the data, stores in rData, header info in rHeader
-			; hObject:=comObjectCreate("WinHttp.WinHttpRequest.5.1") ; create WinHttp object
-			; hObject.setRequestHeader("Content-Type",rHeader) ; set content header
-			; hObject.open("POST",endpoint) ; open a post event to the specified endpoint
-			; hObject.send(rData) ; send request with data
-			; 
-			; }
-			; catch e	{
-				; return e.message
-			; }
-		; }
-		; Else	{
-			static req := ComObjCreate( "Msxml2.XMLHTTP" )
-			req.open( method, url, false )
-			req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
-			if	data
-				req.send(data)
-			Else
-				req.send()
-			return	% req.responseText
-		; }
+		static req := ComObjCreate( "Msxml2.XMLHTTP" )
+		req.open( method, url, false )
+		req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
+		if	data
+			req.send(data)
+		Else
+			req.send()
+		return	% req.responseText
 	}
 
 	select_server( haystack_obj , value , key , return_key = "" , warn = 0 )	{
@@ -391,48 +405,22 @@ Class	dguard {
 		return	this.curl( comando )
 	}
 
-	workstation( tipo="GET" ,server="" , token="", guid_layout="", guid_monitor="", guid_virtual="" )									{
-		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
-		?	"localhost"
-		:	server
-		If	!Token
-			token	:=	this.token( server )
-		If (tipo = "GET"){
-			/*	utilização do retorno em
-				loop,% var.workstations.count() {
-					Msgbox	%	"`n" var.workstations[A_Index].guid
-							.	"`n" var.workstations[A_Index].name
-					Loop,% var.workstations.monitors.Count() {
-						msgbox	%	"`n" var.workstations.monitors[A_Index].guid
-								.	"`n" var.workstations.monitors[A_Index].name
-								.	"`n" var.workstations.monitors[A_Index].enabled
+	workstation( comando )														{
+		retorno := Dguard.curly( comando )
+		if ( retorno = "{""workstations"":[]}" ) {
+			retorno  = 
+				(
+					{
+						"workstations": [
+							{
+							"guid": "ERRO"
+							}
+						]
 					}
-				}
-			*/
-			url		:=	"http://" server ":8081/api/virtual-matrix/workstations"
-			retorno := Dguard.Request( url , token )
-			if ( retorno = "{""workstations"":[]}" )
-				retorno  = 
-					(
-						{
-							"workstations": [
-								{
-								"guid": "ERRO"
-								}
-							]
-						}
-					)
+				)
 			return	json( retorno )
 		}
-		Else IF (tipo = "PUT") {
-			comando := "PUT ""http://" server ":8081/api/virtual-matrix"
-					.	"/workstations/%7B"	guid_virtual "%7D"
-					.	"/monitors/%7B"		guid_monitor "%7D"
-					.	"/layout""" this.comando( "\layoutGuid\: \{2F4F57EE-E44F-4424-BA80-C6085AC75E93}\" )
-			comando	:=	StrRep( comando,, "REPLACE_TOKEN:" token )
-			Clipboard:=comando
-			MsgBox % this.curl( comando )
-		}
+		Else
+			return json( this.curly( comando ) )
 	}
-
 }
