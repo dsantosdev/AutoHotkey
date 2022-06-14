@@ -46,10 +46,12 @@ sys_vers	= Detecção de Movimento %File_version% - 04/06/2022
 
 		cam_return := StrSplit( HttpGet( "http://localhost/camerasnomes.cgi" ), "&")
 		ids			:=	{}
+		OutputDebug, % "Câmeras locais = " cam_return.Count()
 		Loop,%	cam_return.Count() {
 			dados		:= StrSplit( cam_return[A_Index], "=" )
-			nome		:= SubStr( dados[2], 1, StrLen(dados[2])/2 )
-			ids[nome]	:= dados[1]
+			nome		:=  StrSplit( dados[2] , ".")
+			OutputDebug, % nome[1]
+			ids[nome[1]]	:= dados[1]
 		}
 
 		Folder		=	\\srvftp\monitoramento\FTP\
@@ -57,7 +59,7 @@ sys_vers	= Detecção de Movimento %File_version% - 04/06/2022
 
 		If( A_UserName	= "dsantos"			;	Define operador
 		||	A_IPAddress1= "192.9.100.100" )
-			oper = 0005						;	!= 0000 é debug
+			oper = 0000						;	!= 0000 é debug
 		Else	{
 			if(		 A_IPAddress1 = "192.9.100.102" )
 				oper = 0001
@@ -123,8 +125,8 @@ verifica_imagens:
 			data_e_hora		:=	StrRep( arquivo[1],, "-" )
 			ip_cam			:=	arquivo[2]
 			nome_da_camera	:=	StrReplace( arquivo[3], "-", "|", , 1 )
+			; nome_da_camera	:=	arquivo[3]
 			op_sinistro		:=	StrReplace( arquivo[4], ".jpg" )
-
 		;	Verifica Inibidos e desinibe
 			segundo_do_dia	:=	( A_Hour * 60 * 60 ) + ( A_Min * 60 ) + A_Sec
 			sql_inibido	=
@@ -157,7 +159,7 @@ verifica_imagens:
 					DESC;
 				)
 			sql_inibido	:=	sql( sql_inibido, 3 )
-			If( A_IPAddress1 != "192.9.100.100" )	;	Operadores	-	Se estiver em período de inibido
+			; If( A_IPAddress1 != "192.9.100.100" )	;	Operadores	-	Se estiver em período de inibido
 				If( sql_inibido.Count()-1 = 1				;	Está nos inibidos
 				&& StrLen( sql_inibido[2,1] ) = 0 ) {		;	e não há horário de ter sido encerrado o tempo de inibir
 					Loop, Files,%	folder_operador
@@ -193,8 +195,8 @@ Interface:
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_inibir		vini	-TabStop			", Inibir eventos
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_all					-TabStop			", Criar Layout da Unidade
 	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_sinistro		vSini	-TabStop			", Sinistro em Andamento
-	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
-	Gui, Add,	Button,%		"xp+302	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
+	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
+	; Gui, Add,	Button,%		"xp+302	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
 	Gui, Add,	Button,%		"xp+400	y" work_h-125 "	w260	h21						vbText	Center		Hidden	", % "Inibir " nome_da_camera " por:"
 	Gui, Add,	DropDownList,%	"xp		yp+20			w260	h30						vinibe	Choose2	r7	Hidden	", 30 Minutos|60 Minutos|120 Minutos|180 Minutos|240 Minutos
 	Gui, Add,	Button,			 xp		yp-20			w260	h21						vbMot	Center		Hidden	,  Escolher motivo do movimento no local:
@@ -212,6 +214,7 @@ return
 
 ;	Botões
 	b_all:
+		Return
 		ip_		:=	SubStr( ip_cam, 1, InStr( ip_cam, ".",,-1 ) )	
 		token	:=	Dguard.token()
 		var		:=	Dguard.layouts()
@@ -543,8 +546,8 @@ return
 ao_vivo:
 	;	Prepara variáveis
 		WinSet,	AlwaysOnTop,	Off,	Detecção de Movimento
-		is_live			=	1
-		Erro			=
+		is_live	=	1
+		Erro	=
 		ID	:=	ids[nome_da_camera]
 		if( ID = "" ) {
 			FileAppend,%	oper " - " nome_da_camera " - " A_IPAddress1 " `t " datetime() "`n", \\srvftp\Monitoramento\FTP\Log\Falha nos ID.txt
@@ -565,6 +568,7 @@ ao_vivo:
 		Gui,live:Color, 000000,	FFFFFF
 	Gui,	live:Show,%			"x0		y0	w" monitor_w " h" work_h								,	Live
 		Gui,live:Font
+	; MsgBox % "http://admin:@dm1n@localhost/mjpegstream.cgi?camera=" id
 	vlcx.playlist.add( "http://admin:@dm1n@localhost/mjpegstream.cgi?camera=" id, "", options )
 	vlcx.playlist.play()
 return
@@ -675,7 +679,8 @@ return
 
 HttpGet( URL )	{
 	responseText=
-	static	req	:=	ComObjCreate( "Msxml2.XMLHTTP" )
+	static	req	:=	ComObjCreate( "Msxml2.XMLHTTP.6.0" )
+	; static	req	:=	ComObjCreate( "WinHttp.WinHttpRequest.5.1" )
 	req.open( "GET", URL, false )
 	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
 	req.SetRequestHeader( "Authorization", "Basic YWRtaW46QGRtMW4=" )
@@ -690,14 +695,13 @@ HttpGet( URL )	{
 
 ^Home::
 	demo := !demo
+	ToolTip % demo	= 1
+					? "Demonstração ativada`nAguardando detecção de Movimento em Cruz Alta ADM"
+					: "Demonstração desativada`nAguardando detecção de Movimento em Cruz Alta ADM"
 	if demo
 		http( "http://admin:tq8hSKWzy5A@10.2.62.221/cgi-bin/configManager.cgi?action=setConfig&MotionDetect[0].Enable=true" )
 	Else
 		http( "http://admin:tq8hSKWzy5A@10.2.62.221/cgi-bin/configManager.cgi?action=setConfig&MotionDetect[0].Enable=false" )
+	Sleep, 1500
+	ToolTip
 Return
-
-; ^F1::
-	; paused = 1
-	; SetTimer, Pause_counter, -60000
-	; ListVars
-; Return

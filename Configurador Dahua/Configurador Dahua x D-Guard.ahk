@@ -1,4 +1,4 @@
-﻿File_Version=0.2.0
+﻿File_Version=0.3.0
 Save_To_Sql=1
 
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\cool.ico
@@ -26,7 +26,6 @@ Save_To_Sql=1
 	; #NoTrayIcon
 	#SingleInstance, Force
 	is_cargo	= 1
-	default		= 1
 	dns			= 192.9.100.18
 	
 	operador := {}
@@ -42,6 +41,23 @@ Save_To_Sql=1
 	s	:=	sql( s, 3 )
 	Loop,% s.Count()
 		operador[ s[A_Index+1, 1] ] := s[A_index+1, 2] s[A_Index+1, 3]
+	locais	:=	{}
+		locais["Acerto"]			:=	 "[ ACE ]"
+		locais["Administrativo"]	:=	 "[ ADM ]"
+		locais["AFC"]				:=	 "[ AFC ]"
+		locais["Atacado"]			:=	 "[ ATA ]"
+		locais["Balança"]			:=	 "[ BAL ]"
+		locais["CD Defensivos"]		:=	 "[ CDD ]"
+		locais["CD Loja"]			:=	 "[ CDL ]"
+		locais["CD Supermercado"]	:=	 "[ CDS ]"
+		locais["Defensivos"]		:=	 "[ DEF ]"
+		locais["Expodireto"]		:=	 "[ EXP ]"
+		locais["Fertilizantes"]		:=	 "[ FER ]"
+		locais["Loja"]				:=	 "[ LOJ ]"
+		locais["Supermercado"]		:=	 "[ SUP ]"
+		locais["Transportes"]		:=	 "[ TRA ]"
+		locais["TRR"]				:=	 "[ TRR ]"
+		locais["UBS"]				:=	 "[ UBS ]"
 
 	Goto	interface
 
@@ -49,42 +65,47 @@ Save_To_Sql=1
 	interface:
 		;	vars interface
 			Gui.Cores()
-			first_cb	=	y10	x10		w130	Section	Checked
-			t			=	ys	Center	w130
-			ts			=	xs	Center	w130	Section	ReadOnly	-Tabstop
-			ts2			=	xs	Center	w230	Section	ReadOnly	-Tabstop
-			lv			=	xs	Center	w230	Section
-			ys			=	ym	Center	w230	Section
+			Loop, 6 {	;	r1 a r6 =rows | c1 a c6 = columns | w1 a w6 = widths
+				c%A_Index% := " x" A_index * 135 - 125 " center"
+				w%A_Index% := " w" A_index * 130 + ( A_index * 5 )
+				r%A_index% := " y" A_index * 25
+			}
+			c1	:=	" x10 center"
+			ds	:=	" Disabled"
+			ro	:=	" ReadOnly -TabStop"
+			cb	:=	" Checked"
 		;
-		Gui,Add,CheckBox,%	first_cb	Gui.Font( "cWhite" , "Bold" )	"	vdefault		gdefault"				,	Definições padrão
-		Gui,Add,CheckBox,%	"ys												vis_cargo		gis_cargo"				,	Câmera de Pesagem
-		Gui,Add,CheckBox,%	ts	"	Checked									vcamera"								,	Configurar Câmera 
-		Gui,Add,CheckBox,%	t	"	Checked									vc_dguard"								,	Configurar DGuard
-		Gui,Add,CheckBox,%	ts	"								-center		vdia"									,	Modo COR
-		Gui,Add,CheckBox,%	t	"	Checked						-center		vdo_reboot"								,	Reboot na Câmera
-		Gui,Add,Button,%	ts	Gui.Font( "cWhite" , "Bold" )			"	vsnapshot		gver_imagem	"			,	Ver imagem do local
-		Gui,Add,Button,%	t	Gui.Font( "cWhite" , "Bold" )			"					gconfigurar	"			,	Abrir no Navegador
-		Gui,Add,Edit,%		ts	Gui.Font( "cWhite" , "Bold" )														,	IP da Câmera
-		Gui,Add,Custom,%	t	Gui.Font()	"	ClassSysIPAddress32	R1		vip				hwndIPCtrl"
-			SetCtrlIp( IPCtrl, "10.2.1.1" )
-		Gui,Add,Edit,%		ts 	Gui.Font( "cWhite" , "Bold" )														,	Nome da Câmera
-		Gui,Add,Edit,%		t	Gui.Font()								"	vcam_name"								,	
-		Gui,Add,Edit,%		ts	Gui.Font( "cWhite" , "Bold" )														,	Usuário da Câmera
-		Gui,Add,Edit,%		t	Gui.Font()								"	vusername		Disabled"				,	admin
-		Gui,Add,Edit,%		ts	Gui.Font( "cWhite" , "Bold" )														,	Senha da Câmera
-		Gui,Add,Edit,%		t	Gui.Font()					"	password	vpassword		Disabled"				,	tq8hSKWzy5A
-		Gui,Add,Edit,%		ts	Gui.Font( "cWhite" , "Bold" )														,	Servidor
-		Gui,Add,DDl,%		t	Gui.Font()	"AltSubmit"					"	vserver"								,	1|2|3|4||
-		Gui,Add,Edit,%		ys	Gui.Font()								"	vvendor_filter	gsearch"				,	Dahua
-		Gui,Add,ListView,%	"xs		w230	Grid					R10		vlv_vendor		gs_vendor	AltSubmit"	,	Marca|Guid
-		Gui,Add,Edit,%		ys											"	vmodel_filter	gsearch"				,	DH-IPC-HDBW2320RN-ZS
-		Gui,Add,ListView,%	lv		"		Grid					R10		vlv_model		gs_model	AltSubmit "	,	Modelo|Guid
-			Gui.Font( "cWhite" , "s10" )
-		Gui,Add,Edit,%		"xm	w760		ReadOnly	h" A_ScreenHeight-340	" vdebug_output"					,	Output Debug...
-		Gui,Add,Button,%	"xm	w760															gArray"				,	Configurar	;	Executa configuração
-		clear_config()
-			Gosub	search
-		Gui,Show,%			"x-5	y0	h"A_ScreenHeight-45															,	Dahua Config
+
+		Gui,	+AlwaysOnTop
+		Gui,Add,CheckBox,%	r1	c1	w1		Gui.Font( "cWhite" , "Bold" )	"				vis_cargo				-Center"	,	Câmera Pesagem
+		Gui,Add,CheckBox,%	r1	c2	w1	cb										"			vcamera					-Center"	,	Configurar Câmera 
+		Gui,Add,CheckBox,%	r1	c3	w1	cb										"			vc_dguard				-Center"	,	Cadastro DGuard
+		Gui,Add,CheckBox,%	r1	c4	w1											"			vdia					-Center"	,	Modo COR
+		Gui,Add,CheckBox,%	r2	c1	w1	cb										"			vdo_reboot				-Center"	,	Reboot na Câmera
+
+		Gui,Add,Button,%	r3	c1	w2											"						gver_imagem	"			,	Ver imagem do local
+		Gui,Add,Button,%	r3	c3	w2											"						gconfigurar	"			,	Abrir no Navegador
+
+		Gui,Add,Edit,%		r4	c1	w1	ro																						,	IP da Câmera
+		Gui,Add,Edit,%		r4	c2	w1	ro																						,	Local da Câmera
+		Gui,Add,Edit,%		r4	c4	w1	ro																						,	Servidor
+		Gui,Add,Edit,%		r4	c3	w1	ro																						,	Setor
+		
+
+		Gui,Add,Custom,%	r5	c1	w1		Gui.Font()	"	ClassSysIPAddress32	R1			vip			hwndIPCtrl"
+		Gui,Add,Edit,%		r5	c2	w1					"									vcam_name"
+		Gui,Add,DDl,%		r5	c4	w1					" AltSubmit							vserver"							,	1|2|3|4||
+		Gui,Add,DDl,%		r5	c3	w1					" 									vlocal"								,	Acerto|Administrativo|AFC|Atacado|Balança|CD Defensivos|CD Loja|CD Supermercado|Defensivos|Expodireto|Fertilizantes|Loja|Supermercado|Transportes|TRR|UBS
+
+		height	:= A_ScreenHeight- (StrReplace( r5, " y" )*2)
+		Gui,Add,Edit,%		r6	c1	w4	ro	Gui.Font( "cWhite" , "Bold" )	" h" height	"	voutput					-Center"	,	Output Debug...
+		
+		Gui,Add,Button,%	w4										" xm								gArray"					,	Configurar	;	Executa configuração
+		Gui,Show,%												" x-5	y0	  h" A_ScreenHeight-55								,	Dahua Config
+
+		GuiControl, Focus, IP
+		SetCtrlIp( IPCtrl, "10.2.1.1" )
+
 		Send, {Lctrl Down}{Right 2}{LCtrl Up}
 	return
 ;
@@ -92,7 +113,11 @@ Save_To_Sql=1
 
 Array:
 	Gui.Submit()
+	If	InStr( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=ChannelTitle[0].Name", , 1 ), "PTZ" )
+		is_ptz		=	1
 	URL				:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=setConfig"
+	; CAM_MODEL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo"
+	cam_model		:=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 )
 	LANGUAGE		:=	url "&Language=English"
 	MACHINE_NAME	:=	url "&General.MachineName=" StrReplace( ip , "." , "_" )
 	NTP				:=	url "&NTP.Enable=true&NTP.Address=192.9.200.113&NTP.TimeZone=22&NTP.TimeZoneDesc=Brasilia"
@@ -120,13 +145,23 @@ Array:
 							.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
 							.	"&VideoWidget[0].TimeTitle.PreviewBlend=false"
 							.	"&VideoWidget[0].TimeTitle.EncodeBlend=false"
-			ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
-							.	"&Encode[0].MainFormat[0].Video.BitRate=512"
-							.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
-							.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
-							.	"&Encode[0].MainFormat[0].Video.FPS=12"
-							.	"&Encode[0].MainFormat[0].Video.GOP=24"
-							.	"&Encode[0].MainFormat[0].Video.Quality=6"
+			; If	RegexMatch( cam_model, "HDBW" )	;	fixa
+			If	!is_ptz
+				ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
+								.	"&Encode[0].MainFormat[0].Video.BitRate=512"
+								.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
+								.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
+								.	"&Encode[0].MainFormat[0].Video.FPS=12"
+								.	"&Encode[0].MainFormat[0].Video.GOP=24"
+								.	"&Encode[0].MainFormat[0].Video.Quality=6"
+			Else								;	PTZ
+				ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
+								.	"&Encode[0].MainFormat[0].Video.BitRate=1024"
+								.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
+								.	"&Encode[0].MainFormat[0].Video.resolution=1920x1080"
+								.	"&Encode[0].MainFormat[0].Video.FPS=12"
+								.	"&Encode[0].MainFormat[0].Video.GOP=24"
+								.	"&Encode[0].MainFormat[0].Video.Quality=6"
 		}
 	DESTINATION		:=	url "&RecordStoragePoint[0].VideoDetectSnapShot.FTP=true"
 						.	"&RecordStoragePoint[0].VideoDetectSnapShot.Local=false"
@@ -138,7 +173,6 @@ Array:
 						.	"&NAS[0].UserName=cameras"
 						.	"&NAS[0].Password=c4m3r45"
 						.	"&NAS[0].Directory=FTP/Motion/Dahua"
-	CAM_MODEL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo"
 	command := []
 	command.Push( LANGUAGE )			;	1
 	command.Push( MACHINE_NAME )		;	2
@@ -149,8 +183,7 @@ Array:
 	command.Push( OVERLAY )				;	7
 	command.Push( DESTINATION )			;	8
 	command.Push( FTP )					;	9
-	command.Push( CAM_MODEL	)			;	10	| retorno | deviceType=
-	command.Push( MOTION_DETECTION	)	;	11
+	command.Push( MOTION_DETECTION	)	;	10
 Goto	Config_Dahua
 
 ;	Code
@@ -158,6 +191,21 @@ Goto	Config_Dahua
 		if (c_dguard= 1
 		&&	camera	= 0 )
 			Goto	Dguard
+		if (c_dguard= 1)	{
+			if (cam_name = "") {
+				MsgBox, , Falta de Informação, Verifique todos os campos antes de prosseguir.`nCâmera sem nome...
+				Return
+			}
+			if (local = "") {
+				MsgBox, , Falta de Informação, Verifique todos os campos antes de prosseguir.`nCâmera sem local...
+				Return
+			}
+		}
+		ping := ping( ip )
+		If ( ping = 0)	{
+			MsgBox % ip " não respondeu ao teste de ping, verifique os dados inseridos no campo IP ou se há conexão com a câmera."
+			Return
+		}
 		Loop,% command.Count()	{
 			debug	.=	A_Index	= 1		? configurada "`n`nConfigurando a câmera '" ip "'`n`n...`n" http( command[A_index] ) " ao configurar idioma.`n"
 					:	A_Index = 2		? http( command[A_index],,0 ) " ao configurar nome da câmera(ip com underlines).`n"
@@ -170,22 +218,22 @@ Goto	Config_Dahua
 					:	A_Index	= 7		? http( command[A_index],,0 ) " ao configurar a exibição de texto sobre a imagem da câmera.`n"
 					:	A_Index	= 8		? http( command[A_index],,0 ) " ao configurar o diretório de imagens em caso de transposição de linhas de passagem.`n"
 					:	A_Index	= 9		? http( command[A_index],,0 ) " ao configurar o servidor FTP.`n"
-					:	A_Index	= 10	? "Modelo de câmera " cam_model :=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@10.2.78.59/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 ) "`n"
-					:	A_Index	= 11	? http( command[A_index],,0 ) " ao desabilitar a detecção de movimento.`n"
+					; :	A_Index	= 10	? "Modelo de câmera " cam_model :=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@10.2.78.59/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 ) "`n"
+					:	A_Index	= 10	? http( command[A_index],,0 ) " ao desabilitar a detecção de movimento.`n"
 					: ""
 			; OutputDebug % command[A_index]
-			GuiControl, , debug_output,%  debug 
-			SendMessage,0x115,7,0,Edit13,Dahua Config
+			GuiControl, , output,%  debug 
+			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		}
 		if	do_reboot	{
 			do_reboot =
-			GuiControl, , debug_output,% http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=reboot" ) "`n`n"
+			GuiControl, , output,% http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=reboot" ) "`n`n"
 		}
-		SendMessage,0x115,7,0,Edit13,Dahua Config
+		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		If ( c_dguard = 0) {
 			configurada .= "Câmera IP " ip " configurada.`n"
-			GuiControl, , debug_output,% configurada
-			SendMessage,0x115,7,0,Edit13,Dahua Config
+			GuiControl, , output,% configurada
+			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 			Return
 		}
 
@@ -194,8 +242,13 @@ Goto	Config_Dahua
 			Return
 		Gui.Submit()
 		debug .= "`n------------------------------------------`nIniciando cadastro de câmera no D-Guard`n------------------------------------------`nVerificando existência de câmera nos servidores...`n"
-		GuiControl, , debug_output,% debug
-		SendMessage,0x115,7,0,Edit13,Dahua Config
+		GuiControl, , output,% debug
+		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+		vendor_guid	= {CA014F07-32AE-46B9-83A2-8A9B836E8120}
+		If	http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getDeviceClass") in ("SD","PTZ")
+			model_guid	= {3D8D1B92-130A-9C6A-423A-F714888A6807}
+		Else
+			model_guid	= {5BA4689B-6DD0-2C27-C0F8-C6B514DC5533}
 
 		s = 
 			(
@@ -229,14 +282,34 @@ Goto	Config_Dahua
 									.	"`nModelo = "		s[A_Index+1, 8]
 									.	"`nCadastrada = "	s[A_Index+1, 9]
 			Return
-			;	Deletar e recadastrar, atualizar ou cancelar
 		}	
-		Gui, Listview, lv_vendor
-			LV_GetText( vendor_guid, 1, 2 )
-		Gui, Listview, lv_model
-			LV_GetText( model_guid, 1, 2 )
 
-		token	:= for_output := dguard.token( "vdm0" server )
+		s =
+			(
+				SELECT	DISTINCT
+						LEFT( name, charindex('[', [name]) - 1)
+				FROM
+					[Dguard].[dbo].[cameras]
+				WHERE
+					PARSENAME([ip], 2) = PARSENAME('%ip%', 2)
+				ORDER BY
+					1
+			)
+			s	:= sql( s, 3 )
+		if	(s.Count() < 2) {
+			s	=
+				(
+					SELECT
+						[sigla]
+					FROM
+						[Cotrijal].[dbo].[unidades]
+					WHERE
+						[entreposto] = PARSENAME('%ip%', 2)
+				)
+			s	:= sql( s, 3 )
+		}
+		sigla		:= Trim( s[2,1] )
+		token		:= for_output := dguard.token( "vdm0" server )
 				if InStr( for_output, """Error"":" ) {
 					debug .= "Falha`tAo resgatar token de acesso ao D-Guard, e-mail enviado ao desenvolvedor."
 					body := for_output "`n`n" curl
@@ -246,12 +319,13 @@ Goto	Config_Dahua
 				}
 				Else
 					debug .= "Sucesso`tToken de acesso resgatado"
-					GuiControl, , debug_output,% debug
-					SendMessage,0x115,7,0,Edit13,Dahua Config
-		cam_name:= StrRep( unicode( cam_name ),, "|:\u007c" )
-		o_s	:=	operador[ SubStr( cam_name, 1, 3 ) ]
-		operator := SubStr( o_s, 1 , 1 )
-		incident := SubStr( o_s, 2 , 1 )
+					GuiControl, , output,% debug
+					SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+		cam_place	:= StrRep( unicode( cam_name ),, "|:\u007c" )
+		o_s			:= operador[ sigla ]
+		operator	:= SubStr( o_s, 1 , 1 )
+		incident	:= SubStr( o_s, 2 , 1 )
+		cam_name := unicode( sigla " " locais[local] " " cam_place )
 
 		curl =  ;	Insere a câmera no d-guard
 			(
@@ -284,8 +358,8 @@ Goto	Config_Dahua
 				}
 				Else
 					debug .= "`nSucesso`tCâmera inserida e ativada no D-Guard"
-					GuiControl, , debug_output,% debug
-					SendMessage,0x115,7,0,Edit13,Dahua Config
+					GuiControl, , output,% debug
+					SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 			
 			cam_guid:=	StrRep( cam_guid_for_group := cam_cad.server.guid,, "{:%7B", "}:%7D" )
 
@@ -307,8 +381,8 @@ Goto	Config_Dahua
 				}
 				Else
 					debug	.=	"`nSucesso`tDados para o sistema conceitto configurados"
-					GuiControl, , debug_output,% debug
-					SendMessage,0x115,7,0,Edit13,Dahua Config
+					GuiControl, , output,% debug
+					SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 			
 		curl =  ;	Resgata GUID do grupo de usuário
 			(
@@ -332,7 +406,7 @@ Goto	Config_Dahua
 				-H "accept: application/json"
 				-H "Authorization: bearer %token%"
 				-H "Content-Type: application/json"
-				-d "{ \"guid\": \"%cam_guid_for_group%\", \"cameras\": [ 0 ]}"
+				-d "{ \"guid\": \"%cam_guid_for_group%\", \"cameras\": [ 0 ], \"ptzs\": [ 0 ]}"
 			)
 			for_output := dguard.curl( curl, server, "POST" )
 				if InStr( for_output, """Error"":" ) {
@@ -342,8 +416,8 @@ Goto	Config_Dahua
 				}
 				Else
 					debug .= "`nSucesso`tCâmera liberada na coluna do operador " operator
-				GuiControl, , debug_output,% debug
-				SendMessage,0x115,7,0,Edit13,Dahua Config
+				GuiControl, , output,% debug
+				SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 
 		curl =	;	Configuração de gravação de imagens
 			(
@@ -368,15 +442,17 @@ Goto	Config_Dahua
 				}
 				Else
 					debug .= "`nSucesso`tConfiguração de gravação efetuada`nSucesso`tConfiguração finalizada.`n"
-				GuiControl, , debug_output,% debug
-				SendMessage,0x115,7,0,Edit13,Dahua Config
+				GuiControl, , output,% debug
+				SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 				debug =
 				GuiControl, Focus, ip
-				Send {LControl Down}{Right}{Lctrl Up}
+				Send {LControl Down}{Right 3}{Lctrl Up}
 		;	atualiza banco de dados
+		ip_sql	:=	ip
 		ip		:=	StrSplit( ip, "." )
 		id		:=	ip[3]
-		cam_name:=	StrRep( cam_name, , "\u007c:|" )
+		cam_name:=	sigla " " locais[local] " " cam_place
+		cam_guid:=	StrRep( cam_guid,, "%7B", "%7D" )
 		i	=
 			(
 				INSERT INTO
@@ -401,7 +477,7 @@ Goto	Config_Dahua
 					,	'%cam_guid%'
 					,	'1'
 					,	'1'
-					,	'%ip%'
+					,	'%ip_sql%'
 					,	'80'
 					,	'%id%'
 					,	'10001'
@@ -410,7 +486,7 @@ Goto	Config_Dahua
 					,	'%server%'
 					,	'%operator%'
 					,	'%incident%'
-					,	'http://%ip%'
+					,	'http://%ip_sql%'
 					,	'%cam_model%'	)
 			)
 			sql( i, 3 )
@@ -419,9 +495,9 @@ Goto	Config_Dahua
 			MsgBox % sql_le "`n`n" Clipboard := sql_lq
 
 		Sleep 3000
-		configurada .= "Câmera IP " ip " configurada.`n"
-		GuiControl, , debug_output,% configurada
-		SendMessage,0x115,7,0,Edit13,Dahua Config
+		configurada .= "Câmera IP " ip_sql " configurada.`n"
+		GuiControl, , output,% configurada
+		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		; Deleta câmera, para refazer se for teste
 			; curl = 
 				; (
@@ -456,13 +532,13 @@ Goto	Config_Dahua
 	ver_imagem:
 		Gui.Submit()
 		ping := ping( ip )
-		if ( ping = 0)	{
+		If ( ping = 0)	{
 			MsgBox % ip " não respondeu ao teste de ping, verifique os dados inseridos no campo IP."
 			Return
 		}
-		; Run, % A_programfiles "\Google\Chrome\Application\chrome.exe http://admin:tq8hSKWzy5A@" ip "/cgi-bin/snapshot.cgi?channel=1"
+		WinGetPos, main_x, main_y, main_w, main_h, Dahua Config
 		url_view:= "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/snapshot.cgi"
-		is_w	:= Floor( (A_ScreenWidth-785) )
+		is_w	:= Floor( (A_ScreenWidth-main_w) )
 		Gui, 2:Destroy
 		Gui.Cores( 2 )
 		Gui, 2:Add, ActiveX,% "xm vWB w" is_w-20 " h" Floor( is_w/16*9 ),	Shell.Explorer
@@ -470,124 +546,8 @@ Goto	Config_Dahua
 		while (wb.readyState != 4 || wb.busy)
 			Sleep -1
 		wb.document.body.innerHTML := "<style> * { border: 0; margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; } </style><img src='" url_view "'>"
-		Gui, 2:Show,% "x780 y0 w" A_ScreenWidth-785
+		Gui, 2:Show,% "x" main_w-10 " y0 w" A_ScreenWidth-main_w
 		Sleep, 1000
-	Return
-
-	clear_config(){
-		GuiControl, , debug_output
-		GuiControl, Focus, IP
-		Return
-	}
-
-	search:
-		search_delay()
-		Gui.Submit()
-		if ("-" model_filter "-" = "-" old_model "-"
-		&&	"-" vendor_filter "-" = "-" old_vendor "-" )
-			Return
-		old_vendor	:=	vendor_filter
-		old_model	:=	model_filter
-		GuiControl, Disable, model_filter
-		GuiControl, Disable, vendor_filter
-		GuiControl, , debug_output, Carregando Listas, aguarde!
-		Gui, Listview, lv_vendor
-			LV_Delete()
-			LV_ModifyCol( 2 , 0)
-			LV_ModifyCol( 1 , 215)
-		Gui, Listview, lv_model
-			LV_Delete()
-			LV_ModifyCol( 2 , 0)
-			LV_ModifyCol( 1 , 215)
-
-		v	=
-			(
-				SELECT
-					 v.[name]
-					,v.[guid]
-					,m.[name]
-					,m.[guid]
-				FROM
-					[Dguard].[dbo].[vendors] v
-				LEFT JOIN
-					[Dguard].[dbo].[models] m
-				ON
-					v.[guid] = m.[vendorguid]
-				WHERE
-					v.[name] LIKE '`%%vendor_filter%`%'
-				AND
-					m.[Name] LIKE '`%%model_filter%`%'
-				AND
-					v.[name] IN (	'Dahua Technology Co., LTD',
-									'Samsung Techwin Co., Ltd.',
-									'Intelbras',
-									'Hanwha Techwin',
-									'Sony Corporation',
-									'Intelbras',
-									'Intelbras',
-									'Intelbras',
-									'Motorola')
-				ORDER BY
-					v.[Name]
-			)
-			v	:=	sql( v , 3 )
-			in_vendor :=
-				Loop,%	v.Count()-1 {
-					GuiControl, , debug_output,% "Carregando Listas, aguarde!`nRestantes: " ( v.Count()-1 ) - A_Index
-					if !RegExMatch( in_vendor, v[A_Index+1, 1] ) {
-						Gui, Listview, lv_vendor
-						LV_Add("", v[A_Index+1, 1], v[A_Index+1, 2])
-						in_vendor .= v[A_Index+1, 1] "`n"
-					}
-					Gui, Listview, lv_model
-						LV_Add("", v[A_Index+1, 3], v[A_Index+1, 4])
-				}
-		GuiControl, Enable, model_filter
-		GuiControl, Enable, vendor_filter
-		GuiControl, , debug_output
-	Return
-
-	s_vendor:
-		if (A_GuiControlEvent = "Normal") {
-			Gui, Listview, lv_vendor
-			LV_GetText(a, A_EventInfo, 1)
-			GuiControl, , vendor_filter,% a
-		}
-		Return
-
-		s_model:
-		if (A_GuiControlEvent = "Normal") {
-			Gui, Listview, lv_model
-			LV_GetText(a, A_EventInfo, 1)
-			GuiControl, , model_filter,% a
-		}
-	Return
-
-	is_cargo:	;	toggle cargo mode
-		Gui.Submit()
-		is_cargo	:=	!is_cargo
-	Return
-
-	default:	;	Set or remove default values
-		default := !default
-		if !default {
-			GuiControl, 		,	ip				,
-			GuiControl, 		,	cam_name		,
-			GuiControl, 		,	username		,
-			GuiControl, Enable	,	username
-			GuiControl, 		,	password		,
-			GuiControl, Enable	,	password
-			GuiControl, 		,	vendor_filter	,
-			GuiControl, 		,	model_filter	,
-		}
-		Else {
-			GuiControl,			,	username		,	admin
-			GuiControl,			,	password		,	tq8hSKWzy5A
-			GuiControl, Disable	,	username
-			GuiControl, Disable	,	password
-			GuiControl,			,	vendor_filter	,	Dahua
-			GuiControl,			,	model_filter	,	2320
-		}	
 	Return
 ;
 

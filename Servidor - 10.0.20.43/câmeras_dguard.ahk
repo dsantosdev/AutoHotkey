@@ -1,4 +1,4 @@
-﻿File_Version=0.1.16
+﻿File_Version=0.1.0
 Save_To_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\cam.ico
 
@@ -118,7 +118,7 @@ Save_To_Sql=1
 		bd := sql( s, 3 )
 		Loop,%	bd.Count()-1 {
 			; OutputDebug %  bd[ A_Index+1 , 2 ] "[t]" bd[ A_Index+1 , 1 ]
-			bd_câmeras.Push({	name		:	bd[ A_Index+1 , 1 ]		;	Insere as informações no map para comparação posterior
+			bd_câmeras.Push({	name		:	TRIM( bd[ A_Index+1 , 1 ] )		;	Insere as informações no map para comparação posterior
 							,	guid		:	bd[ A_Index+1 , 2 ]
 							,	active		:	bd[ A_Index+1 , 3 ]	=	"-1"
 																	?	"True"
@@ -219,7 +219,7 @@ Save_To_Sql=1
 													,	guid
 													,	key_vdm%indice% )
 				for_id			:= StrSplit( info.server.address , "." )
-				dguard_câmeras.Push({	name		:	info.server.name										;	Insere as informações no map para comparação posterior
+				dguard_câmeras.Push({	name		:	TRIM( info.server.name )									;	Insere as informações no map para comparação posterior
 									,	guid		:	guid
 									,	active		:	info.server.active
 									,	connected	:	info.server.connected
