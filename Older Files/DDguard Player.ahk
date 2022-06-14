@@ -358,7 +358,7 @@ ExitApp
 		Goto restore_layout
 
 	^Numpad4::
-		Return
+		; Return
 		temp_exist := RegRead( "HKCU\SOFTWARE\Seventh\_temp", "_BackupAtualizado" )
 		; RegRead, temp_exist, HKCU\SOFTWARE\Seventh\_temp, _BackupAtualizado
 		if !temp_exist {
@@ -367,16 +367,14 @@ ExitApp
 		}
 		Goto temp_restore
 	^Numpad5::
-		Return
+		; Return
+		imported=
 		RegDelete( "HKCU\SOFTWARE\Seventh\_temp" )
-		; RegDelete, HKCU\SOFTWARE\Seventh\_temp
 		runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_temp /s /f" )
-		runCmd( "REG IMPORT " smk "\registros\temp.reg" )
+		runCmd( "REG IMPORT " smk "\registros\" A_IPAddress1 "_temp.reg" )
 		while imported = ""
-			imported := regRead( "HKEY_CURRENT_USER\SOFTWARE\Seventh\DguardCenter\WorkspaceManager\Workspace0\WorkspaceForm1", "StayOnTop" )
-			; RegRead, imported,HKEY_CURRENT_USER\SOFTWARE\Seventh\DguardCenter\WorkspaceManager\Workspace0\WorkspaceForm1, StayOnTop
+			imported := regRead( "HKEY_CURRENT_USER\SOFTWARE\Seventh\_temp\WorkspaceManager", "WorkspaceToRestore" )
 		Sleep, 1000
-
 		Process,	Close,	WatchdogServices.exe
 			Process,Close,	Watchdog.exe
 			Process,Close,	DGuard.exe

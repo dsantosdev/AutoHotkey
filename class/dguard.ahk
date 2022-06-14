@@ -5,9 +5,120 @@ if	inc_dguard
 	Return
 Global	inc_dguard	=	1
 	,	a			:=	"\"""
+	,	token
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 
 Class	dguard {
+	_cria_layout( ip, nome )														{
+		l_exist	:= nome_sql := ""
+		token	:=	this.token( ip )
+		If	InStr(	nome, "[" )
+		&&	!InStr(	nome, "]" )
+			nome	:=	nome "]"
+
+		;	Verifica se o layout ainda não existe
+			c	:=	"GET ""http://" ip ":8081/api/layouts"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+
+			l	:=	json( this.curly( c ) )
+
+			If		(nome = "NMT [ SUP ] C" )
+				nome:=	SubStr( nome, 1, 11 ) " Centro"
+			Else If	(nome = "NMT [ SUP ] S" )
+				nome:=	SubStr( nome, 1, 11 ) " Sede"
+
+			Loop,%	l.layouts.Count()
+				If	( l.layouts[A_Index].name = nome ) {
+
+					l_exist =	1
+					l_g		:=	l.layouts[A_Index].guid
+
+				}
+
+		;	Cria layout se não existir
+			if	l_exist
+				Return
+
+			c	:=	"POST ""http://" ip ":8081/api/layouts"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+				.	" -H ""Content-Type: application/json"""
+				.	" -d ""{ \""name\"": \""" StrRep( nome,, "]]:]") "\""}"""
+
+			l	:=	json( error := this.Curly( c ) )
+
+			l_g	:=	l.layout.guid
+			
+		;	Insere câmeras
+			nome	:=	StrRep( nome,, "]]:]" )
+			nome_sql:=	StrRep( nome,, " [ : [[] " )
+			select	=
+				(
+					SELECT
+						[guid]
+					FROM
+						[Dguard].[dbo].[cameras]
+					WHERE
+						[name] LIKE '%nome_sql%`%'
+				)
+			sql	:=	sql( select, 3 )
+
+			Loop,%	sql.Count()-1 {
+				c	:=	"POST """"http://" ip ":8081/api/layouts/%7B" StrRep( l_g,, "{", "}" ) "%7D/servers"""""
+						.	" -H """"accept: application/json"""""
+						.	" -H """"Authorization: bearer " token """"""
+						.	" -H """"Content-Type: application/json"""""
+						.	" -d """"{ \""""serverGuid\"""": \""""{" sql[A_index+1, 1] "}\""""}"""""""
+						
+				this.Curly( c, 1 )
+
+			}
+	}
+
+	_exibe_layout( local )	{
+		if !Token
+			token	:=	this.token( )
+		;	Habilita matriz virtual
+			c	:=	"PUT ""http://localhost:8081/api/virtual-matrix"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+				.	" -H ""Content-Type: application/json"""
+				.	" -d ""{ \""machineName\"": \""" A_ComputerName "\"", \""enabled\"": true, \""activationMode\"": 1}"""
+
+			this.Curly( c )
+
+		;	Monitor
+			c	:=	"GET ""http://localhost:8081/api/virtual-matrix/workstations"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+
+			m	:=	json( this.Curly( c ) )
+
+			m_g	:=	m.workstations[1].monitors[	m.workstations[1].monitors.Count() ].guid
+			w_g	:=	m.workstations[1].guid
+
+		;	Exibe
+			c	:=	"GET ""http://localhost:8081/api/virtual-matrix/layouts"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+
+			l	:=	json( this.Curly( c ) )
+			Loop,% l.layouts.Count()
+				If	l.layouts[A_Index].name = local {
+					l_g	:=	l.layouts[A_Index].guid
+					Break
+				}
+
+			c	:=	"PUT ""http://localhost:8081/api/virtual-matrix/workstations/%7B" StrRep( w_g )
+				.	"%7D/monitors/%7B" StrRep( m_g,, "{", "}" )
+				.	"%7D/layout"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+				.	" -H ""Content-Type: application/json"""
+				.	" -d ""{ \""layoutGuid\"": \""" l_g "\""}""""
+			this.curly( c )
+	}
 
 	cameras( server = "" , token = "" )											{
 		;	Retorna guid, name, active e connected das câmeras cadastradas no servidor do dguard
@@ -58,7 +169,7 @@ Class	dguard {
 		return	json( retorno )
 	}
 
-	cam_to_layout( layout_guid, cam_guid, sequence )										{
+	cam_to_layout( layout_guid, cam_guid, sequence )							{
 		a		:=	"\"""""
 		comando	:=	"POST """"http://localhost:8081/api/layouts/`%7B" StrRep( layout_guid,, "{", "}" ) "`%7D/cameras"""""
 				.	" -H """"accept: application/json"""""
@@ -74,7 +185,7 @@ Class	dguard {
 		this.curly( comando, 1 )
 	}
 
-	comando( params* )	{
+	comando( params* )															{
 		token	=	REPLACE_TOKEN
 		a		:=	"\"""
 		comando	:=	" -H ""accept: application/json"""
@@ -135,7 +246,7 @@ Class	dguard {
 		return exec.StdOut.ReadAll()
 	}
 
-	curly( comando, assync="0" )															{
+	curly( comando, assync="0" )												{
 		If	assync {
 			for_new_instance:=	"#NoTrayIcon"
 							.	"`nDetectHiddenWindows On"
@@ -226,15 +337,17 @@ Class	dguard {
 		Return, pr . str
 	}
 
-	layouts( server="" , token="" )													{
+	layouts( server="" , token="" )												{
 		/*	utilização do retorno em loop, var.layouts.count()
-			var.layouts[A_Index].guid
-			var.layouts[A_Index].name
-			var.layouts[A_Index].readOnly
-			var.layouts[A_Index].status
-			var.layouts[A_Index].camerasCount
-			var.layouts[A_Index].firstCameraId
-			var.layouts[A_Index].mosaicGuid
+			var	:=	dguard.layouts( server , token )
+			Loop,% var.layouts.Count()
+				Msgbox %	var.layouts[A_Index].guid			"`n"
+						.	var.layouts[A_Index].name			"`n"
+						.	var.layouts[A_Index].readOnly		"`n"
+						.	var.layouts[A_Index].status			"`n"
+						.	var.layouts[A_Index].camerasCount	"`n"
+						.	var.layouts[A_Index].firstCameraId	"`n"
+						.	var.layouts[A_Index].mosaicGuid
 			*/
 		/*	Usado pelos sistemas abaixo
 			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
@@ -297,7 +410,7 @@ Class	dguard {
 		return
 	}
 
-	new_layout( name, server="" ){
+	new_layout( name, server="" )												{
 		if !Server
 			server		=	localhost
 		token			:=	this.Token( server )
@@ -378,9 +491,9 @@ Class	dguard {
 		||	ip[4] < 126) && pass = "" )							;	Se o servidor solicitado for coluna de operador define a senha de administrador
 			pass := "@dm1n"
 		url	=	"http://%server%:8081/api/login" -H "accept: application/json"  -H "Content-Type: application/json" -d "{ \"username\": \"%user%\", \"password\": \"%pass%\"}"
-		OutputDebug % "Classe Dguard:`n`t" server
-					. "`n`t" user
-					. "`n`t" pass
+		; OutputDebug % "Classe Dguard:`n`t" server
+					; . "`n`t" user
+					; . "`n`t" pass
 		retorno	:=	StrReplace(	Dguard.curl( url , server , "POST" ) , """" )
 		retorno	:=	SubStr( StrReplace( retorno , "{login:{") , 1 , InStr( retorno , ",serverDate")-9 )
 		; MsgBox % Dguard.curl( url , server , "POST" )  "`n" Clipboard := url
