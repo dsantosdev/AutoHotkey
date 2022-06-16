@@ -4,7 +4,4 @@ bizu relatórios.txt
 class/sql.ahk
 Sistema Monitoramento/z teste classe cor - gradiente.ahk
 Tools/atualiza user ad no _colaboradores.ahk
-Testes - Descartáveis/teste - Event Logs.ahk
-Testes - Descartáveis/atalhos.ahk
-Testes - Descartáveis/sql autorizados.ahk
-Testes - Descartáveis/synergy interactive.ahk
+Testes - Descartáveis/*
