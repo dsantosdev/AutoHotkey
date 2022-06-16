@@ -9,6 +9,7 @@ Global	inc_dguard	=	1
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 
 Class	dguard {
+
 	_cria_layout( ip, nome )														{
 		l_exist	:= nome_sql := ""
 		token	:=	this.token( ip )
@@ -63,6 +64,7 @@ Class	dguard {
 						[name] LIKE '%nome_sql%`%'
 				)
 			sql	:=	sql( select, 3 )
+			; MsgBox % select
 
 			Loop,%	sql.Count()-1 {
 				c	:=	"POST """"http://" ip ":8081/api/layouts/%7B" StrRep( l_g,, "{", "}" ) "%7D/servers"""""
@@ -76,48 +78,18 @@ Class	dguard {
 			}
 	}
 
-	_exibe_layout( local )	{
+	_exibe_layout( layout_guid="", monitor_guid="", workstation_guid="" )	{
 		if !Token
 			token	:=	this.token( )
-		;	Habilita matriz virtual
-			c	:=	"PUT ""http://localhost:8081/api/virtual-matrix"""
-				.	" -H ""accept: application/json"""
-				.	" -H ""Authorization: bearer " token """"
-				.	" -H ""Content-Type: application/json"""
-				.	" -d ""{ \""machineName\"": \""" A_ComputerName "\"", \""enabled\"": true, \""activationMode\"": 1}"""
-
-			this.Curly( c )
-
-		;	Monitor
-			c	:=	"GET ""http://localhost:8081/api/virtual-matrix/workstations"""
-				.	" -H ""accept: application/json"""
-				.	" -H ""Authorization: bearer " token """"
-
-			m	:=	json( this.Curly( c ) )
-
-			m_g	:=	m.workstations[1].monitors[	m.workstations[1].monitors.Count() ].guid
-			w_g	:=	m.workstations[1].guid
-
 		;	Exibe
-			c	:=	"GET ""http://localhost:8081/api/virtual-matrix/layouts"""
-				.	" -H ""accept: application/json"""
-				.	" -H ""Authorization: bearer " token """"
-
-			l	:=	json( this.Curly( c ) )
-			Loop,% l.layouts.Count()
-				If	l.layouts[A_Index].name = local {
-					l_g	:=	l.layouts[A_Index].guid
-					Break
-				}
-
-			c	:=	"PUT ""http://localhost:8081/api/virtual-matrix/workstations/%7B" StrRep( w_g )
-				.	"%7D/monitors/%7B" StrRep( m_g,, "{", "}" )
+			c	:=	"PUT ""http://localhost:8081/api/virtual-matrix/workstations/%7B" StrRep( workstation_guid,, "{", "}" )
+				.	"%7D/monitors/%7B" StrRep( monitor_guid,, "{", "}" )
 				.	"%7D/layout"""
 				.	" -H ""accept: application/json"""
 				.	" -H ""Authorization: bearer " token """"
 				.	" -H ""Content-Type: application/json"""
-				.	" -d ""{ \""layoutGuid\"": \""" l_g "\""}""""
-			this.curly( c )
+				.	" -d ""{ \""layoutGuid\"": \""" layout_guid "\""}"""
+			return this.curly( c )
 	}
 
 	cameras( server = "" , token = "" )											{
@@ -125,11 +97,13 @@ Class	dguard {
 		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
+		if !token
+			token := this.Token()
 		url := "http://" server ":8081/api/servers"
 		retorno := Dguard.Request( url , token )
 		return	json( retorno )
 	}
-	
+
 	cameras_info( server = "" , guid = "" , token = "" )						{
 		/* Exemplo de Retorno:
 			"server:" {
@@ -459,7 +433,9 @@ Class	dguard {
 		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
-		url := "http://" server ":8081/api/servers/`%7B" StrReplace( StrReplace( guid , "{" ) , "}" ) "`%7D"
+		if !token
+			token := this.Token()
+		url := "http://" server ":8081/api/servers/`%7B" StrRep( guid , "{", "}" ) "`%7D"
 		retorno := Dguard.Request( url , token )
 		return	json( retorno )
 	}
@@ -507,15 +483,14 @@ Class	dguard {
 
 		If	!Token
 			token	:=	this.token( server )
-		a		:=	"\"""
-		comando	:=	"PUT ""http://localhost:8081/api/virtual-matrix"""
-				.	"`n -H ""accept: application/json"""
-				.	"`n -H ""Authorization: bearer " token """"
-				.	"`n -H ""Content-Type: application/json"""
-				.	"`n -d ""{ "	a "machineName" 	a ": " a A_ComputerName a ",`n "
-				.	" " 		a "enabled"			a ": true,`n "
-				.	" "			a "activationMode"	a ": 1}"
-		return	this.curl( comando )
+		
+		c	:=	"PUT ""http://" server ":8081/api/virtual-matrix"""
+			.	" -H ""accept: application/json"""
+			.	" -H ""Authorization: bearer " token """"
+			.	" -H ""Content-Type: application/json"""
+			.	" -d ""{ \""machineName\"": \""" A_ComputerName "\"", \""enabled\"": true, \""activationMode\"": 1}"""
+
+		return this.Curly( c )
 	}
 
 	workstation( comando )														{

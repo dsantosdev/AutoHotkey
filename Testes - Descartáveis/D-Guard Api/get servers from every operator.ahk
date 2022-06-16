@@ -35,23 +35,23 @@ Save_To_Sql=0
 	; #NoTrayIcon
 	#SingleInstance, Force
 ;
-; Loop,	1	{
-Loop,	6	{
+Loop,	1	{
+; Loop,	6	{
 	OutputDebug, % "Operador " A_index
 	indexed	:=	A_Index
-	; index = 100
-	if		A_Index = 1
-		Index = 102
-	Else if	A_Index = 2
-		Index = 106
-	Else if	A_Index = 3
-		Index = 109
-	Else if	A_Index = 4
-		Index = 114
-	Else if	A_Index = 5
-		Index = 118
-	Else if	A_Index = 6
-		Index = 123
+	index = 106
+	; if		A_Index = 1
+	; 	Index = 102
+	; Else if	A_Index = 2
+	; 	Index = 106
+	; Else if	A_Index = 3
+	; 	Index = 109
+	; Else if	A_Index = 4
+	; 	Index = 114
+	; Else if	A_Index = 5
+	; 	Index = 118
+	; Else if	A_Index = 6
+	; 	Index = 123
 
 	s	:=	"192.9.100." index
 	t	:=	Dguard.token( s )
@@ -65,7 +65,8 @@ Loop,	6	{
 		Return
 
 	Loop,% cam.servers.Count() {
-		OutputDebug, % "Operador " indexed "`tCâmeras restantes " cam.servers.Count()-A_index
+		; OutputDebug, % "Operador " indexed "`tCâmeras restantes " cam.servers.Count()-A_index
+		OutputDebug, % cam.servers[A_index].name
 
 		If	!InStr( cam.servers[A_index].name, "[" ) 
 			Continue
@@ -77,21 +78,18 @@ Loop,	6	{
 		if	!InStr( output%indexed%, SubStr( n[1], 1, 3) )
 		&&	!InStr( nmt%indexed%, SubStr( cam.servers[A_index].name, 1, 13 ) )
 		&&	!InStr( lvd%indexed%, SubStr( cam.servers[A_index].name, 1, 13 ) )	{
-			; OutputDebug, %  "`n" n[1] "]`n`t" InStr( output%indexed%, n[1] "]" )
-			; OutputDebug, % "`t" InStr( nmt%indexed%, SubStr( cam.servers[A_index].name, 1, 13 ) )
 
 			if		( SubStr( n[1], 1, 3 ) = "NMT" ) {
-
 				If	( Trim( SubStr( n[1], -3 ) ) = "SUP" ) {
 					nmt%indexed%	.=	"`t" s
 									.	"`t" SubStr( cam.servers[A_index].name, 1, 13 ) "`n"
 					Dguard._cria_layout( s,	SubStr( cam.servers[A_index].name, 1, 13 ) )
 				}
-				Else	{
-					output%indexed%	.=	"`t" s
-									.	"`t" n[1] "]`n"
-					Dguard._cria_layout( s, n[1] )
-				}
+				; Else	{
+				; 	output%indexed%	.=	"`t" s
+				; 					.	"`t" n[1] "]`n"
+				; 	Dguard._cria_layout( s, n[1] )
+				; }
 
 			}
 			Else If	( SubStr( n[1], 1, 3 ) = "LVD" ){

@@ -1,5 +1,5 @@
-﻿File_version=2.6.0
-Save_to_sql=1
+﻿File_version=2.7.0
+Save_to_sql=0
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
 	[MotionDetection]
@@ -29,7 +29,7 @@ Save_to_sql=1
 Menu,	Tray,	Icon,	C:\Seventh\Backup\ico\2motion.ico
 #Persistent
 #SingleInstance, Force
-sys_vers	= Detecção de Movimento %File_version% - 04/06/2022
+sys_vers	= Detecção de Movimento %File_version% - 14/06/2022
 ;
 
 ;	Configuração
@@ -44,18 +44,39 @@ sys_vers	= Detecção de Movimento %File_version% - 04/06/2022
 
 		ip_cam		=	999.999.999.999		;	Não pode ser vazio
 
-		cam_return := StrSplit( HttpGet( "http://localhost/camerasnomes.cgi" ), "&")
-		ids			:=	{}
-		OutputDebug, % "Câmeras locais = " cam_return.Count()
-		Loop,%	cam_return.Count() {
-			dados		:= StrSplit( cam_return[A_Index], "=" )
-			nome		:=  StrSplit( dados[2] , ".")
-			OutputDebug, % nome[1]
-			ids[nome[1]]	:= dados[1]
-		}
+		;	Dguard
+			if !Token
+				token	:=	Dguard.token( )
+
+			Dguard.virtual_matrix()
+
+			c	:=	"GET ""http://localhost:8081/api/virtual-matrix/workstations"""
+				.	" -H ""accept: application/json"""
+				.	" -H ""Authorization: bearer " token """"
+
+			m	:=	json( Dguard.Curly( c ) )
+
+			monitor_guid	:=	m.workstations[1].monitors[	m.workstations[1].monitors.Count() ].guid
+			workstation_guid:=	m.workstations[1].guid
+
+			layouts	:=	{}
+				var	:=	dguard.layouts( server , token )
+				OutputDebug, % "Layouts locais = " var.layouts.Count()
+				Loop,% var.layouts.Count() 
+					layouts[ var.layouts[A_Index].name ] :=	var.layouts[A_Index].guid
+
+			ids		:=	{}
+			cam_return := StrSplit( HttpGet( "http://localhost/camerasnomes.cgi" ), "&")
+			OutputDebug, % "Câmeras locais = " cam_return.Count()
+			Loop,%	cam_return.Count() {
+				dados		:=	StrSplit( cam_return[A_Index], "=" )
+				nome		:=	StrSplit( dados[2] , ".")
+				OutputDebug %	nome[1]
+				ids[nome[1]]:=	dados[1]
+			}
+		;
 
 		Folder		=	\\srvftp\monitoramento\FTP\
-
 
 		If( A_UserName	= "dsantos"			;	Define operador
 		||	A_IPAddress1= "192.9.100.100" )
@@ -81,6 +102,7 @@ sys_vers	= Detecção de Movimento %File_version% - 04/06/2022
 return
 
 verifica_imagens:
+	exibe_cameras =
 	;	Recarrega dados
 		If (SubStr( A_Now, 9) > "200000" && SubStr( A_Now, 9) < "200005")
 			Reload
@@ -110,11 +132,10 @@ verifica_imagens:
 	;
 
 	;	Loop imagens
-		OutputDebug %	"Imagens"
+		OutputDebug, % "Imagens" 
 		Loop, Files,%	folder_operador
 		{
-			If((Substr( A_Now, 9 ) > "060000"
-			&&	Substr( A_Now, 9 ) < "203000")
+			If((Substr( A_Now, 9 ) > "060000" && Substr( A_Now, 9 ) < "203000")
 			&&	A_IPAddress1	!= "192.9.100.100"
 			&&	demo			!= 1	)	{
 				FileDelete,%	A_LoopFileFullPath
@@ -193,7 +214,7 @@ Interface:
 	Gui, Add,	Button,%		"x10	y" work_h-25 "	w150	h25		gsem_motivo		vnada	-TabStop			", Sem motivo aparente
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_movimento	vmov	-TabStop			", Evento devido a...
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_inibir		vini	-TabStop			", Inibir eventos
-	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_all					-TabStop			", Criar Layout da Unidade
+	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_all			v_all	-TabStop			", Exibir câmeras da unidade
 	; Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_sinistro		vSini	-TabStop			", Sinistro em Andamento
 	Gui, Add,	Button,%		"xp+151	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
 	; Gui, Add,	Button,%		"xp+302	y" work_h-25 "	w150	h25		gb_Pause		vPause	-TabStop			", Pausar por 30 Segundos
@@ -214,55 +235,33 @@ return
 
 ;	Botões
 	b_all:
-		Return
-		ip_		:=	SubStr( ip_cam, 1, InStr( ip_cam, ".",,-1 ) )	
-		token	:=	Dguard.token()
-		var		:=	Dguard.layouts()
-		loop,%	var.layouts.count()
-			If	RegExMatch( var.layouts[A_Index].name, "Layout4" )
-				layout4_guid	:=	var.layouts[A_Index].guid
-		;	Modo SQL
-			cam_operador =
-				(
-					SELECT
-						[name],
-						[guid]
-					FROM
-						[dguard].[dbo].[cameras]
-					WHERE
-						[ip] LIKE '%IP_%`%'
-					ORDER BY
-						[name]
-				)
-				cam_operador:=	sql( cam_operador, 3 )
-			if ( cam_operador.Count()-1 > 0 ) {
-				layouts			:=	Dguard.new_layout( StrRep(StrReplace( nome_da_camera, "-", "|",, 0 ),, "|:\u007c" )  )
-				new_layout_guid	:=	StrSplit( layouts, "&&" )
-				Loop,%	cam_operador.Count()-1 {
-					if	(new_layout_guid[2]	= cam_operador.Count()-1 )
-						Continue
-					dguard.cam_to_layout( new_Layout_guid[1], cam_operador[A_Index+1, 2], A_Index-1 )
-				}
+		exibe_cameras := !exibe_cameras
+		if exibe_cameras {
+			GuiControl,	,	_all, Exibir layout padrão
+			n	:=	StrSplit( nome_da_camera, "]" )
+			If (SubStr( n[1], 1, 3) = "NMT"
+			||	SubStr( n[1], 1, 3) = "LVD")	{
+				if SubStr( nome_da_camera, 1, 13 ) = "NMT [ SUP ] S"
+					layout_guid	:=	layouts[ SubStr( nome_da_camera, 1, 16 ) ]
+
+				else if SubStr( nome_da_camera, 1, 13 ) = "NMT [ SUP ] C"
+					layout_guid	:=	layouts[ SubStr( nome_da_camera, 1, 18 ) ]
+
+				else if SubStr( nome_da_camera, 1, 3 ) = "LVD [ DEF ]"
+					layout_guid	:=	layouts[ SubStr( nome_da_camera, 1, 11 ) ]
+
+				Else
+					layout_guid	:=	layouts[ SubStr( n[1], 1, 3) ]
+
 			}
-		;
-		enable_matrix	=	PUT "http://localhost:8081/api/virtual-matrix" -H "accept: application/json" -H "Authorization: bearer %token%" -H "Content-Type: application/json" -d "{ \"machineName\": \"%A_ComputerName%\", \"enabled\": true}"
-		get_workstation	=	GET "http://localhost:8081/api/virtual-matrix/workstations" -H "accept: application/json" -H "Authorization: bearer %token%"
-			retorno		:=	Dguard.workstation( get_workstation )
-			if(	retorno.workstations[1].guid = "ERRO" ) {
-				Dguard.virtual_matrix()
-				retorno	:= Dguard.workstation( get_workstation )
-			}
-			monitor		:=	{}
-			Loop,%	retorno.workstations[1].monitors.Count()
-				monitor[retorno.workstations[1].monitors[A_Index].name]	:=	retorno.workstations[1].monitors[A_Index].guid
-			workstation	:=	StrRep( retorno.workstations[1].guid,, "{", "}" )
-			If	ip[4] = 100
-				monitor		:=	StrRep( monitor["Monitor1"],, "{", "}" )
 			Else
-				monitor		:=	StrRep( monitor["Monitor4"],, "{", "}" )
-		show_layout		:=	"PUT ""http://localhost:8081/api/virtual-matrix/workstations/%7B" workstation "%7D/monitors/%7B" monitor "%7D/layout"" -H ""accept: application/json"" -H ""Authorization: bearer " token """ -H ""Content-Type: application/json"" -d ""{ \""layoutGuid\"": \""" new_Layout_guid[1] "\""}"""
-		OutputDebug % workstation "`n" monitor "`n" new_Layout_guid[1]
-		Dguard.Curly( show_layout )
+				layout_guid	:=	layouts[ SubStr( n[1], 1, 3) ]
+		}
+		Else {
+			GuiControl,	,	_all, Exibir câmeras da unidade
+			layout_guid	:=	layouts[ "_Layout4" ]
+		}
+		Dguard._exibe_layout(  layout_guid, monitor_guid, workstation_guid )
 	Return
 
 	confirmar:
@@ -294,11 +293,11 @@ return
 				}
 				if( i_a > 24 )	{						;	se passou da meia noite
 					i_a			:=	Round( i_a - 24 )
-					outroDia	=	1
+					next_day	=	1
 				}
 				if( i_a = 24 )	{						;	Se for meia noite
 					i_a			:=	"00"
-					outroDia	=	1
+					next_day	=	1
 				}
 				else
 					i_a			:=	Round( i_a )
@@ -613,7 +612,7 @@ sql:
 
 		campo6		:=	StrRep( inibe,, " Minutos" )
 		campo9		:=	ip_cam
-		if( outroDia = 1 )
+		if( next_day = 1 )
 			campo10	:=	A_YDay+1
 		else
 			campo10	:=	A_YDay
@@ -633,7 +632,7 @@ sql:
 					( '%usuarioatual%'	, '%campo9%'	, '%campo1%'	, '%campo3%'	, '%campo6%', '%campo10%'	, '%campo11%'		);
 			)
 			Log := sql( finaliza1, 3 )
-			outroDia =
+			next_day =
 	}
 	if( ocorrencia = 1 )	{
 		campo1		:=	StrRep( nome_da_camera,, ".jpg" )
@@ -695,13 +694,7 @@ HttpGet( URL )	{
 
 ^Home::
 	demo := !demo
-	ToolTip % demo	= 1
-					? "Demonstração ativada`nAguardando detecção de Movimento em Cruz Alta ADM"
-					: "Demonstração desativada`nAguardando detecção de Movimento em Cruz Alta ADM"
-	if demo
-		http( "http://admin:tq8hSKWzy5A@10.2.62.221/cgi-bin/configManager.cgi?action=setConfig&MotionDetect[0].Enable=true" )
-	Else
-		http( "http://admin:tq8hSKWzy5A@10.2.62.221/cgi-bin/configManager.cgi?action=setConfig&MotionDetect[0].Enable=false" )
-	Sleep, 1500
-	ToolTip
+	MsgBox % demo	= 1
+					? "Demonstração ativada`nAguardando detecção de Movimento "		http( "http://admin:tq8hSKWzy5A@10.1.52.117/cgi-bin/configManager.cgi?action=setConfig&MotionDetect[0].Enable=true" )
+					: "Demonstração desativada`nAguardando detecção de Movimento "	http( "http://admin:tq8hSKWzy5A@10.1.52.117/cgi-bin/configManager.cgi?action=setConfig&MotionDetect[0].Enable=false" )
 Return
