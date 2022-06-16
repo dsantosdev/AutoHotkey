@@ -1,4 +1,4 @@
-﻿File_Version=0.2.0
+File_Version=0.2.0
 Save_to_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
@@ -127,6 +127,7 @@ prepara_array:	;	SQL
 
 		IF ( s.Count() - 1 ) > 1	{
 			cameras := {}
+			foscam	:=
 			Loop,%	s.Count()-1 {
 				cameras[s[A_Index+1,1]]	:=	(s[A_Index+1,2] = "" ? "0000" : s[A_Index+1,2]) "&&"	;	ip : mac&&nome&&0000&&0001
 										.	 s[A_Index+1,3] "&&"
