@@ -10,6 +10,7 @@ Save_to_Sql=1
 	04/04/2021	-	Adicionado sub função Restaura_Sinistro para finalizar sinistros expirados e não encerrados pelo cliente
 	03/04/2022	-	Migrado para o Visual Code
 	17/05/2022	-	Alterado banco de dados para o banco automático do dguard e alterado o sistema de arrays
+	16/06/2022	-	Alterado var foscam, para limpar a mesma antes de atualizar os valores
 */
 
 /*	Bancos de Dados
