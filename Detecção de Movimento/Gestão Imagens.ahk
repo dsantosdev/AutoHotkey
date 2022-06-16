@@ -110,6 +110,7 @@ L1:
 	||	A_EventInfo = "0" )
 		return
 	Gui,	ListView,	L1
+		LV_Delete()
 	LV_GetText( ip1, A_EventInfo, 2 )
 	if ( A_GuiEvent = "Normal" ) {
 		OutputDebug % "L1 " A_LineNumber
