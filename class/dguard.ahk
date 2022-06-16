@@ -4,7 +4,6 @@
 if	inc_dguard
 	Return
 Global	inc_dguard	=	1
-	,	a			:=	"\"""
 	,	token
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 
