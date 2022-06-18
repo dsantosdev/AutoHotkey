@@ -39,7 +39,7 @@ Loop,	1	{
 ; Loop,	6	{
 	OutputDebug, % "Operador " A_index
 	indexed	:=	A_Index
-	index = 106
+	index = 123
 	; if		A_Index = 1
 	; 	Index = 102
 	; Else if	A_Index = 2
@@ -66,7 +66,7 @@ Loop,	1	{
 
 	Loop,% cam.servers.Count() {
 		; OutputDebug, % "Operador " indexed "`tCâmeras restantes " cam.servers.Count()-A_index
-		OutputDebug, % cam.servers[A_index].name
+		; OutputDebug, % cam.servers[A_index].name "`n" SubStr( cam.servers[A_index].name, 1, 11 )
 
 		If	!InStr( cam.servers[A_index].name, "[" ) 
 			Continue
@@ -77,28 +77,32 @@ Loop,	1	{
 		; if	!InStr( output%indexed%, n[1] "]" )
 		if	!InStr( output%indexed%, SubStr( n[1], 1, 3) )
 		&&	!InStr( nmt%indexed%, SubStr( cam.servers[A_index].name, 1, 13 ) )
-		&&	!InStr( lvd%indexed%, SubStr( cam.servers[A_index].name, 1, 13 ) )	{
-
+		&&	!InStr( lvd%indexed%, SubStr( cam.servers[A_index].name, 1, 13 ) )
+		&&	!InStr( sol%indexed%, SubStr( cam.servers[A_index].name, 1, 11 ) )	{
+			OutputDebug, % SubStr( cam.servers[A_index].name, 1, 11 ) "`t" SubStr( n[1], 1, 3)
 			if		( SubStr( n[1], 1, 3 ) = "NMT" ) {
 				If	( Trim( SubStr( n[1], -3 ) ) = "SUP" ) {
 					nmt%indexed%	.=	"`t" s
 									.	"`t" SubStr( cam.servers[A_index].name, 1, 13 ) "`n"
 					Dguard._cria_layout( s,	SubStr( cam.servers[A_index].name, 1, 13 ) )
 				}
-				; Else	{
-				; 	output%indexed%	.=	"`t" s
-				; 					.	"`t" n[1] "]`n"
-				; 	Dguard._cria_layout( s, n[1] )
-				; }
+			}
+			Else if	( SubStr( n[1], 1, 3 ) = "SOL" ) {
+				; OutputDebug, % SubStr( cam.servers[A_index].name, 1, 11 ) "`t" A_LineNumber
+					sol%indexed%	.=	"`t" s
+									.	"`t" SubStr( cam.servers[A_index].name, 1, 11 ) "`n"
+					Dguard._cria_layout( s,	SubStr( cam.servers[A_index].name, 1, 11 ) )
 
 			}
 			Else If	( SubStr( n[1], 1, 3 ) = "LVD" ){
+				; OutputDebug, % "`tlvd " n[1]
 					Dguard._cria_layout( s, n[1] )
 					lvd%indexed%	.=	"`t" s
 									.	"`t" n[1] "]`n"
 
 			}
 			Else {
+				; OutputDebug, %  "`telse " n[1]
 				Dguard._cria_layout( s, SubStr( n[1], 1, 3) )
 				output%indexed%	.=	"`t" s
 								.	"`t" SubStr( n[1], 1, 3) "`n"
