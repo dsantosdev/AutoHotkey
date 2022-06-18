@@ -102,6 +102,8 @@ sys_vers	= Detecção de Movimento %File_version% - 14/06/2022
 return
 
 verifica_imagens:
+	If	A_IsCompiled && ip[4] = "100"
+		Return
 	exibe_cameras =
 	;	Recarrega dados
 		If (SubStr( A_Now, 9) > "200000" && SubStr( A_Now, 9) < "200005")
