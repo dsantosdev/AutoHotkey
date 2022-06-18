@@ -145,7 +145,6 @@ Array:
 							.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
 							.	"&VideoWidget[0].TimeTitle.PreviewBlend=false"
 							.	"&VideoWidget[0].TimeTitle.EncodeBlend=false"
-			; If	RegexMatch( cam_model, "HDBW" )	;	fixa
 			If	!is_ptz
 				ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
 								.	"&Encode[0].MainFormat[0].Video.BitRate=512"
