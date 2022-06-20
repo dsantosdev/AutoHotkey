@@ -3,6 +3,7 @@
 Global	inc_telegram	=	1
 	,	bot_token		:=	"https://api.telegram.org/bot1510356494:AAFkppxELD9JISyZglP0r0c-Q3STc4tKTpo"
 	,	chat_id			=	-1001729068003	;	canal de teste
+	; ,	chat_id			=	-1001160086708	;	canal de notificações de câmeras
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
 ;
 
@@ -44,7 +45,8 @@ Class	Telegram {
 			.	"/sendmessage?chat_id=" chat_id							;	Chat_id da conversa que deverá receber a msg
 			.	"&text=" StrRep( texto , , "[n]:%0A", "[t]:%09%09" )	;	Insere as novas linhas e tabulações no formato URI
 			.	parametros												;	Adiciona parâmetros adicionas a mensagem
-		; MsgBox % telegram.request( url )
+		; MsgBox % "`n`n`n" clipboard:=url
+		; MsgBox % telegram.request( url ) "`n`n`n" clipboard:=url
 		return	telegram.request( url )
 	}
 }
