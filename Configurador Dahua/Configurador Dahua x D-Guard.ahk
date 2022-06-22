@@ -113,8 +113,11 @@ Save_To_Sql=1
 
 Array:
 	Gui.Submit()
+	debug	=
 	If	InStr( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=ChannelTitle[0].Name", , 1 ), "PTZ" )
 		is_ptz		=	1
+	Else
+		is_ptz		=	0
 	URL				:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=setConfig"
 	; CAM_MODEL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo"
 	cam_model		:=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 )
@@ -237,8 +240,10 @@ Goto	Config_Dahua
 		}
 
 	Dguard:
-		if	c_dguard = 0
+		if	(c_dguard = 0) {
+			debug=
 			Return
+		}
 		Gui.Submit()
 		debug .= "`n------------------------------------------`nIniciando cadastro de câmera no D-Guard`n------------------------------------------`nVerificando existência de câmera nos servidores...`n"
 		GuiControl, , output,% debug
@@ -308,6 +313,7 @@ Goto	Config_Dahua
 			s	:= sql( s, 3 )
 		}
 		sigla		:= Trim( s[2,1] )
+
 		token		:= for_output := dguard.token( "vdm0" server )
 				if InStr( for_output, """Error"":" ) {
 					debug .= "Falha`tAo resgatar token de acesso ao D-Guard, e-mail enviado ao desenvolvedor."
