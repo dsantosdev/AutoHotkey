@@ -1,4 +1,4 @@
-﻿File_Version=0.1.0
+﻿File_Version=0.2.0
 Save_To_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\pc.ico
 
@@ -15,6 +15,7 @@ Save_To_Sql=1
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\file.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\folder.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	; Msgbox	%	ping("10.2.242.131","10.2.242.132","10.2.242.138")
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
@@ -39,6 +40,8 @@ Save_To_Sql=1
 ; }
 ;
 http = http://admin:tq8hSKWzy5A@
+; Goto, samsung
+
 ;	Code
 	;	Dahua e Intelbras
 		s =
@@ -67,7 +70,7 @@ http = http://admin:tq8hSKWzy5A@
 					[Name]
 			)
 		s := sql( s, 3 )
-		timer("start")
+		timer( "Start Dahua" )
 		Loop,%	s.Count()-1	{
 
 			OutputDebug, % (s.Count()-1) - A_Index
@@ -77,8 +80,6 @@ http = http://admin:tq8hSKWzy5A@
 			if !ping( ip )
 				Continue
 			;	Variaveis do banco sql para comparação
-				if (ip = "192.9.100.230")
-					OutputDebug, % "_" s[A_Index+1,9] "_"
 				_name				:=	s[A_Index+1,1]
 				_bitrate			:=	s[A_Index+1,3]
 				_bitrate_type		:=	s[A_Index+1,4]
@@ -92,7 +93,7 @@ http = http://admin:tq8hSKWzy5A@
 			;
 
 			r	:=	http( http ip "/cgi-bin/configManager.cgi?action=getConfig&name=Encode[0].MainFormat[0]",,1 )
-			; OutputDebug, % r
+
 			if StrLen( r ) = 0
 				continue
 			encode := StrSplit( r, "`n" )
@@ -195,17 +196,7 @@ http = http://admin:tq8hSKWzy5A@
 								.	"</code>[t][t]➝[t][t]<code>" iv " </code>"
 					}
 				}
-			; msgbox %	ip				"`n`tResolution`t"
-			; OutputDebug %	ip				"`n`tResolution`t"
-			; 			.	resolution		"`n`tBitrate Tipo`t"
-			; 			.	bitrate_type	"`n`tBitrate`t`t" 
-			; 			.	BitRate			"`n`tCodec`t`t" 
-			; 			.	codec			"`n`tFPS`t`t" 
-			; 			.	FPS				"`n`tQuality`t`t" 
-			; 			.	Quality			"`n`tIVS`t`t" 
-			; 			.	ivs				"`n`tM. Detection`t" 
-			; 			.	motion_detection "`n`tNo IVS`t`t"
-			; 			.	no_ivs
+
 			if	Notify {
 				if	!teste
 					telegram.SendMessage( message, "parse_mode=html", "chat_id=-1001160086708" )
@@ -219,25 +210,22 @@ http = http://admin:tq8hSKWzy5A@
 					UPDATE
 						[Dguard].[dbo].[cameras]
 					SET 
-						[codec] = '%codec%'
-						,[resolution] = '%resolution%'
-						,[fps] = '%fps%'
-						,[bitrate_type] = '%bitrate_type%'
-						,[bitrate] = '%bitrate%'
-						,[video_quality] = '%quality%'
-						,[motion_detection] = %motion_detection%
-						,[ivs] = %ivs%
+						 [codec]			= '%codec%'
+						,[resolution]		= '%resolution%'
+						,[fps]				= '%fps%'
+						,[bitrate_type]		= '%bitrate_type%'
+						,[bitrate]			= '%bitrate%'
+						,[video_quality]	= '%quality%'
+						,[motion_detection]	= %motion_detection%
+						,[ivs]				= %ivs%
 					WHERE
-						[ip] = '%ip%'
+						 [ip]				= '%ip%'
 				)
-			; sql( u, 3 )
-			If	sql_le {
-				MsgBox % sql_le "`n"  clipboard := sql_lq
-				sql_le =
-			}
+			sql( u, 3 )
 		}
 	;	Samsung
-	EXITAPP	;	Não está pronto ainda
+		;	Falta verificação de motion e IVS
+		samsung:
 		s =
 			(
 				SELECT
@@ -261,7 +249,7 @@ http = http://admin:tq8hSKWzy5A@
 					[Name]
 			)
 		s := sql( s, 3 )
-		timer("start")
+		timer( "Start Samsung" )
 		Loop,%	s.Count()-1	{
 			OutputDebug, % (s.Count()-1) - A_Index
 			ip	:=	s[A_Index+1,2]
@@ -283,34 +271,16 @@ http = http://admin:tq8hSKWzy5A@
 				_quality			:=	s[A_Index+1,10]
 				vendor				:=	s[A_Index+1,11]
 			;
-			r	:=	http( http ip "/cgi-bin/basic.cgi?msubmenu=video&action=view3",,1 )
-				If	!InStr( r, "profile_name:Monitoramento" )
-					OutputDebug, % ip
-			if StrLen( r ) = 0
+			r	:=	http( http ip "/cgi-bin/basic.cgi?msubmenu=video&action=view2",,1 )
+
+			if (StrLen( r ) = 0
+			||	InStr( r, "ERROR" ) )
 				continue
 
 			encode	:= StrSplit( r, "`n" )
 			message	:= "[n][t] <b><u>[t]" _name "</u></b>[t][t][t][t]<a href=""" ip """>" ip "</a>"
-			begin	= 
-			Loop,% encode.Count() {
-				If	InStr( a:= StrRep( encode[A_index],, "`n", "`r" ), "profile_no:2" ) {
-					begin = 1
-					Continue
-				}
-				Else If !begin {
-					Continue
-				}
-				If	InStr( a:= StrRep( encode[A_index],, "`n", "`r" ), "h4_smart_codec:" )	;	end cam
-					Break
 
-				If	( InStr( a:= StrRep( encode[A_index],, "`n", "`r" ), "encoding_type:" ) ) {
-					codec	:=	SubStr( a, InStr( a, ":" )+1 ) = 2 ? "H.264" : "MJPG"
-					If	( codec != _codec ) {
-						Notify++
-						message	.=	"[n]   ┌<b>Codec</b>[n][t] └─ <code>" _codec
-								.	"</code>[t][t]➝[t][t]<code>" codec " </code>"
-					}
-				}
+			Loop,% encode.Count() {
 
 				If	( InStr( a:= StrRep( encode[A_index],, "`n", "`r" ), "h4_width:" ) )
 					r1	:=	SubStr( a, InStr( a, ":" )+1 )
@@ -352,14 +322,6 @@ http = http://admin:tq8hSKWzy5A@
 							.	"</code>[t][t]➝[t][t]<code>" resolution " </code>"
 				}
 
-			; OutputDebug, %	_name "`t" ip
-			; 			.	"`n-" _bitrate "-`t-" BitRate
-			; 			.	"-`n-" _bitrate_type "-`t-" bitrate_type
-			; 			.	"-`n-" _codec "-`t-" codec
-			; 			.	"-`n-" _resolution "-`t-" resolution
-			; 			.	"-`n-" _fps "-`t-" FPS
-			; 			.	"-`n-" vendor
-
 			if	Notify {
 				if	!teste
 					telegram.SendMessage( message, "parse_mode=html", "chat_id=-1001160086708" )
@@ -374,20 +336,15 @@ http = http://admin:tq8hSKWzy5A@
 					UPDATE
 						[Dguard].[dbo].[cameras]
 					SET 
-						[codec]		= '%codec%'
+						 [codec]		= 'H.264'
 						,[resolution]	= '%resolution%'
 						,[fps]			= '%fps%'
 						,[bitrate_type] = '%bitrate_type%'
 						,[bitrate]		= '%bitrate%'
 					WHERE
-						[ip]			= '%ip%'
+						 [ip]			= '%ip%'
 				)
 			sql( u, 3 )
-			If	sql_le {
-				MsgBox % sql_le "`n"  clipboard := sql_lq
-				sql_le =
-			}
 		}
-	;
-	msgbox % timer("Fim")
+	msgbox % timer( "Fim" )
 ExitApp
