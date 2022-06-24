@@ -1,51 +1,56 @@
-﻿File_Version=0.2.0
+﻿File_Version=0.3.0
 Save_To_Sql=1
 
-If	!A_Args
-	ExitApp
+; 24-06-2022
+
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\pc.ico
 
 ;	Includes
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\auth.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cameras.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\date.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\file.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\folder.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\sync_data.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\telegram.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\timer.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
+	#Include md_libs.ahk
 ;
 
 /*	Bancos de Dados utilizados
-
+	[Dguard].[dbo].[cameras]
+	[Dguard].[dbo].[cameras_mac]
+	[MotionDetection].[dbo].[inibidos]
 */
 
 ;	Configurações
-	split	:=	StrSplit( A_Args[1], "`n" )
-	foscam	:= {}
-	Loop,%	split.Count() {
-		dados	:=	StrSplit( split[A_Index], "__" )
-		if	dados[1]
-			foscam[ dados[1] ]	:=	dados[2]
-	}
+	OutputDebug, % "SQL " A_now
+	s	=
+		(
+			SELECT
+					c.[ip]
+				,m.[mac]
+				,c.[name]
+				,c.[operador]
+				,c.[sinistro]
+				,LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1)
+			FROM
+				[Dguard].[dbo].[cameras] c
+			LEFT JOIN
+				[Dguard].[dbo].[cameras_mac] m
+			ON
+				c.[ip] = m.[ip]
+			WHERE
+				LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1) = 'Foscam'
+		)
+		s	:=	sql( s, 3 )
+		foscam := {}
+	IF ( s.Count() - 1 ) > 1
+		Loop,%	s.Count()-1
+			foscam[s[A_Index+1,2]]	:=	s[A_Index+1,1]
+
+	Else
+		mail.new(	"dsantos@cotrijal.com.br"
+				,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
+				,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
+
 	#SingleInstance, Force
 	#NoTrayIcon
-	if A_IsCompiled
+	if( A_IsCompiled )
 		ext	=	.exe
+
 	Else
 		ext =	.ahk
 	if ( A_UserName = "dsantos" ) {
@@ -58,92 +63,115 @@ If	!A_Args
 	}
 ;	Code
 	Loop {
-		Debug( A_LineNumber, "Movendo Imagens" )
+		OutputDebug, % "Foscam " A_now
 		Gosub, reseta_inibidos
 	;	Foscam
 		Loop, Files, %motion_folder%Foscam\*.jpg, R
 		{
 			p_foscam:=	StrSplit( A_LoopFileFullPath, "\" )
-			mac		:=	SubStr( p_foscam[p_foscam.Count()-2],	instr( p_foscam[p_foscam.Count()-2], "_" ) + 1 )
-			data	:=	SubStr( p_foscam[p_foscam.Count()],		InStr( p_foscam[p_foscam.Count()], "_" ) + 1 , 8 )
-			hora	:=	SubStr( p_foscam[p_foscam.Count()],		InStr( p_foscam[p_foscam.Count()], "_" ) + 10, 6 )
+			mac		:=	SubStr( p_foscam[p_foscam.Count()-2],	instr( p_foscam[p_foscam.Count()-2], "_" )	+ 1 )
+			data	:=	SubStr( p_foscam[p_foscam.Count()],		InStr( p_foscam[p_foscam.Count()], "_" )	+ 1 , 8 )
+			hora	:=	SubStr( p_foscam[p_foscam.Count()],		InStr( p_foscam[p_foscam.Count()], "_" )	+ 10, 6 )
 			ip		:=	foscam[ mac ]
-			If( StrLen( ip ) = 0 )	{	;	Gera log se a consulta não retornar nome de câmera
-				FileAppend,%	SubStr( datetime(), 1, 10 ) " | Mac = " mac " | Data = " data " | Hora = " hora " | IP = " ip "`n", %FTP%Log\Não achou no DB.txt
-				; MsgBox %motion_folder%%ip%_%data%-%hora%.jpg
+			If( StrLen( ip ) = 0 )
 				FileMove,%	A_LoopFileFullPath,	%FTP%AddBD\MAC - %mac% - %A_LoopFileName%
-			}
-			Else{
-				; MsgBox %motion_folder%%ip%_%data%-%hora%.jpg
+
+			Else
 				FileMove,%	A_LoopFileFullPath, %motion_folder%%ip%_%data%-%hora%.jpg,	1
-			}
 
 		}
+		Folder.Clear( motion_folder "Foscam" )
 	;
 
 	;	Dahua
+		OutputDebug, % "Dahua " A_now
 		Loop, Files, %motion_folder%Dahua\*.jpg, R
 		{
+			if ( last_file = SuBStr( A_LoopFileFullPath, 1, -15 ) ) {
+				FileDelete,% A_LoopFileFullPath
+				continue
+			}
+			horario := novonome := is_path := ""
+
 			path:=	StrSplit( A_LoopFileFullPath, "\" )
-			If( path.Count() = 10 )	{
-				horario	:=	StrRep( SubStr( A_LoopFileName, 1, instr( A_LoopFileName, "[" )-1 ), , "." )
-				ip		:=	StrReplace( path[7], "_", "." )
-				novonome:=	ip "_" StrReplace( path[8], "-" ) "-" horario ".jpg"
+
+			If( path.Count() = 11 )
+				novonome:=	StrRep( path[8]	,, "_:." ) "_" StrReplace( path[9], "-" ) "-" horario := StrRep(  SubStr( path[11], 1, InStr( path[11], "[" )-1 ),, ".",	"/", "_" ) ".jpg"
+			Else {
+				Loop,% path.Count() {
+
+					If ( A_Index < 11 )
+						Continue
+					Else If InStr( path[A_Index], "[" )
+						is_path := SubStr( path[A_Index], 1, InStr( path[A_Index], "[" )-1 )
+					Else
+						is_path := path[A_Index]
+					horario .= StrRep( is_path, , "/", ".", "_", "jpg" )
+
+				}
+
+				novonome:=	StrRep( path[8]	,, "_:." ) "_" StrReplace( path[9], "-" ) "-" horario ".jpg"
+
 			}
-			Else If( path.Count() = 12 )	{
-				tempo	:=	StrSplit( SubStr( A_LoopFileName, 1, InStr( A_LoopFileName, "[" )-1 ), "." )
-				horario	:=	tempo[1] tempo[2]
-				ip		:=	StrReplace( path[7], "_", "." )
-				novonome:=	ip "_" StrReplace( path[8], "-" ) "-" path[11] horario ".jpg"
-			}
-			Else If( path.Count() = 14 )	{	;	
-				segundos:=	SubStr( A_LoopFileName, 1, InStr( A_LoopFileName, "[" ) - 1 )
-				ip		:=	StrReplace( path[8], "_", "." )
-				novonome:=	ip "_" StrReplace( path[9], "-" ) "-" path[12] path[13] segundos ".jpg"
-			}
-			Else	{
-				segundos:=	SubStr( A_LoopFileName, 1, InStr( A_LoopFileName, "[" ) - 1 )
-				ip		:=	StrReplace( path[7], "_", "." )
-				novonome:=	ip "_" StrReplace( path[8], "-" ) "-" path[11] path[12] segundos ".jpg"
-			}
+
+			if ( last_hour = horario)
+				continue
+
+			last_file:=	SuBStr( A_LoopFileFullPath, 1, -15 )
+			last_hour:= horario
+
 			FileMove,%	A_LoopFileFullPath,%	motion_folder novonome,	1
+
 		}
+		Folder.Clear( motion_folder "Dahua" )
 	;
 
 	;	Intelbras
+		OutputDebug, % "Intelbras " A_now
 		Loop, Files, %motion_folder%Intelbras\*.jpg, R
 		{
-			path	:=	StrSplit( A_LoopFileFullPath,	"\" )
-			If( ( contagem := path.count() ) = 12 )	{
-				tempo	:=	StrSplit( SubStr( path[ contagem ], 1, InStr( path[ contagem ], "[")-1 ), "." )
-				segundos:=	tempo[1] tempo[2]
-				ip		:=	StrReplace( path[7], "_", "." )
-				novonome:=	ip "_"
-						.	StrReplace( path[8], "-" ) "-"		;	Data
-						.	path[10] path[11] segundos ".jpg"	;	Horário
+			if ( last_file = SuBStr( A_LoopFileFullPath, 1, -15 ) ) {
+
+				FileDelete,% A_LoopFileFullPath
+				continue
+
 			}
-			Else If( ( contagem := path.count() ) = 11 )	{
-				tempo	:=	StrSplit( SubStr( path[ contagem ], 1, InStr( path[ contagem ], "[")-1 ), "." )
-				segundos:=	tempo[1] tempo[2] tempo[3]
-				ip		:=	StrReplace( path[7], "_", "." )
-				novonome:=	ip "_"
-						.	StrReplace( path[8], "-" ) "-"	;	Data
-						.	segundos ".jpg"					;	Horário
+
+			horario := novonome := is_path := ""
+			path:=	StrSplit( A_LoopFileFullPath, "\" )
+
+			If( path.Count() = 11 )
+				novonome:=	StrRep( path[8]	,, "_:." ) "_" StrReplace( path[9], "-" ) "-" horario := StrRep(  SubStr( path[11], 1, InStr( path[11], "[" )-1 ),, ".",	"/", "_" ) ".jpg"
+
+			Else {
+				Loop,% path.Count() {
+
+					If ( A_Index < 11 )
+						Continue
+					Else If InStr( path[A_Index], "[" )
+						is_path := SubStr( path[A_Index], 1, InStr( path[A_Index], "[" )-1 )
+					Else
+						is_path := path[A_Index]
+					horario .= StrRep( is_path, , "/", ".", "_", "jpg" )
+
+				}
+
+				novonome:=	StrRep( path[8]	,, "_:." ) "_" StrReplace( path[9], "-" ) "-" horario ".jpg"
+
 			}
-			else	{	;	temporário
-				FileAppend,%	A_LoopFileFullPath "`n", %FTP%Log\Erro De Split.txt
-				FileDelete,%	A_LoopFileFullPath
-				Return
-			}
-			FileMove,%	A_LoopFileFullPath,%	Motion novonome,	1
+
+			if ( last_hour = horario)
+				continue
+
+			last_file:=	SuBStr( A_LoopFileFullPath, 1, -15 )
+			last_hour:= horario
+			
+			FileMove,%	A_LoopFileFullPath,%	motion_folder novonome,	1
+
 		}
+		Folder.Clear( motion_folder "Intelbras" )
 	;
 
-	;	Limpa folders vazios
-		Folder.Clear( motion_folder "Dahua" )
-		Folder.Clear( motion_folder "Intelbras" )
-		Folder.Clear( motion_folder "Foscam" )
-	;
 	}
 Return
 
