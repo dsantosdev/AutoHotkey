@@ -39,7 +39,7 @@ Loop,	1	{
 ; Loop,	6	{
 	OutputDebug, % "Operador " A_index
 	indexed	:=	A_Index
-	index = 123
+	index = 118
 	; if		A_Index = 1
 	; 	Index = 102
 	; Else if	A_Index = 2
