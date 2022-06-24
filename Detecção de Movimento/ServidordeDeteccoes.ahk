@@ -1,4 +1,4 @@
-File_Version=0.2.0
+File_Version=0.3.0
 Save_to_Sql=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
@@ -11,6 +11,7 @@ Save_to_Sql=1
 	03/04/2022	-	Migrado para o Visual Code
 	17/05/2022	-	Alterado banco de dados para o banco automático do dguard e alterado o sistema de arrays
 	16/06/2022	-	Alterado var foscam, para limpar a mesma antes de atualizar os valores
+	24/06/2022	-	Fixado bug que parava o preparador de imagens e desacoplado o preparador do servidor
 */
 
 /*	Bancos de Dados
@@ -62,7 +63,7 @@ Save_to_Sql=1
 		ext	=	.ahk
 	OnExit( "close_preparaImagens" )
 
-	ger_vers = Gerenciador de Imagens %File_Version% - 15/05/2022
+	ger_vers = Gerenciador de Imagens %File_Version% - 24/06/2022
 	Debug( A_LineNumber, "Traytip`n`t" ger_vers )
 
 	geradas	:=	[]
@@ -86,13 +87,14 @@ Save_to_Sql=1
 	Gosub	prepara_array
 		Debug( A_LineNumber, "Array Preparado" )
 	
-	SetTimer,	distribui_imagens_por_operador,		999
+	SetTimer,	distribui_imagens_por_operador,	999
+	SetTimer,	check_reload,	1000
 return
 
 prepara_array:	;	SQL
 	SetTimer,	distribui_imagens_por_operador,		Off
 	Sleep,		2000
-
+		Debug( A_LineNumber, "Entrou em prepara Array" )
 	reset_bd	=	;	Reseta o banco de dados motiondetection
 		(
 			alter database [MotionDetection] set offline with rollback immediate;
@@ -108,44 +110,18 @@ prepara_array:	;	SQL
 					FROM
 						[MotionDetection].[dbo].[Geradas]
 					WHERE
-						[horario] < DATEADD( day, -40, GETDATE()) ;
+						[horario] < DATEADD( day, -40, GETDATE())
 
-				Select
-					 c.[ip]
-					,m.[mac]
-					,c.[name]
-					,c.[operador]
-					,c.[sinistro]
-					,LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1)
-				FROM
-					[Dguard].[dbo].[cameras] c
-				LEFT JOIN
-					[Dguard].[dbo].[cameras_mac] m
-				ON
-					c.[ip] = m.[ip];
 			)
 		s	:=	sql( s, 3 )
 
-		IF ( s.Count() - 1 ) > 1	{
-			cameras := {}
-			foscam	:=
-			Loop,%	s.Count()-1 {
-				cameras[s[A_Index+1,1]]	:=	(s[A_Index+1,2] = "" ? "0000" : s[A_Index+1,2]) "&&"	;	ip : mac&&nome&&0000&&0001
-										.	 s[A_Index+1,3] "&&"
-										.	(s[A_Index+1,4] = "" ? "0000" : s[A_Index+1,4]) "&&"
-										.	(s[A_Index+1,5] = "" ? "0000" : s[A_Index+1,5])
-				if ( s[A_Index+1,6] = "Foscam" )													;	mac:ip
-					foscam	.=	 s[A_Index+1,2] "__" s[A_Index+1,1] "`n"
-			}
-		}
-		Else
-			mail.new(	"dsantos@cotrijal.com.br"
-					,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
-					,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
-	;
+
 	SetTimer,	prepara_array,	-3600000	;	de hora em hora recarrega os dados do banco de dados
 
-	If (A_Hour = "19") {	;	 somente atualiza o preparador de imagens uma vez, antes das 20 horas
+	Process,	Exist, preparaimagens.exe
+
+	If(		A_Hour = "19"
+		||	!FileExist( "D:\FTP\Monitoramento\FTP\preparaimagens.exe" ) ) {	;	 somente atualiza o preparador de imagens uma vez, antes das 20 horas
 		s	=
 			(
 				SELECT TOP (1)
@@ -162,23 +138,34 @@ prepara_array:	;	SQL
 
 		Process, Close, preparaimagens.exe
 			Sleep, 1000
+
 		FileDelete,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
+	
 		Base64.FileDec( bins[2, 1] , "D:\FTP\Monitoramento\FTP\preparaimagens.exe" )	;	Transforma o arquivo base64 em executável
-		Loop																			;	Delay após criação do exe e antes de executar o mesmo
+
+		Loop	 {																		;	Delay após criação do exe e antes de executar o mesmo
 			If FileExist("D:\FTP\Monitoramento\FTP\preparaimagens.exe")
 				Break
+		}
 		Sleep,	2000
-		Run,%	"D:\FTP\Monitoramento\FTP\preparaimagens.exe " SubStr( foscam, 1, -1 )
+		Run,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
 	}
+	Else IF ErrorLevel 
+		Run,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
 	SetTimer,	distribui_imagens_por_operador,	On
 return
+
+check_reload:
+	If (	SubStr( A_Now, 9 ) > "193000"
+		&&	SubStr( A_Now, 9 ) < "193010") {
+		Sleep, 8000
+		Reload
+	}
+Return
 
 distribui_imagens_por_operador:
 	Loop, Files,%	Motion "*.jpg"
 	{
-		If (SubStr( A_Now, 9 ) > 193000
-		&&	SubStr( A_Now, 9 ) < 193003)
-			Reload
 		StartTime	:= A_TickCount
 		img			:= local := setor := ""	;	limpa variáveis
 		img			:=	StrSplit( A_LoopFileName, "_" )
@@ -187,7 +174,7 @@ distribui_imagens_por_operador:
 			hora_imagem := datetime( 1, img[2] )
 			If( cameras[ ip ] = "" )	{	;	Se não constar no CADASTRO, gera log , move e vai pra próxima
 				FileRead, sem_cadastro, %FTP%Log\Sem cadastro.txt
-				if( RegExMatch( sem_cadastro, img[1] ) = 0 ) {	;	Se não consta registro, registra e move o arquivo
+				if( RegExMatch( sem_cadastro, img[1] ) = 0 ) {
 					FileAppend,%	ip "`n", %FTP%Log\Sem cadastro.txt
 					FileMove,%		A_LoopFileFullPath,%	FTP "AddBD\" ip " " A_Hour "-" A_Min ".jpg"
 				}
