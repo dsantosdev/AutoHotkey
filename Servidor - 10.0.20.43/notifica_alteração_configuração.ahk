@@ -346,5 +346,5 @@ http = http://admin:tq8hSKWzy5A@
 				)
 			sql( u, 3 )
 		}
-	msgbox % timer( "Fim" )
+	OutputDebug,%	timer( "Fim" )
 ExitApp
