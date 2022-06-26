@@ -46,7 +46,7 @@ sys_vers	= Detecção de Movimento %File_version% - 24/06/2022
 
 		Loop {	;	espera o dguard estar rodando a pelo menos 30 segundos
 			Sleep, 1000
-			If	WMI_PROCESS( "dguard", 30 )
+			If	process_exist( "dguard", 30 )
 				Break
 		}
 
