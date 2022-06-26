@@ -87,20 +87,22 @@ Save_To_Sql=1
 		OutputDebug, % "Dahua " A_now
 		Loop, Files, %motion_folder%Dahua\*.jpg, R
 		{
-			if ( last_file = SuBStr( A_LoopFileFullPath, 1, -15 ) ) {
-				FileDelete,% A_LoopFileFullPath
-				continue
-			}
-			horario := novonome := is_path := ""
+			new_file	:=	InStr( A_LoopFileFullPath, "[" ) > 0 ? SuBStr( A_LoopFileFullPath, 1, -15 ) : A_LoopFileFullPath
+			; if ( last_file = new_file ) {
+				; FileDelete,% A_LoopFileFullPath
+				; continue
+			; }
 
+			horario := novonome := is_path := ""
 			path:=	StrSplit( A_LoopFileFullPath, "\" )
 
-			If( path.Count() = 11 )
-				novonome:=	StrRep( path[8]	,, "_:." ) "_" StrReplace( path[9], "-" ) "-" horario := StrRep(  SubStr( path[11], 1, InStr( path[11], "[" )-1 ),, ".",	"/", "_" ) ".jpg"
+			If( path.Count() = 10 )
+				novonome:=	StrRep( path[7],, "_:." ) "_" StrReplace( path[8], "-" ) "-" horario := StrRep(  SubStr( path[10], 1, InStr( path[10], "[" )-1 ),, ".",	"/", "_" ) ".jpg"
+
 			Else {
 				Loop,% path.Count() {
 
-					If ( A_Index < 11 )
+					If ( A_Index < 10 )
 						Continue
 					Else If InStr( path[A_Index], "[" )
 						is_path := SubStr( path[A_Index], 1, InStr( path[A_Index], "[" )-1 )
@@ -109,17 +111,17 @@ Save_To_Sql=1
 					horario .= StrRep( is_path, , "/", ".", "_", "jpg" )
 
 				}
-
-				novonome:=	StrRep( path[8]	,, "_:." ) "_" StrReplace( path[9], "-" ) "-" horario ".jpg"
+				novonome:=	StrRep( path[7]	,, "_:." ) "_" StrReplace( path[8], "-" ) "-" horario ".jpg"
 
 			}
 
-			if ( last_hour = horario)
-				continue
+			; if ( last_hour = horario)
+				; continue
 
-			last_file:=	SuBStr( A_LoopFileFullPath, 1, -15 )
+			last_file:=	new_file
 			last_hour:= horario
 
+			OutputDebug % novonome
 			FileMove,%	A_LoopFileFullPath,%	motion_folder novonome,	1
 
 		}
@@ -130,7 +132,8 @@ Save_To_Sql=1
 		OutputDebug, % "Intelbras " A_now
 		Loop, Files, %motion_folder%Intelbras\*.jpg, R
 		{
-			if ( last_file = SuBStr( A_LoopFileFullPath, 1, -15 ) ) {
+			new_file	:=	InStr( A_LoopFileFullPath, "[" ) > 0 ? SuBStr( A_LoopFileFullPath, 1, -15 ) : A_LoopFileFullPath
+			if ( last_file = new_file ) {
 
 				FileDelete,% A_LoopFileFullPath
 				continue
@@ -163,9 +166,9 @@ Save_To_Sql=1
 			if ( last_hour = horario)
 				continue
 
-			last_file:=	SuBStr( A_LoopFileFullPath, 1, -15 )
+			last_file:=	new_file
 			last_hour:= horario
-			
+			OutputDebug, % novonome
 			FileMove,%	A_LoopFileFullPath,%	motion_folder novonome,	1
 
 		}
