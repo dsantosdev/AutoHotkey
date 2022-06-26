@@ -492,6 +492,17 @@ ping( address )	{
 		Return ( ( oS := ( objStatus.StatusCode = "" or objStatus.StatusCode <> 0 ) ) ? "0" : "1" )
 }
 
+process_exist( process, pause = "0", server = "." ) {
+	OutputDebug, % "SELECT * FROM Win32_Process WHERE Caption = '" StrRep(process,,".exe") ".exe'"
+	for objItem in ComObjGet("winmgmts:\\" server "\root\CIMV2").ExecQuery("SELECT * FROM Win32_Process WHERE Caption = '" StrRep(process,,".exe") ".exe'")
+	{
+		if	Pause	{
+			passed:= A_Now - SubStr( objItem.CreationDate, 1, 14 ) > pause ? 1 : pause - (A_Now - SubStr( objItem.CreationDate, 1, 14 ))
+			Sleep,% passed "000"
+		}
+		return	StrLen( objItem.Caption ) = 0 ? 0 : 1
+	}
+}
 progressBar( descriptionBGColor="" , description="" ) {
 	Global	stbar
 	WinGetPos,,,, taskbar, ahk_class Shell_TrayWnd
