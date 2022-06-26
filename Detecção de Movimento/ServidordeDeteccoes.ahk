@@ -12,6 +12,7 @@ Save_to_Sql=1
 	17/05/2022	-	Alterado banco de dados para o banco automático do dguard e alterado o sistema de arrays
 	16/06/2022	-	Alterado var foscam, para limpar a mesma antes de atualizar os valores
 	24/06/2022	-	Fixado bug que parava o preparador de imagens e desacoplado o preparador do servidor
+	26/06/2022	-	Removido função de fechar e reabrir o preparador de imagens( implementado internamente nele )
 */
 
 /*	Bancos de Dados
@@ -145,9 +146,9 @@ prepara_array:	;	SQL
 							,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
 
 	SetTimer,	prepara_array,	-3600000	;	de hora em hora recarrega os dados do banco de dados
-	Process, Close, preparaimagens.exe
-	Sleep, 2000
-	Run,		D:\FTP\Monitoramento\FTP\preparaimagens.exe
+	
+	If	!process_exist( "preparaimagens" )
+		Run,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
 	SetTimer,	distribui_imagens_por_operador,	On
 return
 
