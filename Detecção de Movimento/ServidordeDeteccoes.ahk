@@ -61,7 +61,6 @@ Save_to_Sql=1
 		ext	=	.exe
 	Else
 		ext	=	.ahk
-	OnExit( "close_preparaImagens" )
 
 	ger_vers = Gerenciador de Imagens %File_Version% - 24/06/2022
 	Debug( A_LineNumber, "Traytip`n`t" ger_vers )
@@ -110,48 +109,45 @@ prepara_array:	;	SQL
 					FROM
 						[MotionDetection].[dbo].[Geradas]
 					WHERE
-						[horario] < DATEADD( day, -40, GETDATE())
+						[horario] < DATEADD( day, -40, GETDATE());
+
+				Select
+					 c.[ip]
+					,m.[mac]
+					,c.[name]
+					,c.[operador]
+					,c.[sinistro]
+					,LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1)
+				FROM
+					[Dguard].[dbo].[cameras] c
+				LEFT JOIN
+					[Dguard].[dbo].[cameras_mac] m
+				ON
+					c.[ip] = m.[ip];
 
 			)
 		s	:=	sql( s, 3 )
 
+		IF ( s.Count() - 1 ) > 1	{
+					cameras := {}
+					foscam	:=
+					Loop,%	s.Count()-1 {
+						cameras[s[A_Index+1,1]]	:=	(s[A_Index+1,2] = "" ? "0000" : s[A_Index+1,2]) "&&"	;	ip : mac&&nome&&0000&&0001
+												.	 s[A_Index+1,3] "&&"
+												.	(s[A_Index+1,4] = "" ? "0000" : s[A_Index+1,4]) "&&"
+												.	(s[A_Index+1,5] = "" ? "0000" : s[A_Index+1,5])
+
+					}
+				}
+				Else
+					mail.new(	"dsantos@cotrijal.com.br"
+							,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
+							,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
 
 	SetTimer,	prepara_array,	-3600000	;	de hora em hora recarrega os dados do banco de dados
-
-	Process,	Exist, preparaimagens.exe
-
-	If(		A_Hour = "19"
-		||	!FileExist( "D:\FTP\Monitoramento\FTP\preparaimagens.exe" ) ) {	;	 somente atualiza o preparador de imagens uma vez, antes das 20 horas
-		s	=
-			(
-				SELECT TOP (1)
-					[bin]
-				FROM
-					[ASM].[dbo].[Softwares]
-				WHERE
-					[name] = 'preparaimagens'
-				ORDER BY
-					[pkid]
-				DESC
-			)
-			bins := sql( s, 3 )
-
-		Process, Close, preparaimagens.exe
-			Sleep, 1000
-
-		FileDelete,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
-	
-		Base64.FileDec( bins[2, 1] , "D:\FTP\Monitoramento\FTP\preparaimagens.exe" )	;	Transforma o arquivo base64 em executável
-
-		Loop	 {																		;	Delay após criação do exe e antes de executar o mesmo
-			If FileExist("D:\FTP\Monitoramento\FTP\preparaimagens.exe")
-				Break
-		}
-		Sleep,	2000
-		Run,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
-	}
-	Else IF ErrorLevel 
-		Run,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
+	Process, Close, preparaimagens.exe
+	Sleep, 2000
+	Run,		D:\FTP\Monitoramento\FTP\preparaimagens.exe
 	SetTimer,	distribui_imagens_por_operador,	On
 return
 
@@ -182,7 +178,6 @@ distribui_imagens_por_operador:
 					FileDelete,%	A_LoopFileFullPath
 				continue
 			}
-		;
 
 		;	Distribui imagem para o operador
 			cam_data 	:=	StrSplit( cameras[ ip ], "&&" )
@@ -274,7 +269,3 @@ return
 ^End::
 	GuiClose:
 	ExitApp
-
-close_preparaImagens( ) {
-	Process, Close,% "preparaimagens.exe" 
-}
