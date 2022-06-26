@@ -1,4 +1,4 @@
-﻿File_version=2.7.0
+﻿File_version=2.8.0
 Save_to_sql=0
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
@@ -29,7 +29,7 @@ Save_to_sql=0
 Menu,	Tray,	Icon,	C:\Seventh\Backup\ico\2motion.ico
 #Persistent
 #SingleInstance, Force
-sys_vers	= Detecção de Movimento %File_version% - 14/06/2022
+sys_vers	= Detecção de Movimento %File_version% - 24/06/2022
 ;
 
 ;	Configuração
@@ -43,6 +43,12 @@ sys_vers	= Detecção de Movimento %File_version% - 14/06/2022
 		Gui.ScreenSizes()
 
 		ip_cam		=	999.999.999.999		;	Não pode ser vazio
+
+		Loop {	;	espera o dguard estar rodando a pelo menos 30 segundos
+			Sleep, 1000
+			If	WMI_PROCESS( "dguard", 30 )
+				Break
+		}
 
 		;	Dguard
 			if !Token
@@ -66,13 +72,14 @@ sys_vers	= Detecção de Movimento %File_version% - 14/06/2022
 					layouts[ var.layouts[A_Index].name ] :=	var.layouts[A_Index].guid
 
 			ids		:=	{}
+
 			cam_return := StrSplit( HttpGet( "http://localhost/camerasnomes.cgi" ), "&")
 			OutputDebug, % "Câmeras locais = " cam_return.Count()
 			Loop,%	cam_return.Count() {
 				dados		:=	StrSplit( cam_return[A_Index], "=" )
 				nome		:=	StrSplit( dados[2] , ".")
-				OutputDebug %	nome[1]
 				ids[nome[1]]:=	dados[1]
+				OutputDebug,%	dados[1] "`t" nome[1]
 			}
 		;
 
@@ -108,7 +115,7 @@ verifica_imagens:
 	;	Recarrega dados
 		If (SubStr( A_Now, 9) > "200000" && SubStr( A_Now, 9) < "200005")
 			Reload
-	;	
+	;
 	;	Verifica se está em pause
 		if	paused = 1
 			Return
