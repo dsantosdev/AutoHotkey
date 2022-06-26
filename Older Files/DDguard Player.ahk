@@ -1,4 +1,4 @@
-﻿File_Version=2.8.0
+﻿File_Version=2.8.1
 Save_to_sql=1
 
 ;@Ahk2Exe-SetMainIcon	C:\Seventh\Backup\ico\2sm.ico
@@ -33,7 +33,7 @@ Save_to_sql=1
 	
 ;	Includes
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\convert.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
@@ -65,8 +65,10 @@ Save_to_sql=1
 		)
 		s	:=	sql( s, 3 )
 		principais	:=	[]
-	Loop,% s.Count()-1
-		principais.Push( s[A_Index+1, 2] )
+	Loop,% s.Count()-1 {
+		OutputDebug % s[A_Index+1, 1]
+		principais.Push( s[A_Index+1, 1] )
+	}
 
 ;	Traymenu
 	Menu,	Tray,	Icon
@@ -143,7 +145,7 @@ Save_to_sql=1
 
 ;	Atalhos
 	updatado := comando.update( A_IPAddress1 )
-	if Array.InArray( A_IPAddress1 )	{	;	Executa agenda e detecção de movimento
+	if Array.InArray( principais, A_IPAddress1 )	{	;	Executa agenda e detecção de movimento
 		executar( "MDKah" )
 		executar( "MDAge" )
 		eh_operador = 1
@@ -153,17 +155,17 @@ Save_to_sql=1
 	;	Finaliza o gui de loading
 
 	~F1::		;	Eventos
-		If !WinActive( "Visual Studio Code" ) && eh_operador
+		If !WinActive( "Visual Studio Code" ) || eh_operador
 			executar( "MDRelatorios" )
 	return
 
 	^F10::		;	Adiciona E-mails e chamados
-		If !WinActive( "Visual Studio Code" ) && eh_operador
+		If !WinActive( "Visual Studio Code" ) || eh_operador
 			executar( "Agenda" )
 	return
 
 	F10::		;	E-Mails, ocomon e registros
-		If !WinActive( "Visual Studio Code" ) && eh_operador
+		If !WinActive( "Visual Studio Code" ) || eh_operador
 			executar( "Agenda_user" )
 	return
 
@@ -181,11 +183,11 @@ Save_to_sql=1
 			return
 		else if( pass = "close" )
 			ExitApp
-		else if( pass = "toasty" )		{
+		else if( pass = "toasty")		{
 			email_notificador( "toasty" )
 			Return
 			}
-		else if( pass = "hahaha" )		{
+		else if( pass = "hahaha")		{
 			disable_hahaha := !disable_hahaha
 			Return
 			}
@@ -194,8 +196,8 @@ Save_to_sql=1
 			return
 			}
 		else if( pass = "dia"
-			||	 pass = "noite"
-			||	 pass = "todas" )		{
+		||		 pass = "noite"
+		||		 pass = "todas" )		{
 
 			dont_close	= 1
 			pass		:= Format( "{:l}", pass )
@@ -233,6 +235,8 @@ Save_to_sql=1
 			Gosub	restore_layout
 
 			;	Registro de backup para restauro
+				regDelete( "HKCU\SOFTWARE\Seventh\_" pass )
+				Sleep, 1000
 				runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_" pass " /s /f" )
 				if ( A_UserName = "dsantos" )
 					runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\" A_UserName " /s /f" )
@@ -349,23 +353,6 @@ Save_to_sql=1
 		restore_period = todas
 		Goto restore_layout
 
-	^Numpad4::
-		Return
-		temp_exist := RegRead( "HKCU\SOFTWARE\Seventh\_temp", "_BackupAtualizado" )
-		if !temp_exist {
-			MsgBox, , , Registro temporário inexistente!
-			Return
-		}
-		Goto temp_restore
-	^Numpad5::
-		Return
-		imported=
-		RegDelete( "HKCU\SOFTWARE\Seventh\_temp" )
-		runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_temp /s /f" )
-		runCmd( "REG IMPORT " smk "\registros\" A_IPAddress1 "_temp.reg" )
-		while imported = ""
-			imported := regRead( "HKEY_CURRENT_USER\SOFTWARE\Seventh\_temp\WorkspaceManager", "WorkspaceToRestore" )
-	Return
 ;
 
 ;	Operadores
@@ -522,7 +509,6 @@ return
 			Process,Close,	Player.exe
 		exist_test =
 		exist_test := RegRead( "HKCU\SOFTWARE\Seventh\_" restore_period , "_BackupAtualizado" )
-		; RegRead, exist_test,% "HKCU\SOFTWARE\Seventh\_" restore_period , _BackupAtualizado
 		if !exist_test {
 
 			if	FileExist( smk "\registros\" restore_period "\" A_IPAddress1 ".reg" ) {	;	verifica registro físico no W
