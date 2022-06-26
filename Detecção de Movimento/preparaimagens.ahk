@@ -1,7 +1,7 @@
 ﻿File_Version=0.3.0
 Save_To_Sql=1
 
-; 24-06-2022
+; 26-06-2022
 
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\pc.ico
 
@@ -16,6 +16,7 @@ Save_To_Sql=1
 */
 
 ;	Configurações
+	SetTimer, reload_time, 5000
 	OutputDebug, % "SQL " A_now
 	s	=
 		(
@@ -47,18 +48,20 @@ Save_To_Sql=1
 				,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
 
 	#SingleInstance, Force
-	#NoTrayIcon
+	; #NoTrayIcon
 	if( A_IsCompiled )
 		ext	=	.exe
 
 	Else
 		ext =	.ahk
 	if ( A_UserName = "dsantos" ) {
-		motion_folder	=	\\srvftp\Monitoramento\FTP\Motion\
+		isnt_server		=	1
+		motion_folder	=	\\srvftp\Monitoramento\FTP\Motion\	;	7
 		FTP				=	\\srvftp\Monitoramento\FTP\
 	}
 	Else	{
-		motion_folder	=	D:\FTP\monitoramento\FTP\Motion\
+		isnt_server		=	0
+		motion_folder	=	D:\FTP\monitoramento\FTP\Motion\	;	6
 		FTP				=	D:\FTP\monitoramento\FTP\
 	}
 ;	Code
@@ -87,36 +90,41 @@ Save_To_Sql=1
 		OutputDebug, % "Dahua " A_now
 		Loop, Files, %motion_folder%Dahua\*.jpg, R
 		{
-			new_file	:=	InStr( A_LoopFileFullPath, "[" ) > 0 ? SuBStr( A_LoopFileFullPath, 1, -15 ) : A_LoopFileFullPath
-			; if ( last_file = new_file ) {
-				; FileDelete,% A_LoopFileFullPath
-				; continue
-			; }
+			new_file	:=	InStr( A_LoopFileFullPath, "[" ) > 0 ? SuBStr( A_LoopFileFullPath, 1, (isnt_server = 1 ? -16 : -15) ) : A_LoopFileFullPath
+			if ( last_file = new_file ) {
+				FileDelete,% A_LoopFileFullPath
+				continue
+			}
 
-			horario := novonome := is_path := ""
-			path:=	StrSplit( A_LoopFileFullPath, "\" )
+			horario :=	novonome := is_path := ""
+			path	:=	StrSplit( A_LoopFileFullPath, "\" )
 
-			If( path.Count() = 10 )
-				novonome:=	StrRep( path[7],, "_:." ) "_" StrReplace( path[8], "-" ) "-" horario := StrRep(  SubStr( path[10], 1, InStr( path[10], "[" )-1 ),, ".",	"/", "_" ) ".jpg"
+			If( path.Count() = (isnt_server = 1 ? 11 : 10) )	{
+				novonome:=	StrRep( (isnt_server = 1 ? path[8] : path[7]),, "_:."	) "_"
+						.	StrRep( (isnt_server = 1 ? path[9] : path[8]),, "-"		) "-"
+						.	horario := StrRep( (isnt_server = 1 ? path[11] : path[10]),, ".", "_", "/", "jpg") ".jpg"
+			}
 
 			Else {
 				Loop,% path.Count() {
 
 					If ( A_Index < 10 )
 						Continue
-					Else If InStr( path[A_Index], "[" )
+					Else If(InStr( path[A_Index], "[" ) > 0
+						&&	InStr( path[A_Index], "[" ) != ""  ) {
 						is_path := SubStr( path[A_Index], 1, InStr( path[A_Index], "[" )-1 )
+					}
 					Else
 						is_path := path[A_Index]
 					horario .= StrRep( is_path, , "/", ".", "_", "jpg" )
 
 				}
-				novonome:=	StrRep( path[7]	,, "_:." ) "_" StrReplace( path[8], "-" ) "-" horario ".jpg"
+				novonome:=	StrRep( (isnt_server = 1 ? path[8] : path[7])	,, "_:." ) "_" StrReplace( (isnt_server = 1 ? path[9] : path[8]), "-" ) "-" horario ".jpg"
 
 			}
 
-			; if ( last_hour = horario)
-				; continue
+			if ( last_hour = horario)
+				continue
 
 			last_file:=	new_file
 			last_hour:= horario
@@ -132,7 +140,7 @@ Save_To_Sql=1
 		OutputDebug, % "Intelbras " A_now
 		Loop, Files, %motion_folder%Intelbras\*.jpg, R
 		{
-			new_file	:=	InStr( A_LoopFileFullPath, "[" ) > 0 ? SuBStr( A_LoopFileFullPath, 1, -15 ) : A_LoopFileFullPath
+			new_file	:=	InStr( A_LoopFileFullPath, "[" ) > 0 ? SuBStr( A_LoopFileFullPath, 1, (isnt_server = 1 ? -16 : -15) ) : A_LoopFileFullPath
 			if ( last_file = new_file ) {
 
 				FileDelete,% A_LoopFileFullPath
@@ -142,27 +150,36 @@ Save_To_Sql=1
 
 			horario := novonome := is_path := ""
 			path:=	StrSplit( A_LoopFileFullPath, "\" )
-
-			If( path.Count() = 11 )
-				novonome:=	StrRep( path[8]	,, "_:." ) "_" StrReplace( path[9], "-" ) "-" horario := StrRep(  SubStr( path[11], 1, InStr( path[11], "[" )-1 ),, ".",	"/", "_" ) ".jpg"
-
+			If( path.Count() = 11 ) {	;	MUDAR TODAS POR API, AQUI VIRA 10 e NOS PATH DIMINUI 1
+				If(InStr( path[11], "[" ) > 0
+				&&	InStr( path[11], "[" ) != ""  )	{
+						path[11] := SubStr( path[11], 1, InStr( path[11], "[" )-1 )
+					; Msgbox	%	path[11]
+				}
+				; Msgbox	%	StrRep( path[11],, ".",	"/", "_", "jpg" )
+				novonome:=	StrRep( path[8],, "_:." ) "_"
+						.	StrRep( path[9],, "-" ) "-"
+						.	horario := StrRep( path[11],, ".", "/", "_", "jpg" )
+						.	".jpg"
+			}
 			Else {
 				Loop,% path.Count() {
-
 					If ( A_Index < 11 )
 						Continue
-					Else If InStr( path[A_Index], "[" )
+					Else If(InStr( path[A_Index], "[" ) > 0
+						&&	InStr( path[A_Index], "[" ) != ""  ) {
 						is_path := SubStr( path[A_Index], 1, InStr( path[A_Index], "[" )-1 )
+					}
 					Else
 						is_path := path[A_Index]
 					horario .= StrRep( is_path, , "/", ".", "_", "jpg" )
-
+				
+					novonome:=	StrRep( path[8],, "_:." ) "_"
+							.	StrReplace( path[9], "-" ) "-"
+							.	horario ".jpg"
 				}
 
-				novonome:=	StrRep( path[8]	,, "_:." ) "_" StrReplace( path[9], "-" ) "-" horario ".jpg"
-
 			}
-
 			if ( last_hour = horario)
 				continue
 
@@ -178,6 +195,15 @@ Save_To_Sql=1
 	}
 Return
 
+reload_time:
+	; OutputDebug, % SubStr( A_now, 9, 8 )
+	If (SubStr( A_now, 9, 8 ) > 193000
+	&&	SubStr( A_now, 9, 8 ) < 193010 ){
+		SetTimer, reload_time, Off
+		Sleep, 5000
+		Reload
+	}
+Return
 
 reseta_inibidos:
 	segundo_do_dia	:=	( A_Hour * 60 * 60 ) + ( A_Min * 60 ) + A_Sec	;	É inserido na tabela quando uma câmera é inibida	
