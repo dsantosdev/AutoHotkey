@@ -36,9 +36,9 @@ if !file_ahk
 ;	Configurações
 	#SingleInstance, Force
 	if A_IsCompiled
-		ext		= exe
-		Else
-			ext = ahk
+		ext	= exe
+	Else
+		ext	= ahk
 ;
 
 ;	File
@@ -63,10 +63,10 @@ if !file_ahk
 
 	v	=
 		(
-			SELECT	[version],[pkid]
-			FROM	[ASM].[dbo].[Softwares]
-			WHERE	[name] = '%file_name%'
-			ORDER BY [pkid] DESC
+			SELECT		[version],[pkid]
+			FROM		[ASM].[dbo].[Softwares]
+			WHERE		[name] = '%file_name%'
+			ORDER BY	[pkid] DESC
 		)
 	version_sql	:=	sql( v, 3 )
 	sql_pkid	:=	version_sql[2, 2]
@@ -107,6 +107,11 @@ if !file_ahk
 			)
 		sql( insert_new_exe, 3 )
 	}
-	FileMove,% file_exe, C:\Users\dsantos\Desktop\Executáveis\%file_name%.exe, 1
+	If	!FileExist("C:\Users\dsantos\Desktop\Executáveis\" file_name ".exe")
+		FileMove,% file_exe, C:\Users\dsantos\Desktop\Executáveis\%file_name%.exe, 1
+	Else {
+		FileMove,  C:\Users\dsantos\Desktop\Executáveis\%file_name%.exe,  C:\Users\dsantos\Desktop\Executáveis\%file_name% %A_YYYY%_%A_MM%_%A_DD%  %A_Hour%-%A_Min%-%A_Sec%.exe
+		FileMove,% file_exe, C:\Users\dsantos\Desktop\Executáveis\%file_name%.exe, 1
+	}
 ;
 ExitApp
