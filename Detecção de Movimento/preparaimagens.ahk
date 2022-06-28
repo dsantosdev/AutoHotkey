@@ -1,12 +1,15 @@
 ﻿File_Version=0.3.0
 Save_To_Sql=1
 
-; 26-06-2022
+; 28-06-2022
 
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\pc.ico
 
 ;	Includes
 	#Include md_libs.ahk
+	OnMessage(0x004A, "wm_read")
+	version := sql_version()
+	Menu, Tray, Tip ,% "Versão atual do Preparador de Imagens: " version[1] "`nCompilação: " version[2]
 ;
 
 /*	Bancos de Dados utilizados
@@ -16,36 +19,8 @@ Save_To_Sql=1
 */
 
 ;	Configurações
-	SetTimer, reload_time, 5000
-	OutputDebug, % "SQL " A_now
-	s	=
-		(
-			SELECT
-					c.[ip]
-				,m.[mac]
-				,c.[name]
-				,c.[operador]
-				,c.[sinistro]
-				,LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1)
-			FROM
-				[Dguard].[dbo].[cameras] c
-			LEFT JOIN
-				[Dguard].[dbo].[cameras_mac] m
-			ON
-				c.[ip] = m.[ip]
-			WHERE
-				LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1) = 'Foscam'
-		)
-		s	:=	sql( s, 3 )
-		foscam := {}
-	IF ( s.Count() - 1 ) > 1
-		Loop,%	s.Count()-1
-			foscam[s[A_Index+1,2]]	:=	s[A_Index+1,1]
-
-	Else
-		mail.new(	"dsantos@cotrijal.com.br"
-				,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
-				,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
+	folders = intelbras,dahua,foscam,Motion
+	Gosub, pre_load_foscam
 
 	#SingleInstance, Force
 	; #NoTrayIcon
@@ -56,21 +31,58 @@ Save_To_Sql=1
 		ext =	.ahk
 	if ( A_UserName = "dsantos" ) {
 		isnt_server		=	1
-		motion_folder	=	\\srvftp\Monitoramento\FTP\Motion\	;	7
+		motion_folder	=	\\srvftp\Monitoramento\FTP\Motion\
 		FTP				=	\\srvftp\Monitoramento\FTP\
 	}
 	Else	{
 		isnt_server		=	0
-		motion_folder	=	D:\FTP\monitoramento\FTP\Motion\	;	6
+		motion_folder	=	D:\FTP\monitoramento\FTP\Motion\
 		FTP				=	D:\FTP\monitoramento\FTP\
 	}
 ;	Code
 	Loop {
-		OutputDebug, % "Foscam " A_now
+		If	ShowData
+			Gosub, Show_Version
+		If((A_Hour = 19 && A_Min = 00 )
+		&&	(A_Sec > 00 && A_Sec < 05) )
+			Gosub, pre_load_foscam
+		Sleep, 1000
 		Gosub, reseta_inibidos
+
+	;	Main Folder
+
+		OutputDebug, % A_now "`tMain " 
+
+		Loop, Files,%	motion_folder "*.*", FDR
+		{
+			If( A_LoopFileName = "IPCWorkDirectory" )
+				FileDelete,% A_LoopFileFullPath
+			else If( A_LoopFileName = "DVRWorkDirectory" )
+				FileDelete,% A_LoopFileFullPath
+			If InStr( folders, SubStr( A_LoopFileDir, InStr( A_LoopFileDir, "\", , -1)+1 ) )
+				Continue
+
+			FileMove,% A_LoopFileFullPath,%	motion_folder StrRep( A_LoopFileName,, " " ), 1
+
+			OutputDebug, % current_folder "`t" StrRep( A_LoopFileName,, " " ) ;"`n`t" A_LoopFileFullPath
+
+			last_folder	:= SubStr( A_LoopFileDir, InStr( A_LoopFileDir, "\", , -1)+1 )
+			if( current_folder != last_folder )
+				folder.Clear( A_LoopFileDir )
+
+			current_folder	:=	SubStr( A_LoopFileDir, InStr( A_LoopFileDir, "\", , -1)+1 )
+
+		}
+
+	;
+
 	;	Foscam
+
+		OutputDebug, % A_Now "`tFoscam"
+
 		Loop, Files, %motion_folder%Foscam\*.jpg, R
 		{
+
 			p_foscam:=	StrSplit( A_LoopFileFullPath, "\" )
 			mac		:=	SubStr( p_foscam[p_foscam.Count()-2],	instr( p_foscam[p_foscam.Count()-2], "_" )	+ 1 )
 			data	:=	SubStr( p_foscam[p_foscam.Count()],		InStr( p_foscam[p_foscam.Count()], "_" )	+ 1 , 8 )
@@ -87,13 +99,18 @@ Save_To_Sql=1
 	;
 
 	;	Dahua
-		OutputDebug, % "Dahua " A_now
+
+		OutputDebug, % A_Now "`tDahua"
+
 		Loop, Files, %motion_folder%Dahua\*.jpg, R
 		{
 			new_file	:=	InStr( A_LoopFileFullPath, "[" ) > 0 ? SuBStr( A_LoopFileFullPath, 1, (isnt_server = 1 ? -16 : -15) ) : A_LoopFileFullPath
+
 			if ( last_file = new_file ) {
+
 				FileDelete,% A_LoopFileFullPath
 				continue
+
 			}
 
 			horario :=	novonome := is_path := ""
@@ -130,6 +147,8 @@ Save_To_Sql=1
 			last_hour:= horario
 
 			OutputDebug % novonome
+			; if instr( novonome, "[" )
+				; MsgBox
 			FileMove,%	A_LoopFileFullPath,%	motion_folder novonome,	1
 
 		}
@@ -137,7 +156,9 @@ Save_To_Sql=1
 	;
 
 	;	Intelbras
-		OutputDebug, % "Intelbras " A_now
+
+		OutputDebug, % A_Now "`tIntelbras"
+
 		Loop, Files, %motion_folder%Intelbras\*.jpg, R
 		{
 			new_file	:=	InStr( A_LoopFileFullPath, "[" ) > 0 ? SuBStr( A_LoopFileFullPath, 1, (isnt_server = 1 ? -16 : -15) ) : A_LoopFileFullPath
@@ -195,14 +216,37 @@ Save_To_Sql=1
 	}
 Return
 
-reload_time:
-	; OutputDebug, % SubStr( A_now, 9, 8 )
-	If (SubStr( A_now, 9, 8 ) > 193000
-	&&	SubStr( A_now, 9, 8 ) < 193010 ){
-		SetTimer, reload_time, Off
-		Sleep, 5000
-		Reload
-	}
+pre_load_foscam:
+	OutputDebug, % A_Now "`t SQL"
+	s	=
+		(
+			SELECT
+				 c.[ip]
+				,m.[mac]
+				,c.[name]
+				,c.[operador]
+				,c.[sinistro]
+				,LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1)
+			FROM
+				[Dguard].[dbo].[cameras] c
+			LEFT JOIN
+				[Dguard].[dbo].[cameras_mac] m
+			ON
+				c.[ip] = m.[ip]
+			WHERE
+				LEFT( c.[vendormodel], charindex(' ', c.[vendormodel]) - 1) = 'Foscam'
+		)
+		s	:=	sql( s, 3 )
+		foscam := {}
+	IF ( s.Count() - 1 ) > 1
+		Loop,%	s.Count()-1
+			foscam[s[A_Index+1,2]]	:=	s[A_Index+1,1]
+
+	Else
+		mail.new(	"dsantos@cotrijal.com.br"
+				,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
+				,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
+	Sleep, 4000
 Return
 
 reseta_inibidos:
@@ -222,4 +266,9 @@ reseta_inibidos:
 				[restaurado] IS NULL
 		)
 	sql( u, 3 )
+Return
+
+Show_version:
+	Menu, Tray, Tip ,% "Versão atual do Preparador de Imagens: " version[1] "`nCompilação: " version[2]
+	ShowData = 0
 Return
