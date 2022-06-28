@@ -147,8 +147,24 @@ prepara_array:	;	SQL
 
 	SetTimer,	prepara_array,	-3600000	;	de hora em hora recarrega os dados do banco de dados
 	
-	If	!process_exist( "preparaimagens" )
+	If	!process_exist( "preparaimagens" ) {
+		If !FileExist("D:\FTP\Monitoramento\FTP\preparaimagens.exe") {
+			s =
+				(
+					SELECT TOP (1)
+						[BIN],
+						[NAME]
+					FROM
+						[ASM].[dbo].[Softwares]
+					WHERE [NAME] = 'preparaimagens'
+					ORDER BY [PKID] DESC
+				)
+			s	:=	sql( s, 3 )
+			base64.FileDec( s[2,1], "D:\FTP\Monitoramento\FTP\" s[2,2] ".exe" )
+			Sleep, 2000
+		}
 		Run,	D:\FTP\Monitoramento\FTP\preparaimagens.exe
+	}
 	SetTimer,	distribui_imagens_por_operador,	On
 return
 
@@ -262,6 +278,21 @@ return
 					.	"`nImagens em log para inserção no BD(insere a cada 100)= " geradas.count(),	10, 10
 	}
 return
+
+^Home::
+	ToolTip, Enviando comando
+	TargetScriptTitle := "preparaimagens.exe"
+	result := wm_send( "ShowTrayTip", TargetScriptTitle )
+	if(	result = "FAIL")
+    	ToolTip,% "SendMessage failed. Does the following WinTitle exist?:`n" TargetScriptTitle
+	else if (result = 0)
+    	ToolTip,% "Message sent but the target window responded with 0, which may mean it ignored it."
+	Else
+		ToolTip Enviado com sucesso
+	Sleep, 3000
+		ToolTip
+return
+
 
 ^F3::
 	comando_inserir	:=	!comando_inserir
