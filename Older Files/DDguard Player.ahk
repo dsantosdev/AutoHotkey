@@ -138,7 +138,7 @@ Save_to_sql=1
 			Menu,Tray,	Icon,		E-mails  - Ocomon - Registros,	C:\Seventh\Backup\ico\2mail.ico
 		Menu,	Tray,	Add,	Relatórios e Eventos,					Eventos
 			Menu,Tray,	Icon,		Relatórios e Eventos,			C:\Seventh\Backup\ico\2LembEdit.ico
-		Menu,	Tray,	Add,	Responsáveis e Mapas,					Responsáveis
+		Menu,	Tray,	Add,	Informações das Unidades,				Responsáveis
 			Menu,Tray,	Icon,	Responsáveis e Mapas,				C:\Seventh\Backup\ico\2resp.ico
 		; Menu,	Tray,	Add
 		Menu,	Tray,	Tip,		%	"Sistema Monitoramento`nCompilado em: " datetime( modificado ) "`n`nIP - " A_IPAddress1
