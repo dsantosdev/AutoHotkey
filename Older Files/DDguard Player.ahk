@@ -1,6 +1,8 @@
 ﻿File_Version=2.8.1
 Save_to_sql=1
+Keep_Versions=2
 
+script_name=Sistema Monitoramento
 ;@Ahk2Exe-SetMainIcon	C:\Seventh\Backup\ico\2sm.ico
 
 ;	Configs
@@ -58,8 +60,8 @@ Save_to_sql=1
 				[ASM].[dbo].[_gestao_sistema]
 			WHERE
 				[funcao] = 'operador'
-			OR
-				[funcao] = 'facilitador'
+			--OR
+			--	[funcao] = 'facilitador'
 			ORDER BY
 				[descricao]
 		)
@@ -110,6 +112,7 @@ Save_to_sql=1
 		Menu,	Tray,	Add,	Em Desenvolvimento,	:Beta
 		Menu,	Tray,	Add
 	}
+
 	;	Menu	ADMIN
 		Menu,	Admin,	Add,	Inserir Câmeras,						_insere_camera
 			Menu,	Admin,	Icon,	Inserir Câmeras,					C:\Seventh\Backup\ico\2LembEdit.ico
@@ -139,7 +142,7 @@ Save_to_sql=1
 		Menu,	Tray,	Add,	Relatórios e Eventos,					Eventos
 			Menu,Tray,	Icon,		Relatórios e Eventos,			C:\Seventh\Backup\ico\2LembEdit.ico
 		Menu,	Tray,	Add,	Informações das Unidades,				Responsáveis
-			Menu,Tray,	Icon,	Responsáveis e Mapas,				C:\Seventh\Backup\ico\2resp.ico
+			Menu,Tray,	Icon,	Informações das Unidades,				C:\Seventh\Backup\ico\2resp.ico
 		; Menu,	Tray,	Add
 		Menu,	Tray,	Tip,		%	"Sistema Monitoramento`nCompilado em: " datetime( modificado ) "`n`nIP - " A_IPAddress1
 
@@ -626,7 +629,6 @@ return
 						Process,Close,	Watchdog.exe
 						Process,Close,	DGuard.exe
 						Process,Close,	Player.exe
--
 					executar( "Dguard", "C:\Seventh\DGuardCenter\" )
 				}
 		
