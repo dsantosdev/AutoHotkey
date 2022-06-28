@@ -1,5 +1,6 @@
 ﻿File_Version=0.1.0
-save_to_sql=0
+save_to_sql=1
+Keep_Versions=2
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\compiler.ico
 ;	Includes
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\alarm.ahk
@@ -54,12 +55,14 @@ if !file_ahk
 ;
 
 ;	Version
-	FileReadLine,	version,%		file_ahk, 1
-	FileReadLine,	save_to_sql,%	file_ahk, 2
+	FileReadLine,	version,%			file_ahk, 1
+	FileReadLine,	save_to_sql,%		file_ahk, 2
+	FileReadLine,	how_many_verions,%	file_ahk, 3
 	If !version
 		version 	=	0.1.0
 	version_in_file	:=	StrSplit( StrRep( version,, "File_Version=" ), "." )
 	save_to_sql		:=	StrRep( save_to_sql,, "Save_To_Sql=" )
+	how_many_verions:=	StrRep( how_many_verions,, "Keep_Versions=" )
 
 	v	=
 		(
@@ -95,6 +98,25 @@ if !file_ahk
 
 	If (A_Now - time < 300
 	&&	save_to_sql	=	1	)	{	;	se o arquivo novo foi criado a menos de 5 minutos
+		If( version_sql.Count() > how_many_verions
+		&&	version_sql.Count() > 1 ) {
+			how_many_versions--
+			d =
+				(
+					DELETE FROM
+						[ASM].[dbo].[Softwares]
+					WHERE
+						[Name] = '%file_name%'
+					AND
+						[PKID] NOT IN (
+							SELECT TOP (%how_many_versions%)
+								[PKID]
+							FROM		[ASM].[dbo].[Softwares]
+							WHERE		[name] = '%file_name%'
+							ORDER BY	[pkid] DESC	)
+				)
+				sql( d, 3 )
+		}
 		file_b64		:=	base64.FileEnc( file_exe )
 		file_new_date	:=	datetime( 1, time )
 		insert_new_exe	=
