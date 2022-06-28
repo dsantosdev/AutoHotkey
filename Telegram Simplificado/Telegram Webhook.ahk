@@ -1,11 +1,10 @@
 File_Version=0.6.0
 Save_to_SQL=1
+Keep_Versions=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\telegram.ico
 
 #Include	%A_ScriptDir%\configs.ahk
 	OutputDebug % "config carregado"
-#Include	%A_ScriptDir%\executa_comandos.ahk
-	OutputDebug % "executa_comandos carregado"
 #Include	%A_ScriptDir%\functions.ahk
 	OutputDebug % "functions carregado"
 #Include	%A_ScriptDir%\telegram.ahk
