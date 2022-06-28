@@ -1,6 +1,7 @@
 ﻿if	inc_functions
 	Return
 Global	inc_functions = 1
+	,	script_name
 
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\base64.ahk
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
@@ -699,6 +700,26 @@ StrRep( haystack , separator = ":" , needles* )	{
 	}
 	Return haystack
 
+}
+
+sql_version( show_tray_tip="0" )	{
+	s =
+		(
+			SELECT TOP (1)
+				[version],
+				[date]
+			FROM
+				[ASM].[dbo].[Softwares]
+			WHERE
+  				[name] = '%A_ScriptName%'
+  			ORDER BY
+			  	1
+			DESC
+		)
+	o := sql( s, 3 )
+	if	show_tray_tip
+		Menu, Tray, Tip ,% script_name "`nVersão atual: " version[1] "`nCompilação: " version[2]
+	Return	[o[2,1], o[2,2]]
 }
 
 toasty() {
