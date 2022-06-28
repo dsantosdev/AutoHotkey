@@ -35,6 +35,7 @@ sys_vers	= Detecção de Movimento %File_version% - 24/06/2022
 ;	Configuração
 	;	Variáveis
 		Global	Token
+			,	file_path
 		demo = 0
 		ip	:=	StrSplit( A_IPAddress1, "." )
 		If ip[4] not in ( "100", "102", "106", "109", "114", "118", "123" )
@@ -144,6 +145,10 @@ verifica_imagens:
 		OutputDebug, % "Imagens" 
 		Loop, Files,%	folder_operador
 		{
+			If( A_LoopFileFullPath = fullfile ) {
+				FileDelete,%	A_LoopFileFullPath
+				Continue
+			}
 			If((Substr( A_Now, 9 ) > "060000" && Substr( A_Now, 9 ) < "203000")
 			&&	A_IPAddress1	!= "192.9.100.100"
 			&&	demo			!= 1	)	{
