@@ -1,6 +1,6 @@
 ﻿File_Version=0.3.0
 Save_To_Sql=1
-
+Keep_Versions=2
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\cool.ico
 
 ;	Includes
@@ -82,6 +82,7 @@ Save_To_Sql=1
 		Gui,Add,CheckBox,%	r1	c3	w1	cb										"			vc_dguard				-Center"	,	Cadastro DGuard
 		Gui,Add,CheckBox,%	r1	c4	w1											"			vdia					-Center"	,	Modo COR
 		Gui,Add,CheckBox,%	r2	c1	w1	cb										"			vdo_reboot				-Center"	,	Reboot na Câmera
+		Gui,Add,CheckBox,%	r2	c2	w1											"			vkeep_full	gkeep_debug	-Center"	,	Exibir log completo
 
 		Gui,Add,Button,%	r3	c1	w2											"						gver_imagem	"			,	Ver imagem do local
 		Gui,Add,Button,%	r3	c3	w2											"						gconfigurar	"			,	Abrir no Navegador
@@ -110,10 +111,11 @@ Save_To_Sql=1
 	return
 ;
 
-
 Array:
 	Gui.Submit()
 	debug	=
+
+
 	If	InStr( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=ChannelTitle[0].Name", , 1 ), "PTZ" )
 		is_ptz		=	1
 	Else
@@ -174,7 +176,17 @@ Array:
 						.	"&NAS[0].Protocol=FTP&NAS[0].Address=172.22.0.20"
 						.	"&NAS[0].UserName=cameras"
 						.	"&NAS[0].Password=c4m3r45"
-						.	"&NAS[0].Directory=FTP/Motion/Dahua"
+						.	"&NAS[0].Directory=FTP/Motion"
+	;	FTP_PATH
+		Loop, 3	{
+			retorno	:=	http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=StorageGroup[" A_Index-1 "].Memo",,1 )
+
+			If( InStr( SubStr( retorno, InStr( retorno, "=" )+1 ), "FTP" ) ) {
+				FTP_PATH:=	url	"&StorageGroup[" A_Index-1 "].PicturePathRule="
+						.	StrRep( ip,, "_:." ) "_%y%M%d-%h%m%s.jpg"
+				Break
+			}
+		}
 	command := []
 	command.Push( LANGUAGE )			;	1
 	command.Push( MACHINE_NAME )		;	2
@@ -186,6 +198,7 @@ Array:
 	command.Push( DESTINATION )			;	8
 	command.Push( FTP )					;	9
 	command.Push( MOTION_DETECTION	)	;	10
+	command.Push( FTP_PATH	)			;	11
 Goto	Config_Dahua
 
 ;	Code
@@ -209,19 +222,20 @@ Goto	Config_Dahua
 			Return
 		}
 		Loop,% command.Count()	{
-			debug	.=	A_Index	= 1		? configurada "`n`nConfigurando a câmera '" ip "'`n`n...`n" http( command[A_index] ) " ao configurar idioma.`n"
-					:	A_Index = 2		? http( command[A_index],,0 ) " ao configurar nome da câmera(ip com underlines).`n"
-					:	A_Index	= 3		? http( command[A_index],,0 ) " ao configurar servidor NTP.`n"
-					:	A_Index	= 4		? http( command[A_index],,0 ) " ao configurar codec de vídeo e stream da câmera.`n"
+			debug	.=	A_Index	= 1		? configurada "`n`nConfigurando a câmera '" ip "'`n`n...`n" http( command[A_index],,0 ) " ao configurar idioma.`n"
+					:	A_Index = 2		? http( command[A_index],,0 ) " ao configurar nome da câmera(" StrRep( ip,, ".:_" ) ").`n"
+					:	A_Index	= 3		? http( command[A_index],,0 ) " ao configurar servidor NTP(192.9.200.113).`n"
+					:	A_Index	= 4		? http( command[A_index],,0 ) " ao configurar codec de vídeo(" (is_cargo = 1 ? "H.264" : "H.265") ") e parâmetros de vídeo da câmera.`n"
 					:	A_Index	= 5		? dia	= 1
 												? http( command[A_index],,0 ) " ao configurar modo de vídeo sempre colorido.`n"
 												: http( command[A_index],,0 ) " ao configurar modo de vídeo automático.`n"
 					:	A_Index	= 6		? http( command[A_index],,0 ) " ao configurar qualidade das imagens de detecção de movimento.`n"
-					:	A_Index	= 7		? http( command[A_index],,0 ) " ao configurar a exibição de texto sobre a imagem da câmera.`n"
-					:	A_Index	= 8		? http( command[A_index],,0 ) " ao configurar o diretório de imagens em caso de transposição de linhas de passagem.`n"
-					:	A_Index	= 9		? http( command[A_index],,0 ) " ao configurar o servidor FTP.`n"
+					:	A_Index	= 7		? http( command[A_index],,0 ) " ao " (is_cargo = 1 ? "desativar" : "ativar") " a exibição de texto sobre a imagem da câmera.`n"
+					:	A_Index	= 8		? http( command[A_index],,0 ) " ao configurar o DIRETÓRIO FTP(FTP/Motion).`n"
+					:	A_Index	= 9		? http( command[A_index],,0 ) " ao configurar o SERVIDOR FTP(172.22.0.20).`n"
 					; :	A_Index	= 10	? "Modelo de câmera " cam_model :=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@10.2.78.59/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 ) "`n"
-					:	A_Index	= 10	? http( command[A_index],,0 ) " ao desabilitar a detecção de movimento.`n"
+					:	A_Index	= 10	? http( command[A_index],,0 ) " ao desabilitar a detecção de movimento simples.`n"
+					:	A_Index	= 11	? http( command[A_index],,0 ) " ao configurar nome de saída do arquivo em detecções de movimento.`n"
 					: ""
 			; OutputDebug % command[A_index]
 			GuiControl, , output,%  debug 
@@ -229,13 +243,16 @@ Goto	Config_Dahua
 		}
 		if	do_reboot	{
 			do_reboot =
-			GuiControl, , output,% http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=reboot" ) "`n`n"
+			debug	.= http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=reboot" ) " ao enviar o comando para reiniciar.`n`n"
+			GuiControl, , output,% debug
+			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		}
-		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		If ( c_dguard = 0) {
 			configurada .= "Câmera IP " ip " configurada.`n"
-			GuiControl, , output,% configurada
-			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+			if	!keep_full {
+				GuiControl, , output,% configurada
+				SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+			}
 			Return
 		}
 
@@ -498,11 +515,12 @@ Goto	Config_Dahua
 			Clipboard := i
 		if	sql_le
 			MsgBox % sql_le "`n`n" Clipboard := sql_lq
-
-		Sleep 3000
-		configurada .= "Câmera IP " ip_sql " configurada.`n"
-		GuiControl, , output,% configurada
-		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+		if !keep_full {
+			Sleep 3000
+			configurada .= "Câmera IP " ip_sql " configurada.`n"
+			GuiControl, , output,% configurada
+			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+		}
 		; Deleta câmera, para refazer se for teste
 			; curl = 
 				; (
@@ -530,7 +548,18 @@ Goto	Config_Dahua
 		MouseClick, Left, 970, 560
 		Sleep, 100
 		Send, {LCtrl down}a{LCtrl Up}admin{Tab}tq8hSKWzy5A{tab 2}{Enter}
+	Return
 
+	keep_debug:
+		Gui.Submit()
+		if	keep_full {
+			GuiControl, , output,% debug
+			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+		}
+		Else {
+			GuiControl, , output,% configurada
+			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+		}
 
 	Return
 
