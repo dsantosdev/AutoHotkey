@@ -28,7 +28,8 @@ Cam_list( cameras, message="" )	{
 		],
 		"resize_keyboard" : true }
 		)
-	url:=Token "/sendMessage?text=" message "&chat_id=" from_id "&reply_markup=" keyb
+	OutputDebug, % "id " message_id " reply send cam list"
+	url:=Token "/sendMessage?text=" message "&chat_id=" from_id "&reply_markup=" keyb ; "&reply_to_message_id=" message_id "&chat_id=" from_id
 	return request(url)	
 }
 
@@ -38,7 +39,8 @@ DeleteMessage( HowMany=1, minusMessageId=0 )	{
 								: message_id + 1
 	Loop,%	HowMany	{
 		url	:=	token "/deleteMessage?chat_id=" from_id "&message_id=" msgid-1
-		return request( url )
+		; Msgbox	%	url
+		return request( url ) "`n`t" msgid-1
 	}
 }
 
@@ -60,21 +62,33 @@ RemoveKeyb( text="" )			{	;	NOVO
 	Return	r
 }
 
-SendImage( file, caption := "" )	{
-	url := token "/sendPhoto?caption=" caption
-	objParam := {	"chat_id"	: from_ID																				
-				, 	"photo"		: [file]  }
+SendImage( file, caption:="", params* )	{
+	if params.Count() {
+		text = teste
+		Loop,% params.Count()
+			parameters	.=	"&" params[A_Index]
+		url := token "/sendPhoto?caption=" caption parameters
+		objParam := {"chat_id"	: from_ID
+					,"photo"	: [file] }
+	}
+	Else {
+		url := token "/sendPhoto?caption=" caption
+		objParam := {	"chat_id"	: from_ID																				
+					, 	"photo"		: [file]  }
+	}
 	return RequestFormData( url, objParam )	
 }
 
 SendText( text, replyMarkup="", parseMode="", params* )	{
 	if InStr( text ,"\x" )
 		text := StrReplace( text, "\x", "`%"  )
-	if params.Count()
-		url	:=	token "/sendmessage?chat_id=" from_ID "&text=" text "&reply_markup=" replyMarkup "&parse_mode=" parseMode "&" params[A_Index]
+	if params.Count() {
+		Loop,% params.Count()
+			parameters .= "&" params[A_Index]
+		url	:=	token "/sendmessage?chat_id=" from_ID "&text=" text "&reply_markup=" replyMarkup "&parse_mode=" parseMode parameters
+	}
 	Else
 		url	:=	token "/sendmessage?chat_id=" from_ID "&text=" text "&reply_markup=" replyMarkup "&parse_mode=" parseMode
-		; MsgBox % Clipboard := url
 	return Request( url )
 }
 
