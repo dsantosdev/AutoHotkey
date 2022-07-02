@@ -609,7 +609,7 @@ randomName(MinLength=4, MaxLength=0)	{
 regDelete( key_name ) {
 	ErrorLevel =
 	RegDelete,% key_name
-	Return ErrorLevel = 1 ? "Erro ao deletar o registro`nRegDelete," key_name "," value_name : "Registro deletado com sucesso!"
+	Return ErrorLevel = 1 ? "Fail" : "Ok"
 }
 
 regRead( key_name , key )	{
@@ -793,9 +793,9 @@ unicode( text , accentXunicode="1" ) {
 		unicode["&"] := "\u0026"
 		unicode["'"] := "\u0027"
 	 For Key, Value in unicode
-	 	if accentXunicode
+	 	if accentXunicode 
 			text := RegExReplace( text, Key,		Value )
-	 	Else
+	 	Else 
 		 	text := RegExReplace( text, "\" Value,	Key )
 	Return	text
 }
@@ -819,10 +819,10 @@ wm_read(wParam, lParam)	{
 }
 
 wm_send(ByRef StringToSend, ByRef TargetScriptTitle)	{	; ByRef saves a little memory in this case.
-/*
+	/*
 	This function sends the specified string to the specified window and returns the reply.
 	The reply is 1 if the target window processed the message, or 0 if it ignored it.
- */
+ 	*/
 	VarSetCapacity(CopyDataStruct, 3*A_PtrSize, 0) 			; Set up the structure's memory area.
 															; First set the structure's cbData member to the size of the string, including its zero terminator:
 	SizeInBytes := (StrLen(StringToSend) + 1) * (A_IsUnicode ? 2 : 1)
