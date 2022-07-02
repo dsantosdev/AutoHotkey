@@ -25,7 +25,6 @@ script_name=Sistema Monitoramento
 	version			:=	File_Version
 	need_admin		=	1
 	tray_bg_color	=	9BACC0
-	reg_backup_srv	=	
 	Global	iniciou
 		,	server01
 		,	server02
@@ -179,7 +178,7 @@ script_name=Sistema Monitoramento
 	~^ins::
 		Gosub, registrosGuiClose
 		If WinActive( "TeamViewer" )
-			Return
+			ExitApp
 		pass =
 		InputBox,	pass,	Comando Sistema Monitoramento,	,	HIDE	;{
 		if( pass = "" )
@@ -232,31 +231,34 @@ script_name=Sistema Monitoramento
 				}
 			;
 
-			MsgBox, , , Exportado com Sucesso, 1
-
-			restore_period	:= pass
-			Gosub	restore_layout
-
 			;	Registro de backup para restauro
-				regDelete( "HKCU\SOFTWARE\Seventh\_" pass )
+				if ( regDelete( "HKCU\SOFTWARE\Seventh\_" pass ) = "Fail" ) {
+					Msgbox	%	"Falha ao deletar o registro antigo, reinicie o Sistema Monitoramento em modo Administrativo.`nApós fechar essa tela, o sistema monitoramento será encerrado."
+					ExitApp
+				}
 				Sleep, 1000
 				runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_" pass " /s /f" )
-				if ( A_UserName = "dsantos" )
-					runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\" A_UserName " /s /f" )
+
+				; if ( A_UserName = "dsantos" )
+					; runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\" A_UserName " /s /f" )
+
 				regWrite( "REG_SZ" , "HKCU\SOFTWARE\Seventh\_" pass, "_BackupAtualizado", datetime() )
 			;
+			restore_period	:= pass
+			MsgBox, , , Exportado com Sucesso`nIniciando restauração., 1
+
+			Gosub	restore_layout
 
 			;	Backup's
 				runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_Backup\" pass "\" a_now " /s /f" )
-				OutputDebug, % "Inserido REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_Backup\" pass "\" a_now
 
-			;	Remove backups mais antigos
-				Loop, Reg, HKEY_CURRENT_USER\SOFTWARE\Seventh\_Backup\%pass%, K
-						remove .= A_LoopRegName "`n"
-				remover := StrSplit( SubStr( remove, 1, -1 ), "`n" )
-				Loop,% remover.Count()
-					If A_Index > 5
-						RegDelete,% "HKEY_CURRENT_USER\SOFTWARE\Seventh\_Backup\" pass "\"	remover[A_Index]
+			;	Remove backups mais antigos	; REVISAR
+				; Loop, Reg, HKEY_CURRENT_USER\SOFTWARE\Seventh\_Backup\%pass%, K
+						; remove .= A_LoopRegName "`n"
+				; remover := StrSplit( SubStr( remove, 1, -1 ), "`n" )
+				; Loop,% remover.Count()
+					; If A_Index > 5
+						; RegDelete,% "HKEY_CURRENT_USER\SOFTWARE\Seventh\_Backup\" pass "\"	remover[A_Index]
 			}
 
 		else if( pass = "reload" )
@@ -503,9 +505,6 @@ return
 	return
 
 	restore_layout:
-		FileRemoveDir,	C:\Seventh\DGuardCenter\Dados\Servidores,	1
-		Random,			soundvol,	20,	30
-			SoundSet,	%soundvol%
 		Process,		Close,	WatchdogServices.exe
 			Process,Close,	Watchdog.exe
 			Process,Close,	DGuard.exe
@@ -518,21 +517,18 @@ return
 				MsgBox % "IMPORTANDO ARQUIVO .REG`nLAYOUT DE EXIBIÇÃO DO PERÍODO PRECISA SER SALVO!!!`n`nO Layout atual será salvo provisoriamente como padrão para o período " restore_period "!"
 				runCmd(" reg import " smk "\registros\" restore_period "\" A_IPAddress1 ".reg" )
 			}
-			else if reg_backup_srv	;	caso não, busca remotamente
-				runCmd( "REG COPY \\" reg_backup_srv "\HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_" restore_period " /s /f" )
+
 			runCmd( "REG COPY HKCU\SOFTWARE\Seventh\DguardCenter HKCU\SOFTWARE\Seventh\_" restore_period " /s /f" )	;	ATUALIZA backup pois não existia
 			RegWrite, REG_SZ,% "HKCU\SOFTWARE\Seventh\_" restore_period, _BackupAtualizado,% datetime()				;	atualiza marca de atualização
 		}
-		Else	{
-
-			if ( A_UserName = "dsantos" )
-				runCmd( "REG COPY HKCU\SOFTWARE\Seventh\" A_UserName " HKCU\SOFTWARE\Seventh\DguardCenter /s /f" )
-			Else
-				runCmd( "REG COPY HKCU\SOFTWARE\Seventh\_" restore_period " HKCU\SOFTWARE\Seventh\DguardCenter /s /f" )
-		}
+		Else
+			runCmd( "REG COPY HKCU\SOFTWARE\Seventh\_" restore_period " HKCU\SOFTWARE\Seventh\DguardCenter /s /f" )
 
 		executar( "Dguard","C:\Seventh\DGuardCenter\" )
 		Send,			{LCtrl Up}
+		FileRemoveDir,	C:\Seventh\DGuardCenter\Dados\Servidores,	1
+		Random,			soundvol,	20,	30
+			SoundSet,	%soundvol%
 		restore_period =
 	Return
 
@@ -694,23 +690,23 @@ talkto:
 			WHERE
 				[return] IS NULL 
 			AND
-				[command] LIKE '%talk_operador%]`%'
+				[command] LIKE 'talk_to][[]%talk_operador%]`%'
 		)
 	talk_messages := sql( s, 3 )
 	Loop,% talk_messages.Count()-1 {
 		id_executado	:=	talk_messages[A_Index+1,1]
 		message			:=	StrSplit( talk_messages[A_index+1, 2], "][" )
-				
 		SoundGet, master_volume
 		SoundSet, 100
 		Sleep, 1000
 		windows.speak( message[2] )
 		SoundSet,%	master_volume
-		Telegram.SendMessage( "Mensagem executada para o operador " message[1], "reply_to_message_id=" message[3], "chat_id=" message[4] )
+		executado_as := datetime()
+		Telegram.SendMessage( "Mensagem executada para o operador " message[1] " " executado_as, "reply_to_message_id=" message[4], "chat_id=" message[5] )
 		u =
 			(
 				UPDATE [Telegram].[dbo].[command]
-				SET [return] = 'Executado'
+				SET [return] = 'Executado %executado_as%'
 				WHERE [id] = '%id_executado%'
 			)
 		sql( u, 3 )
