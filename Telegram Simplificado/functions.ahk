@@ -7,7 +7,37 @@ Global sql_le, sql_lq
 
 ; MsgBox	%	html_encode("O código % que você enviou é inválido.`n`nSolicite um código válido com seu gestor.")
 
-dguard_curl( comando , server = "" , tipo = "" )									{
+
+datetime( sql=0, date="", format="" )							{
+	sql	:= RegExReplace( sql, "[^\d]+" )
+	date:= RegExReplace( date, "[^\d]+" )
+	if Strlen( sql ) = 14	;	 se a data foi passada no campo de sql, ajusta as variáveis
+		is_date:=sql, sql:=0, date:=is_date
+	If(	sql = 2
+	&&	StrLen( date ) = 0 )	{
+		MsgBox,0x40,ERRO, A função datetime() em modo SQL 2`, necessita que seja enviado o valor date para funcionar.
+		Return
+	}
+	If( sql = 1 )
+		Return		SubStr( A_Now, 1, 4 ) "-"  SubStr( A_Now, 5, 2 ) "-"  SubStr( A_Now, 7, 2 )
+			.	" " SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 ) ".000"
+	else If ( sql = 2 )
+		Return		SubStr( date, 5, 4 ) "-"  SubStr( date, 3, 2 ) "-"  SubStr( date, 1, 2 )
+			.	" " SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
+	else If(	sql	=	3
+	&&			date!=	"" )	;	valor passado junto
+		Return		SubStr( date, 1, 4 ) "-"  SubStr( date, 5, 2 ) "-"  SubStr( date, 7, 2 )
+			.	" " SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
+	Else If(	sql	=	0
+	&&			date!=  "")
+		return		SubStr( date, 7, 2 ) "/"  SubStr( date, 5, 2 ) "/"  SubStr( date, 1, 4 )
+			.	" " SubStr( date, 9, 2 ) ":"  SubStr( date, 11, 2) ":"  SubStr( date, 13, 2 )
+	Else
+		Return		SubStr( A_Now, 7, 2 ) "/"  SubStr( A_Now, 5, 2 ) "/"  SubStr( A_Now, 1, 4 )
+			.	" " SubStr( A_Now, 9, 2 ) ":"  SubStr( A_Now, 11, 2) ":"  SubStr( A_Now, 13, 2 )
+}
+
+dguard_curl( comando , server = "" , tipo = "" )				{
 	comando	:=	StrReplace( comando , "`n" )
 	DetectHiddenWindows On
 	Run %ComSpec%,, Hide, pid
@@ -31,7 +61,7 @@ dguard_curl( comando , server = "" , tipo = "" )									{
 	return exec.StdOut.ReadAll()
 }
 
-dguard_token( server, pass = "", user = "" )		{
+dguard_token( server, pass = "", user = "" )					{
 	/*	Usado pelos sistemas abaixo
 		C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
 	*/
@@ -51,7 +81,7 @@ dguard_token( server, pass = "", user = "" )		{
 	return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
 }
 
-dguard_get_image( guid_da_camera, server, token_dguard = "" )			{
+dguard_get_image( guid_da_camera, server, token_dguard = "" )	{
 		horario := A_Now
 		
 		server := StrLen( server )	= 1
@@ -95,7 +125,7 @@ dguard_get_image( guid_da_camera, server, token_dguard = "" )			{
 			Return "Fail"
 }
 
-html_encode(str)										{
+html_encode(str)												{
 	f:=A_FormatInteger
 	SetFormat, Integer, Hex
 	If RegExMatch(str, "^\w+:/{0,2}", pr)
@@ -113,7 +143,7 @@ html_encode(str)										{
 	Return, pr . str
 }
 
-InArray(Array, SearchText, MatchWord="0")				{
+InArray(Array, SearchText, MatchWord="0")						{
 	if(StrLen(SearchText)=0)
 		return 0
 	if !(IsObject(Array))	{
@@ -137,7 +167,7 @@ InArray(Array, SearchText, MatchWord="0")				{
 	return 0
 }
 
-Map( Array, SearchText, KeyIs="", Partial="0" )			{
+Map( Array, SearchText, KeyIs="", Partial="0" )					{
 	if( StrLen( SearchText ) = 0 )
 		return 0
 	if !IsObject( Array )	{
@@ -172,7 +202,7 @@ Map( Array, SearchText, KeyIs="", Partial="0" )			{
 						: list
 }
 
-Request(url)											{
+Request(url)													{
 	req	:=	ComObjCreate( "WinHttp.WinHttpRequest.5.1" )
 	req.open( "GET", url, false )
 	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
@@ -191,7 +221,7 @@ Request(url)											{
 	return	req.responseText
 }
 
-StrReplaceN(Haystack,Needle,Replacement="",Instance=1)	{
+StrReplaceN(Haystack,Needle,Replacement="",Instance=1)			{
 	If !(Instance:=0 | Instance)	{
 		StringReplace, Haystack, Haystack, %Needle%, %Replacement%, A
 		Return Haystack
@@ -206,7 +236,7 @@ StrReplaceN(Haystack,Needle,Replacement="",Instance=1)	{
 	Return HayStack Replacement Needle
 }
 
-sql(query,tipo=1,d="")								{
+sql(query,tipo=1,d="")											{
 	if(instr(query,"UPDATE")>0 and instr(query,"WHERE")=0)	{
 		MsgBox, Você está tentando executar um UPDATE sem definir WHERE`, deseja realmente continuar? Isso alterará TODOS os dados da tabela.
 		IfMsgBox,	No
