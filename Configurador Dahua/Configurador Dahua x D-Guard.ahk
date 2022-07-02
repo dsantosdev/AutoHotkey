@@ -115,91 +115,90 @@ Array:
 	Gui.Submit()
 	debug	=
 
-
-	If	InStr( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=ChannelTitle[0].Name", , 1 ), "PTZ" )
-		is_ptz		=	1
-	Else
-		is_ptz		=	0
-	URL				:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=setConfig"
-	; CAM_MODEL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo"
-	cam_model		:=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 )
-	LANGUAGE		:=	url "&Language=English"
-	MACHINE_NAME	:=	url "&General.MachineName=" StrReplace( ip , "." , "_" )
-	NTP				:=	url "&NTP.Enable=true&NTP.Address=192.9.200.113&NTP.TimeZone=22&NTP.TimeZoneDesc=Brasilia"
-	MOTION_DETECTION:=	url "&MotionDetect[0].Enable=false"
-	;	Dia - Noite
-		If	dia
-			DAY_NIGHT		:=	url "&VideoInOptions[0].DayNightColor=0"
+	If ping( ip ) {
+		If	InStr( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=ChannelTitle[0].Name", , 1 ), "PTZ" )
+			is_ptz		=	1
 		Else
-			DAY_NIGHT	:=	url "&VideoInOptions[0].DayNightColor=1"
-	SNAPSHOT		:=	url "&Encode[0].SnapFormat[1].Video.Quality=6"
-	;	OVERLAY & ENCODE
-		if is_cargo {
-			OVERLAY		:=	url "&VideoWidget[0].ChannelTitle.PreviewBlend=false&VideoWidget[0].TimeTitle.PreviewBlend=true&VideoWidget[0].TimeTitle.EncodeBlend=true"
-							.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
-			ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.264"
-							.	"&Encode[0].MainFormat[0].Video.BitRate=512"
-							.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
-							.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
-							.	"&Encode[0].MainFormat[0].Video.FPS=12"
-							.	"&Encode[0].MainFormat[0].Video.GOP=24"
-							.	"&Encode[0].MainFormat[0].Video.Quality=6"
-		}
-		Else	{
-			OVERLAY		:=	url "&VideoWidget[0].ChannelTitle.PreviewBlend=false&VideoWidget[0].TimeTitle.PreviewBlend=false&VideoWidget[0].TimeTitle.EncodeBlend=false"
-							.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
-							.	"&VideoWidget[0].TimeTitle.PreviewBlend=false"
-							.	"&VideoWidget[0].TimeTitle.EncodeBlend=false"
-			If	!is_ptz
-				ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
+			is_ptz		=	0
+		URL				:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=setConfig"
+		; CAM_MODEL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo"
+		cam_model		:=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 )
+		LANGUAGE		:=	url "&Language=English"
+		MACHINE_NAME	:=	url "&General.MachineName=" StrReplace( ip , "." , "_" )
+		NTP				:=	url "&NTP.Enable=true&NTP.Address=192.9.200.113&NTP.TimeZone=22&NTP.TimeZoneDesc=Brasilia"
+		MOTION_DETECTION:=	url "&MotionDetect[0].Enable=false"
+		;	Dia - Noite
+			If	dia
+				DAY_NIGHT		:=	url "&VideoInOptions[0].DayNightColor=0"
+			Else
+				DAY_NIGHT	:=	url "&VideoInOptions[0].DayNightColor=1"
+		SNAPSHOT		:=	url "&Encode[0].SnapFormat[1].Video.Quality=6"
+		;	OVERLAY & ENCODE
+			if is_cargo {
+				OVERLAY		:=	url "&VideoWidget[0].ChannelTitle.PreviewBlend=false&VideoWidget[0].TimeTitle.PreviewBlend=true&VideoWidget[0].TimeTitle.EncodeBlend=true"
+								.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
+				ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.264"
 								.	"&Encode[0].MainFormat[0].Video.BitRate=512"
 								.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
 								.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
 								.	"&Encode[0].MainFormat[0].Video.FPS=12"
 								.	"&Encode[0].MainFormat[0].Video.GOP=24"
 								.	"&Encode[0].MainFormat[0].Video.Quality=6"
-			Else								;	PTZ
-				ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
-								.	"&Encode[0].MainFormat[0].Video.BitRate=1024"
-								.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
-								.	"&Encode[0].MainFormat[0].Video.resolution=1920x1080"
-								.	"&Encode[0].MainFormat[0].Video.FPS=12"
-								.	"&Encode[0].MainFormat[0].Video.GOP=24"
-								.	"&Encode[0].MainFormat[0].Video.Quality=6"
-		}
-	DESTINATION		:=	url "&RecordStoragePoint[0].VideoDetectSnapShot.FTP=true"
-						.	"&RecordStoragePoint[0].VideoDetectSnapShot.Local=false"
-						.	"&RecordStoragePoint[0].AlarmSnapShot.Local=false"
-						.	"&RecordStoragePoint[0].TimingSnapShot.Local=false"
-	FTP				:=	url "&NAS[0].Name=FTP"
-						.	"&NAS[0].Enable=true"
-						.	"&NAS[0].Protocol=FTP&NAS[0].Address=172.22.0.20"
-						.	"&NAS[0].UserName=cameras"
-						.	"&NAS[0].Password=c4m3r45"
-						.	"&NAS[0].Directory=FTP/Motion"
-	;	FTP_PATH
-		Loop, 3	{
-			retorno	:=	http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=StorageGroup[" A_Index-1 "].Memo",,1 )
-
-			If( InStr( SubStr( retorno, InStr( retorno, "=" )+1 ), "FTP" ) ) {
-				FTP_PATH:=	url	"&StorageGroup[" A_Index-1 "].PicturePathRule="
-						.	StrRep( ip,, "_:." ) "_%y%M%d-%h%m%s.jpg"
-				Break
 			}
-		}
-	command := []
-	command.Push( LANGUAGE )			;	1
-	command.Push( MACHINE_NAME )		;	2
-	command.Push( NTP )					;	3
-	command.Push( ENCODE )				;	4
-	command.Push( DAY_NIGHT )			;	5
-	command.Push( SNAPSHOT )			;	6
-	command.Push( OVERLAY )				;	7
-	command.Push( DESTINATION )			;	8
-	command.Push( FTP )					;	9
-	command.Push( MOTION_DETECTION	)	;	10
-	command.Push( FTP_PATH	)			;	11
-Goto	Config_Dahua
+			Else	{
+				OVERLAY		:=	url "&VideoWidget[0].ChannelTitle.PreviewBlend=false&VideoWidget[0].TimeTitle.PreviewBlend=false&VideoWidget[0].TimeTitle.EncodeBlend=false"
+								.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
+								.	"&VideoWidget[0].TimeTitle.PreviewBlend=false"
+								.	"&VideoWidget[0].TimeTitle.EncodeBlend=false"
+				If	!is_ptz
+					ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
+									.	"&Encode[0].MainFormat[0].Video.BitRate=512"
+									.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
+									.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
+									.	"&Encode[0].MainFormat[0].Video.FPS=12"
+									.	"&Encode[0].MainFormat[0].Video.GOP=24"
+									.	"&Encode[0].MainFormat[0].Video.Quality=6"
+				Else								;	PTZ
+					ENCODE		:=	url "&Encode[0].MainFormat[0].Video.Compression=H.265"
+									.	"&Encode[0].MainFormat[0].Video.BitRate=1024"
+									.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
+									.	"&Encode[0].MainFormat[0].Video.resolution=1920x1080"
+									.	"&Encode[0].MainFormat[0].Video.FPS=12"
+									.	"&Encode[0].MainFormat[0].Video.GOP=24"
+									.	"&Encode[0].MainFormat[0].Video.Quality=6"
+			}
+		DESTINATION		:=	url "&RecordStoragePoint[0].VideoDetectSnapShot.FTP=true"
+							.	"&RecordStoragePoint[0].VideoDetectSnapShot.Local=false"
+							.	"&RecordStoragePoint[0].AlarmSnapShot.Local=false"
+							.	"&RecordStoragePoint[0].TimingSnapShot.Local=false"
+		FTP				:=	url "&NAS[0].Name=FTP"
+							.	"&NAS[0].Enable=true"
+							.	"&NAS[0].Protocol=FTP&NAS[0].Address=172.22.0.20"
+							.	"&NAS[0].UserName=cameras"
+							.	"&NAS[0].Password=c4m3r45"
+							.	"&NAS[0].Directory=FTP/Motion"
+		;	FTP_PATH
+			Loop, 3	{
+				retorno	:=	http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=StorageGroup[" A_Index-1 "].Memo",,1 )
+
+				If( InStr( SubStr( retorno, InStr( retorno, "=" )+1 ), "FTP" ) ) {
+					FTP_PATH:=	url	"&StorageGroup[" A_Index-1 "].PicturePathRule="
+							.	StrRep( ip,, "_:." ) "_%y%M%d-%h%m%s.jpg"
+					Break
+				}
+			}
+		command := []
+		command.Push( LANGUAGE )			;	1
+		command.Push( MACHINE_NAME )		;	2
+		command.Push( NTP )					;	3
+		command.Push( ENCODE )				;	4
+		command.Push( DAY_NIGHT )			;	5
+		command.Push( SNAPSHOT )			;	6
+		command.Push( OVERLAY )				;	7
+		command.Push( DESTINATION )			;	8
+		command.Push( FTP )					;	9
+		command.Push( MOTION_DETECTION	)	;	10
+		command.Push( FTP_PATH	)			;	11
 
 ;	Code
 	Config_Dahua:
@@ -216,11 +215,11 @@ Goto	Config_Dahua
 				Return
 			}
 		}
-		ping := ping( ip )
-		If ( ping = 0)	{
-			MsgBox % ip " não respondeu ao teste de ping, verifique os dados inseridos no campo IP ou se há conexão com a câmera."
-			Return
-		}
+		; ping := ping( ip )
+		; If ( ping = 0)	{
+		; 	MsgBox % ip " não respondeu ao teste de ping, verifique os dados inseridos no campo IP ou se há conexão com a câmera."
+		; 	Return
+		; }
 		Loop,% command.Count()	{
 			debug	.=	A_Index	= 1		? configurada "`n`nConfigurando a câmera '" ip "'`n`n...`n" http( command[A_index],,0 ) " ao configurar idioma.`n"
 					:	A_Index = 2		? http( command[A_index],,0 ) " ao configurar nome da câmera(" StrRep( ip,, ".:_" ) ").`n"
@@ -255,22 +254,31 @@ Goto	Config_Dahua
 			}
 			Return
 		}
+	}
+	Else {
+		debug	.=	"Câmera não respondeu ao teste de ping, as configurações não foram efetuadas!!!"
+		GuiControl, , output,% debug
+		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
+	}
+
 
 	Dguard:
 		if	(c_dguard = 0) {
 			debug=
 			Return
 		}
-		Gui.Submit()
 		debug .= "`n------------------------------------------`nIniciando cadastro de câmera no D-Guard`n------------------------------------------`nVerificando existência de câmera nos servidores...`n"
 		GuiControl, , output,% debug
 		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		vendor_guid	= {CA014F07-32AE-46B9-83A2-8A9B836E8120}
-		If	http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getDeviceClass") in ("SD","PTZ")
-			model_guid	= {3D8D1B92-130A-9C6A-423A-F714888A6807}
-		Else
-			model_guid	= {5BA4689B-6DD0-2C27-C0F8-C6B514DC5533}
-
+		if ping( ip ) {
+			If	http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getDeviceClass") in ("SD","PTZ")
+				model_guid	= {3D8D1B92-130A-9C6A-423A-F714888A6807}
+			Else
+				model_guid	= {5BA4689B-6DD0-2C27-C0F8-C6B514DC5533}
+		}
+		if	!model_guid
+			model_guid = {5BA4689B-6DD0-2C27-C0F8-C6B514DC5533}
 		s = 
 			(
 				SELECT
@@ -291,7 +299,8 @@ Goto	Config_Dahua
 					[ip]	= '%ip%'
 			)
 		s	:=	sql( s, 3 )
-		If ( s.Count()-1 > 0 ) {
+		If (s.Count()-1 > 0
+		&&	s[2, 5] = ip) {
 			MsgBox, 48, Duplicidade,%	"O NOME câmera ou IP cadastrados para essa câmera já estão em uso em:`n"
 									.	"Servidor = "		s[A_Index+1, 5]
 									.	"`nCâmera = "		s[A_Index+1, 1]
@@ -304,7 +313,13 @@ Goto	Config_Dahua
 									.	"`nCadastrada = "	s[A_Index+1, 9]
 			Return
 		}	
-
+		Else if (s.Count()-1 > 0
+		&&	s[2, 5] != ip) {
+			MsgBox, 1, Duplicidade Em Servidor Diferente,	%	"O NOME câmera ou IP cadastrados para essa câmera já está em uso em outro servidor.`n"
+															.	"Gostaria de continuar o cadastro?"
+			If msgbox No																
+				Return
+		}	
 		s =
 			(
 				SELECT	DISTINCT
@@ -330,7 +345,8 @@ Goto	Config_Dahua
 			s	:= sql( s, 3 )
 		}
 		sigla		:= Trim( s[2,1] )
-
+		If !Sigla
+			gosub	nova_sigla
 		token		:= for_output := dguard.token( "vdm0" server )
 				if InStr( for_output, """Error"":" ) {
 					debug .= "Falha`tAo resgatar token de acesso ao D-Guard, e-mail enviado ao desenvolvedor."
@@ -343,7 +359,7 @@ Goto	Config_Dahua
 					debug .= "Sucesso`tToken de acesso resgatado"
 					GuiControl, , output,% debug
 					SendMessage, 0x115, 7, 0, Edit13, Dahua Config
-		cam_place	:= StrRep( unicode( cam_name ),, "|:\u007c" )
+		cam_place	:= StrRep( cam_name,, "|:\u007c" )
 		o_s			:= operador[ sigla ]
 		operator	:= SubStr( o_s, 1 , 1 )
 		incident	:= SubStr( o_s, 2 , 1 )
@@ -584,6 +600,10 @@ Goto	Config_Dahua
 		Sleep, 1000
 	Return
 ;
+
+nova_sigla:
+	
+return
 
 ;	Atalhos
 	~Enter::
