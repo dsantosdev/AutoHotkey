@@ -91,13 +91,14 @@ webhook:
 		For key, received in dados
 		{
 			;	Limpa as variáveis
-				from_id:=first_name:=mtext:=last_name:=username:=sticker_id:=""
+				from_id:=first_name:=mtext:=last_name:=username:=sticker_id:=texto:=""
 			;	Variáveis quando for INLINE
 				if( received.callback_query.data != "" )	{
 					inline		=	1
 					from_id		:=	received.callback_query.from.id
 					mtext		:=	received.callback_query.data
 					message_id	:=	received.callback_query.message.message_id
+					texto		:=	received.callback_query.message.text
 				}
 			;	Variáveis para mensagens normais
 				else	{														
@@ -113,33 +114,41 @@ webhook:
 				offset			:=	received.update_id					;	offset da mensagem para ser apagada
 			OutputDebug % from_id "`n" mtext "`n" first_name "`n" last_name "`n" username "`n" message_id "`n" offset "`n______________"
 
-			If MAP( usuarios, from_id, "ChatID" ) {
+			If MAP( usuarios, from_id, "ChatID" ) {						;	verifica se o usuário tem cadastro
 
 				if	Inline	{
-					OutputDebug % "Resposta Inline`n`t" A_LineNumber "`nComando`t" SubStr( mtext, 1, InStr( mtext, "_" )-1 )
+					OutputDebug % "Resposta Inline`n`t" A_LineNumber "`nComando`t" SubStr( mtext, 1, InStr( mtext, "_" )-1 ) "`n`tTexto = " texto
 					RemoveKeyb()
-					Goto,%	SubStr( mtext, 1, InStr( mtext, "_" )-1 )
+					If	InStr( texto, "Selecione a " ) {
+						OutputDebug, % "Câmera selecionada"
+						Inline =
+						pic("1")
+					}
+					Else
+						Goto,%	SubStr( mtext, 1, InStr( mtext, "_" )-1 )
+					Return
 				}
 
 				if	( usuarios[MAP( usuarios, from_id, "ChatID" )].admin = 99 ) {	;	admin MAX commands 
 					if	InStr(mtext, " ")
 						comando_recebido	:=	SubStr( mtext, 1, InStr( mtext, " " )-1 )
 					Else
-						comando_recebido	:=	mtext
+						comando_recebido	:=	StrReplace( mtext, "/" )
 					OutputDebug % "Executando comando ADM`n" comando_recebido
 								. "`n`t" A_LineNumber
-								. "`ncomando`t-" SubStr( comando_recebido, InStr( comando_recebido, "_" )+1 ) "-"
 
-					if	(pos := InArray( comandos_adm, StrReplace( SubStr( comando_recebido, InStr( comando_recebido, "_" )+1 ), "/" ) )
-					&&	 !InStr( mtext, "/" ) )
-						Goto,%	comandos_adm[pos]
+					pos		:=	InArray( comandos_adm, StrReplace( comando_recebido, "/"))
+					if pos {
+						executa	:=	comandos_adm[pos]
+						%executa%()
+					}
 					Else
-						Goto,%	Clipboard := StrReplace( comando_recebido, "/" )
-					OutputDebug % "Não encontrou nos comandos`n`t" A_LineNumber
+						OutputDebug % "Não encontrou nos comandos`n`t" A_LineNumber
 				}
 				else if pos := InArray( comandos, StrReplace( mtext, "/" ),1 ) {
 					OutputDebug % "Executando comando`n`t" A_LineNumber
-					Goto,%	comandos[pos]
+					executa := comandos[pos]
+					%executa%()
 				}
 				Else if !pos	{
 					OutputDebug % "Comando não existe`n`t" A_LineNumber
@@ -151,7 +160,7 @@ webhook:
 	}
 Return
 ;	Normal Commands
-	DBStatus:
+	db_status() {
 		s =
 			(
 				SELECT 
@@ -191,9 +200,10 @@ Return
 			mtext	=
 			request( url )
 		}
-	Return
+		Return
+	}
 
-	Restore:
+	db_restore() {
 		if	(is_keyb = 1)	{
 			 is_keyb = 0
 			RemoveKeyb()
@@ -228,7 +238,8 @@ Return
 		Sleep, 1000
 		mensagem := html_encode("Tentativa de recuperação efetuada.`n`n`nEstado atual do banco de dados de Detecção de Movimento é:`n`n`t`t"  )
 		SendText( mensagem estado)
-	Return
+		Return
+	}
 
 	Ignore:
 		RemoveKeyb()
@@ -236,7 +247,7 @@ Return
 		SendText( mensagem " \xF0\x9F\x98\x95" )
 	Return
 
-	resetabanheiro:
+	reseta_saidas()	{
 		u =
 			(
 				UPDATE [ASM].[dbo].[_registro_saidas]
@@ -248,29 +259,32 @@ Return
 		if sql_le
 			SendText( "Erro de SQL:`n" sql_le ) 
 		Else
-			SendText( "Banheiro restaurado!" ) 
-	Return
+			SendText( html_encode("Saídas restauradas!") ) 
+		Return
+	}
 ;
 ;	Elevated commands
-	pic:
+	pic( inline="" ) {
 		OutputDebug % "Executando pic(rotina)`n`t" A_LineNumber
-		param	= [name]
+		param_where	= [name]
 		cam_name:= StrReplace( StrReplace( StrReplace( StrReplace( mtext, "/" ), "pic " ), "`n"), "`r")
-		if inline	{
-			param	= [guid]
-			cam_name:=	 mtext
-			inline	=
+		if	inline	{
+			param_where	 =	[guid]
+			cam_name	:=	mtext
+			inline		 =
 		}
+		if InStr( cam_name, "[" )
+			cam_name := StrReplace( cam_name, "[", "[[]")
 		s =
 			(
 				SELECT
-					[name]
+					 [name]
 					,[guid]
 					,[server]
 				FROM
 					[Dguard].[dbo].[cameras]
 				WHERE
-					%param% LIKE '%cam_name%`%'
+					%param_where% LIKE '%cam_name%`%'
 				ORDER BY
 					1
 			)
@@ -283,36 +297,46 @@ Return
 			guid		:=	cameras[2,2]
 			dguard_token:=	dguard_token( cameras[2,3], "admin", "admin" )
 			imagem		:=	dguard_get_image( guid, cameras[2,3], dguard_token )
-			SendImage( imagem )
+			SendImage( imagem, html_encode( cameras[2,1] ) "%0A%0A" datetime() )
+			; SendImage( imagem, html_encode( cameras[2,1] ) "%0A%0A" datetime(), "reply_to_message_id=" pic_message_id )
 			FileDelete,% imagem
 		}
 		Else									;	Várias câmeras
 			Cam_list( cameras )
+			pic_message_id := message_id
 		OutputDebug % "Finalizando getpictures`n`t" A_LineNumber
-	Return
+		Return
+	}
 
-	Reload:
+	Reload() {
 		mensagem := html_encode( "Serviço reiniciado." )
 		SendText( mensagem )
 		Reload
-	Return
+		Return
+	}
 
-	reboot:
+	reboot() {
 		url = http://admin:tq8hSKWzy5A@10.2.255.216/cgi-bin/magicBox.cgi?action=reboot
 		SendText( Request( url ) )
-	Return
+		Return
+	}
 
-	info:
+	info() {
 
-	Return
+		Return
+	}
 
-	talkto:
+	talk_to() {
 		OutputDebug % "Executando talkto(rotina)`n`t" A_LineNumber
-		param 	= [name]
 		fulltext:= StrReplace( StrReplace( StrReplace( StrReplace( mtext, "/" ), "talkto " ), "`n"), "`r")
-		operator:= SubStr( fulltext , 1, InStr( fulltext, " ")-1 )
-		text	:= SubStr( fulltext, InStr( fulltext, " ")+1 )
-		; MsgBox % fulltext "`n" operator "`n" text
+
+		param	:= StrSplit( fulltext, " ")
+		cmd		:= param[1]
+		operator:= param[2]
+		Loop,% param.Count()-2
+			text .= param[A_Index+2] " "
+		text	:= SubStr( text, 1, -1 )
+
 		s =
 			(
 				IF NOT EXISTS (SELECT * FROM [Telegram].[dbo].[command] WHERE [command] LIKE '%operator%][%text%][`%' AND [return] IS NULL)
@@ -320,12 +344,19 @@ Return
 						[Telegram].[dbo].[command]
 						([command])
 					VALUES
-						('%operator%][%text%][%message_id%][%from_id%')
+						('%cmd%][%operator%][%text%][%message_id%][%from_id%')
 			)
 		sql( s, 3 )
-		SendText( html_encode( "Mensagem enviada, aguardando execução na máquina do operador " ) operator )
-	Return
-	
-;
+		SendText( html_encode( "Mensagem enviada, aguardando execução na máquina do operador " operator " em até 30 segundos..." ) )
+		Return
+	}
+
+;	Check auth
+
+	check_auth() {
+
+		Return
+	}
+
 ^+END::
 	ExitApp
