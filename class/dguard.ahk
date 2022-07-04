@@ -9,7 +9,7 @@ Global	inc_dguard	=	1
 
 Class	dguard {
 
-	_cria_layout( ip, nome )														{
+	_cria_layout( ip, nome )												{
 		l_exist	:= nome_sql := ""
 		token	:=	this.token( ip )
 		If	InStr(	nome, "[" )
@@ -91,7 +91,7 @@ Class	dguard {
 			return this.curly( c )
 	}
 
-	cameras( server = "" , token = "" )											{
+	cameras( server = "" , token = "" )										{
 		;	Retorna guid, name, active e connected das câmeras cadastradas no servidor do dguard
 		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
 				?	"localhost"
@@ -103,7 +103,7 @@ Class	dguard {
 		return	json( retorno )
 	}
 
-	cameras_info( server = "" , guid = "" , token = "" )						{
+	cameras_info( server = "" , guid = "" , token = "" )					{
 		/* Exemplo de Retorno:
 			"server:" {
 				"name": "ESM | Portão",
@@ -142,23 +142,26 @@ Class	dguard {
 		return	json( retorno )
 	}
 
-	cam_to_layout( layout_guid, cam_guid, sequence )							{
-		a		:=	"\"""""
-		comando	:=	"POST """"http://localhost:8081/api/layouts/`%7B" StrRep( layout_guid,, "{", "}" ) "`%7D/cameras"""""
-				.	" -H """"accept: application/json"""""
-				.	" -H """"Authorization: bearer " token """"""
-				.	" -H """"Content-Type: application/json"""""
-				.	" -d """"{ " a "aspectRatio"	a ": 1,"
-				.			"" a "zoom"				a ": 1,"
-				; .			"" a "sequence"			a ": " sequence ","
-				.			"" a "serverGuid"		a ": " a "{" cam_guid "}" a ","
-				.			"" a "cameraId"			a ": 0 ,"
-				.			"" a "allowDuplicates"	a ": false }"""
-		;
-		this.curly( comando, 1 )
+	cam_to_layout( server, layout_guid, cam_guid, sequence )				{
+		if	!Server
+			server	 =	localhost
+		token	:=	this.token( server )
+		layout_guid	:=	StrRep( layout_guid,, "{", "}" )
+		comando	:=	" POST ""http://" server ":8081/api/layouts/%7B" layout_guid "%7D/cameras"""
+					.	" -H ""accept: application/json"""
+					.	" -H ""Authorization: bearer " token """"
+					.	" -H ""Content-Type: application/json"""
+					.	" -d ""{ \""aspectRatio\"": 1, "
+					.	"\""zoom\"": 1, "
+					.	"\""sequence\"":" sequence ", "
+					.	"\""serverGuid\"":\""" cam_guid "\"", "
+					.	"\""cameraId\"": 0, "
+					.	"\""allowDuplicates\"": true }"""
+		; OutputDebug, % comando
+		return this.curly( comando )
 	}
 
-	comando( params* )															{
+	comando( params* )														{
 		token	=	REPLACE_TOKEN
 		a		:=	"\"""
 		comando	:=	" -H ""accept: application/json"""
@@ -172,7 +175,7 @@ Class	dguard {
 		Return comando
 	}
 
-	contact_id( server = "" , guid = "" , token = "" )							{
+	contact_id( server = "" , guid = "" , token = "" )						{
 		/* Exemplo de Retorno: 
 			"contactId": {
 				"receiver": 10001,
@@ -189,7 +192,7 @@ Class	dguard {
 		return	json( retorno )
 	}
 
-	curl( comando , server = "" , tipo = "" )									{
+	curl( comando , server = "" , tipo = "" )								{
 		comando	:=	StrReplace( comando , "`n" )
 		DetectHiddenWindows On
 		Run %ComSpec%,, Hide, pid
@@ -219,7 +222,7 @@ Class	dguard {
 		return exec.StdOut.ReadAll()
 	}
 
-	curly( comando, assync="0" )												{
+	curly( comando, assync="0" )											{
 		If	assync {
 			for_new_instance:=	"#NoTrayIcon"
 							.	"`nDetectHiddenWindows On"
@@ -250,14 +253,14 @@ Class	dguard {
 		}
 	}
 
-	delete_layout( guid )														{
+	delete_layout( guid )													{
 		del_comando	:=	"DELETE ""http://localhost:8081/api/layouts/%7B" StrRep( guid,, "{", "}" ) "%7D"""
 					.	" -H ""accept: application/json"""
 					.	" -H ""Authorization: bearer " token """"
 		this.curl( del_comando )
 	}
 
-	get_image( guid_da_camera , token = "" )									{	;	não está pronto
+	get_image( guid_da_camera , token = "" )								{	;	não está pronto
 		horario := A_Now 
 		static req := ComObjCreate( "Msxml2.XMLHTTP" )
 		req.open(	"GET"
@@ -292,7 +295,7 @@ Class	dguard {
 			MsgBox Arquivo não existe
 	}
 
-	html_encode(str)															{
+	html_encode(str)														{
 		f:=A_FormatInteger
 		SetFormat, Integer, Hex
 		If RegExMatch(str, "^\w+:/{0,2}", pr)
@@ -310,7 +313,7 @@ Class	dguard {
 		Return, pr . str
 	}
 
-	layouts( server="" , token="" )												{
+	layouts( server="" , token="" )											{
 		/*	utilização do retorno em loop, var.layouts.count()
 			var	:=	dguard.layouts( server , token )
 			Loop,% var.layouts.Count()
@@ -338,7 +341,7 @@ Class	dguard {
 		return	json( Dguard.Request( url , token ) )
 	}
 
-	lista_cameras_layout( server , token , layoutGuid )							{
+	lista_cameras_layout( server , token , layoutGuid )						{
 		;	var.servers[A_Index].CAMPO
 		/*	Usado pelos sistemas abaixo
 			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
@@ -357,7 +360,7 @@ Class	dguard {
 		return	json( retorno )
 	}
 
-	lista_cameras_operador( server , token )									{
+	lista_cameras_operador( server , token )								{
 		;	var.servers[A_Index].CAMPO
 		/*	Usado pelos sistemas abaixo
 			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
@@ -369,7 +372,7 @@ Class	dguard {
 		return	json( Dguard.Request( "http://" server ":8081/api/servers" , token ) )
 	}
 
-	Mover( win_id := "", win_title := "A" )										{
+	Mover( win_id := "", win_title := "A" )									{
 		if ( StrLen( win_id  ) = 0 )	{
 			if ( StrLen( win_title ) > 1 )
 				WinActivate,%	win_title
@@ -383,7 +386,7 @@ Class	dguard {
 		return
 	}
 
-	new_layout( name, server="" )												{
+	new_layout( name, server="" )											{
 		if !Server
 			server		=	localhost
 		token			:=	this.Token( server )
@@ -404,7 +407,7 @@ Class	dguard {
 		return	new.layout.guid "&&0"
 	}
 
-	request( url , token="" , data="", method="GET" )							{
+	request( url , token="" , data="", method="GET" )						{
 		static req := ComObjCreate( "Msxml2.XMLHTTP" )
 		req.open( method, url, false )
 		req.SetRequestHeader( "Authorization", "Bearer " token )	;	login local do dguard(admin)
@@ -415,7 +418,7 @@ Class	dguard {
 		return	% req.responseText
 	}
 
-	select_server( haystack_obj , value , key , return_key = "" , warn = 0 )	{
+	select_server( haystack_obj , value , key , return_key = "" , warn = 0 ){
 		value := StrReplace( StrReplace( value , "`n" ), "`r" )
 		For index, info in haystack_obj
 			if ( info[ key ] = value )	{
@@ -428,7 +431,7 @@ Class	dguard {
 			return "Value '" value "' not found in array."
 	}
 
-	server( server = "" , guid = "" , token = "" )								{	;	TROCAR POR CAMERAS_INFO
+	server( server = "" , guid = "" , token = "" )							{	;	TROCAR POR CAMERAS_INFO
 		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
@@ -439,7 +442,7 @@ Class	dguard {
 		return	json( retorno )
 	}
 
-	token( server = "" , pass = "" , user = "" )								{
+	token( server = "" , pass = "" , user = "" )							{
 		/*	Usado pelos sistemas abaixo
 			C:\Users\dsantos\Desktop\AutoHotkey\D-Guard API\Câmeras nos Layouts.ahk
 		*/
@@ -475,7 +478,7 @@ Class	dguard {
 		return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
 	}
 
-	virtual_matrix( server="" , token="" )										{
+	virtual_matrix( server="" , token="" )									{
 		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
 				?	"localhost"
 				:	server
@@ -492,7 +495,7 @@ Class	dguard {
 		return this.Curly( c )
 	}
 
-	workstation( comando )														{
+	workstation( comando )													{
 		retorno := Dguard.curly( comando )
 		if ( retorno = "{""workstations"":[]}" ) {
 			retorno  = 
