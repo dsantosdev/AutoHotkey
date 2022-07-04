@@ -195,7 +195,7 @@ Class Array	{
 				index.Push( Split_index[2] )
 			}
 			Return	index
-			}
+		}
 		Else	{				;	Retorna o array simples completo reordenado(necessita um objeto para receber as informações)
 			For key, value in Array
 				list .= StrReplace( value , "`n" , "§" ) Delimiter
@@ -219,5 +219,34 @@ Class Array	{
 
 			Return	index
 			}
+	}
+
+	sort_matrix( matrix, order="ASC", column="1" )	{	;	Para MAP's precisa ser atualizado
+		linhas_matriz	:= matrix.Count()
+		colunas_matriz	:= matrix[1][1].Count()
+
+		If( column > colunas_matriz )
+			Return "Coluna solicitada não existe nessa Matriz.`nA matriz possui apenas " matrix[1][1].Count() " colunas."
+
+		layout_return := []
+
+		Loop,% linhas_matriz
+			for_order .=	matrix[A_Index][1][column] "`t" A_Index "`n"
+	
+		for_order	:=	 SubStr( for_order,1,-1)
+		Sort, for_order,% order
+
+		for_return := StrSplit(for_order, "`n" )
+		Loop,%	for_return.Count() {	;	prepara nova matriz
+			index	:=	A_Index
+			i		:= StrSplit(for_return[A_Index], "`t" )
+			c%index% := []
+			Loop,% colunas_matriz
+				c%index%.Insert( matrix[i[2]][1][A_index] )
+
+			layout_return.Insert( c%A_Index% )
+		}
+		
+		Return layout_return
 	}
 }
