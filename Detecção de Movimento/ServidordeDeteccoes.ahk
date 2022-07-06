@@ -129,21 +129,20 @@ prepara_array:	;	SQL
 			)
 		s	:=	sql( s, 3 )
 
-		IF ( s.Count() - 1 ) > 1	{
+		IF( ( s.Count() - 1 ) > 1 )	{
 					cameras := {}
 					foscam	:=
-					Loop,%	s.Count()-1 {
+					Loop,%	s.Count()-1
 						cameras[s[A_Index+1,1]]	:=	(s[A_Index+1,2] = "" ? "0000" : s[A_Index+1,2]) "&&"	;	ip : mac&&nome&&0000&&0001
 												.	 s[A_Index+1,3] "&&"
 												.	(s[A_Index+1,4] = "" ? "0000" : s[A_Index+1,4]) "&&"
 												.	(s[A_Index+1,5] = "" ? "0000" : s[A_Index+1,5])
 
-					}
-				}
-				Else
-					mail.new(	"dsantos@cotrijal.com.br"
-							,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
-							,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
+		}
+		Else
+			mail.new(	"dsantos@cotrijal.com.br"
+					,	"Falha Servidor de Detecções - " Substr(datetime(), 1, 10 )
+					,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta`n`t`tServidorDeDetecções" )
 
 	SetTimer,	prepara_array,	-3600000	;	de hora em hora recarrega os dados do banco de dados
 	
