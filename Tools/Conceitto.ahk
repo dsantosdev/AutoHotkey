@@ -1,384 +1,41 @@
 ﻿File_Version=0.2.0
-Save_to_sql=0
+Save_to_sql=1
+Keep_Versions=2
 ;@Ahk2Exe-SetMainIcon	C:\AHK\icones\fun\conceitto.ico
 	#IfWinActive, Cadastro de Câmeras
 	inicio	:=	A_Now
 	#Persistent
 	#SingleInstance Force
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
-	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
-	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include	C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include	C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
+	#Include	C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	; #Include	C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	Definições
-	global	debug = 
-		,	info_das_cameras	:= {}
-		,	receiversx			:= {}
-		Coordmode, ToolTip, Screen
+	global	debug						 = 
+	Coordmode, ToolTip, Screen
 ;
-
-;	Tokens dos servidores
-	ToolTip, Requisitando token do servidor 1 , 50 , 100
-	token_1 := Dguard.token( "vdm01", "cjal2021","conceitto" )
-		OutputDebug % StrLen( token_1 ) > 0
-										? "-Obtido token 1`n`t" token_1
-										: "Falha ao obter token 1"
-	ToolTip, Requisitando token do servidor 2 , 50 , 100
-	token_2 := Dguard.token( "vdm02", "cjal2021","conceitto"  )
-		OutputDebug % StrLen( token_2 ) > 0
-										? "-Obtido token 2`n`t" token_2
-										: "Falha ao obter token 2"
-	ToolTip, Requisitando token do servidor 3 , 50 , 100
-	token_3 := Dguard.token( "vdm03", "cjal2021","conceitto"  )
-		OutputDebug % StrLen( token_3 ) > 0
-										? "-Obtido token 3`n`t" token_3 "`n"
-										: "Falha ao obter token 3`n"
-	ToolTip, Requisitando token do servidor 4 , 50 , 100
-	token_4 := Dguard.token( "vdm04", "cjal2021","conceitto"  )
-		OutputDebug % StrLen( token_4 ) > 0
-										? "-Obtido token 4`n`t" token_4 "`n"
-										: "Falha ao obter token 4`n"
-
-;
-
-;	Informações das câmeras contidas no d-guard
-		OutputDebug % "-Armazenando os dados das câmeras do dguard em array."
-	dados_das_cameras_no_dguard := {}
-
-	json_return := json( Dguard.Request( "http://vdm01:8081/api/servers", token_1 ) )
-		Loop,% json_return.servers.Count()	{
-		ToolTip,% "-Armazenando os dados das câmeras do servidor 1 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
-			_guid		:= StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
-			receiver	:= json( http( "http://vdm01:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_1, 1 ) )
-			json_camera := Dguard.Server( "vdm01" , _guid , token_1 )
-			ID			:= StrSplit( json_camera.server.address , "." )
-			if ( receiver.contactId.receiver != "10001" )
-				api_get	:=	"http://conceitto:cjal2021@vdm01.cotrijal.local:85/camera.cgi?receiver=" receiver.contactId.receiver "&server=" json_camera.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
-			Else
-				api_get = 
-			dados_das_cameras_no_dguard.Push({	name		:	json_camera.server.name
-											,	guid		:	_guid
-											,	active		:	json_camera.server.active
-											,	connected	:	json_camera.server.connected
-											,	address		:	json_camera.server.address
-											,	port		:	json_camera.server.port
-											,	vendor		:	json_camera.server.vendorModelName
-											,	contactid	:	json_camera.server.contactIdCode
-											,	setor		:	SubStr( json_camera.server.notes , 1 , 1 )
-											,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 )
-											,	url			:	StrReplace( json_camera.server.url , "\" )
-											,	receiver	:	receiver.contactId.receiver
-											,	partition	:	receiver.contactId.partition
-											,	id			:	id
-											,	server		:	"1"
-											,	api			:	api_get	})
-			active		:=	json_camera.server.active = "true"
-													? "1"
-													: "0"
-			connected	:=	json_camera.server.connected = "true"
-														 ? "1"
-														 : "0"
-			url			:=	StrLen( json_camera.server.url )	= 0
-																? "http://" json_camera.server.address ":80"
-																: json_camera.server.url
-			output		.=	"(	'" json_camera.server.name
-							.	"','" StrReplace( StrReplace( json_camera.server.guid, "{") , "}" )
-							.	"','" active
-							.	"','" connected
-							.	"','" json_camera.server.address
-							.	"','" json_camera.server.port
-							.	"','" json_camera.server.vendorModelName
-							.	"','" json_camera.server.contactIdCode
-							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
-							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
-							.	"','" url
-							.	"','1'"
-							.	",'" api_get
-							.	"','" receiver.contactId.receiver
-							.	"','" receiver.contactId.partition
-							.	"','" id[3] "'),`n"
-	}
-
-	json_return := json( Dguard.Request( "http://vdm02:8081/api/servers", token_2 ) )
-		Loop,% json_return.servers.Count() {
-			ToolTip,% "-Armazenando os dados das câmeras do servidor 2 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
-			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
-			receiver := json( http( "http://vdm02:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_2, 1  ) )
-			json_camera := Dguard.Server( "vdm02" , _guid , token_2 )
-			ID			:=	StrSplit( json_camera.server.address , "." )
-			if ( receiver.contactId.receiver != "10001" )
-				api_get	:=	"http://conceitto:cjal2021@vdm02.cotrijal.local:85/camera.cgi?Receiver=" receiver.contactId.receiver "&server=" json_camera.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
-			Else
-				api_get =
-			dados_das_cameras_no_dguard.Push({	name		:	json_camera.server.name
-											,	guid		:	_guid
-											,	active		:	json_camera.server.active
-											,	connected	:	json_camera.server.connected
-											,	address		:	json_camera.server.address
-											,	port		:	json_camera.server.port
-											,	vendor		:	json_camera.server.vendorModelName
-											; ,	vendor		:	SubStr( json_camera.server.vendorModelName , 1 , InStr( json_camera.server.vendorModelName , " ")-1 )
-											,	contactid	:	json_camera.server.contactIdCode
-											,	setor		:	SubStr( json_camera.server.notes , 1 , 1 )
-											,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 )
-											,	url			:	StrReplace( json_camera.server.url , "/" )
-											,	receiver	:	receiver.contactId.receiver
-											,	partition	:	receiver.contactId.partition
-											,	id			:	id
-											,	server		:	"2"
-											,	api			:	api_get	})
-			active		:=	json_camera.server.active = "true"
-													? "1"
-													: "0"
-			connected	:=	json_camera.server.connected = "true"
-														 ? "1"
-														 : "0"
-			url			:=	StrLen( json_camera.server.url )	= 0
-																? "http://" json_camera.server.address ":80"
-																: json_camera.server.url
-			output		.=	"(	'" json_camera.server.name
-							.	"','" StrReplace( StrReplace( json_camera.server.guid, "{") , "}" )
-							.	"','" active
-							.	"','" connected
-							.	"','" json_camera.server.address
-							.	"','" json_camera.server.port
-							.	"','" json_camera.server.vendorModelName
-							.	"','" json_camera.server.contactIdCode
-							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
-							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
-							.	"','" url
-							.	"','2'"
-							.	",'" api_get
-							.	"','" receiver.contactId.receiver
-							.	"','" receiver.contactId.partition
-							.	"','" id[3] "'),`n"
-	}
-
-	json_return := json( Dguard.Request( "http://vdm03:8081/api/servers", token_3 ) )
-		Loop,% json_return.servers.Count() {
-			ToolTip,% "-Armazenando os dados das câmeras do servidor 3 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
-			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
-			receiver := json( http( "http://vdm03:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_3, 1  ) )
-			json_camera := Dguard.Server( "vdm03" , _guid , token_3 )
-			ID			:=	StrSplit( json_camera.server.address , "." )
-			if ( receiver.contactId.receiver != "10001" )
-				api_get	:=	"http://conceitto:cjal2021@vdm03.cotrijal.local:85/camera.cgi?Receiver=" receiver.contactId.receiver "&server=" json_camera.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
-			Else
-				api_get =
-			dados_das_cameras_no_dguard.Push({	name		:	json_camera.server.name
-											,	guid		:	_guid
-											,	active		:	json_camera.server.active
-											,	connected	:	json_camera.server.connected
-											,	address		:	json_camera.server.address
-											,	port		:	json_camera.server.port
-											,	vendor		:	json_camera.server.vendorModelName
-											; ,	vendor		:	SubStr( json_camera.server.vendorModelName , 1 , InStr( json_camera.server.vendorModelName , " ")-1 )
-											,	contactid	:	json_camera.server.contactIdCode
-											,	setor		:	SubStr( json_camera.server.notes , 1 , 1 )
-											,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 )
-											,	url			:	StrReplace( json_camera.server.url , "/" )
-											,	receiver	:	receiver.contactId.receiver
-											,	partition	:	receiver.contactId.partition
-											,	id			:	id
-											,	server		:	"3"
-											,	api			:	api_get	})
-			active		:=	json_camera.server.active = "true"
-													? "1"
-													: "0"
-			connected	:=	json_camera.server.connected = "true"
-														 ? "1"
-														 : "0"
-			url			:=	StrLen( json_camera.server.url )	= 0
-																? "http://" json_camera.server.address ":80"
-																: json_camera.server.url
-			output		.=	"(	'" json_camera.server.name
-							.	"','" StrReplace( StrReplace( json_camera.server.guid, "{") , "}" )
-							.	"','" active
-							.	"','" connected
-							.	"','" json_camera.server.address
-							.	"','" json_camera.server.port
-							.	"','" json_camera.server.vendorModelName
-							.	"','" json_camera.server.contactIdCode
-							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
-							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
-							.	"','" url
-							.	"','3'"
-							.	",'" api_get
-							.	"','" receiver.contactId.receiver
-							.	"','" receiver.contactId.partition
-							.	"','" id[3] "'),`n"
-	}
-
-	json_return := json( Dguard.Request( "http://vdm04:8081/api/servers", token_4 ) )
-		ToolTip,% "-Armazenando os dados das câmeras do servidor 4 do dguard em array." , 50 , 100
-		Loop,% json_return.servers.Count() {
-			ToolTip,% "-Armazenando os dados das câmeras do servidor 4 do dguard em array.`nDados restantes = " json_return.servers.Count()-A_Index "`nTotal de câmeras = " dados_das_cameras_no_dguard.Count() , 50 , 100
-			_guid := StrReplace( StrReplace( json_return.servers[A_Index].guid , "{") , "}" )
-			receiver := json( http( "http://vdm04:8081/api/servers/%7B" _guid "%7D/contact-id" , "Bearer " token_4, 1  ) )
-			json_camera := Dguard.Server( "vdm04" , _guid , token_4 )
-			ID			:= StrSplit( json_camera.server.address , "." )
-			if ( receiver.contactId.receiver != "10001" )
-				api_get	:=	"http://conceitto:cjal2021@vdm04.cotrijal.local:85/camera.cgi?Receiver=" receiver.contactId.receiver "&server=" json_camera.server.contactIdCode "&camera=0&resolucao=640x480&qualidade=100"
-			Else
-				api_get = 
-			dados_das_cameras_no_dguard.Push({	name		:	json_camera.server.name
-											,	guid		:	_guid
-											,	active		:	json_camera.server.active
-											,	connected	:	json_camera.server.connected
-											,	address		:	json_camera.server.address
-											,	port		:	json_camera.server.port
-											,	vendor		:	json_camera.server.vendorModelName
-											; ,	vendor		:	SubStr( json_camera.server.vendorModelName , 1 , InStr( json_camera.server.vendorModelName , " ")-1 )
-											,	contactid	:	json_camera.server.contactIdCode
-											,	setor		:	SubStr( json_camera.server.notes , 1 , 1 )
-											,	sinistro	:	SubStr( json_camera.server.notes , 2 , 1 )
-											,	url			:	StrReplace( json_camera.server.url , "/" )
-											,	receiver	:	receiver.contactId.receiver
-											,	partition	:	receiver.contactId.partition
-											,	id			:	id
-											,	server		:	"4"
-											,	api			:	api_get	})
-			active		:=	json_camera.server.active = "true"
-													? "1"
-													: "0"
-			connected	:=	json_camera.server.connected = "true"
-														 ? "1"
-														 : "0"
-			url			:=	StrLen( json_camera.server.url )	= 0
-																? "http://" json_camera.server.address ":80"
-																: json_camera.server.url
-			if ( A_Index  =  json_return.servers.Count() )
-				output	.=	"(	'" json_camera.server.name
-							.	"','" StrReplace( StrReplace( json_camera.server.guid, "{") , "}" )
-							.	"','" active
-							.	"','" connected
-							.	"','" json_camera.server.address
-							.	"','" json_camera.server.port
-							.	"','" json_camera.server.vendorModelName
-							.	"','" json_camera.server.contactIdCode
-							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
-							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
-							.	"','" url
-							.	"','4'"
-							.	",'" api_get
-							.	"','" receiver.contactId.receiver
-							.	"','" receiver.contactId.partition
-							.	"','" id[3] "')"
-			Else
-				output	.=	"(	'" json_camera.server.name
-							.	"','" StrReplace( StrReplace( json_camera.server.guid, "{") , "}" )
-							.	"','" active
-							.	"','" connected
-							.	"','" json_camera.server.address
-							.	"','" json_camera.server.port
-							.	"','" json_camera.server.vendorModelName
-							.	"','" json_camera.server.contactIdCode
-							.	",'"  SubStr( json_camera.server.notes , 1 , 1 )
-							.	"','" SubStr( json_camera.server.notes , 2 , 1 )
-							.	"','" url
-							.	"','4'"
-							.	",'" api_get
-							.	"','" receiver.contactId.receiver
-							.	"','" receiver.contactId.partition
-							.	"','" id[3] "'),`n"
-	}
-;
-
-;	Popula a tabela sql com as informações
-	ToolTip, Populando o Banco de Dados , 50 , 100
-	; d =
-		; (
-			; DELETE FROM
-				; [Dguard].[dbo].[cameras];
-			; DBCC CHECKIDENT ('[Dguard].[dbo].[cameras]', RESEED, 0);
-		; )
-		; sql( d , 3 )
-	i =
-		(
-		INSERT INTO
-			[Dguard].[dbo].[cameras]
-				([name]
-				,[guid]
-				,[active]
-				,[connected]
-				,[ip]
-				,[port]
-				,[vendormodel]
-				,[contactId]
-				,[operador]
-				,[sinistro]
-				,[url]
-				,[server]
-				,[api_get]
-				,[receiver]
-				,[partition]
-				,[id]	)
-			VALUES
-				%output%
-		)
-	;
-
-	sql( i , 3 )
-	if ( StrLen( sql_le ) > 2 )	{
-		Clipboard:=sql_lq
-		MsgBox % sql_le
-	}
-	Else	{
-		decorrido := A_Now - inicio
-		ToolTip, % "Dados Atualizados.`nTempo decorrido = " formatseconds( decorrido ) , 50 , 100
-		outputdebug, % "Dados Atualizados.`nTempo decorrido = " formatseconds( decorrido ) , 50 , 100
-	}
-;	ToolTip, Iniciando 
-
-;	SRV01	-	Get Receptoras
-	receptoras := json( http( "http://vdm01:8081/api/contact-id/receivers" , "Bearer " token_1, 1 ) )
-	Loop,% receptoras.receivers.Count()
-		receiversx.push({ code : receptoras.receivers[A_index].code , server : "1" })
-	OutputDebug % "receptoras srv01 inseridas no array com sucesso."
-;
-
-;	SRV02	-	Get Receptoras
-	receptoras := json( http( "http://vdm02:8081/api/contact-id/receivers" , "Bearer " token_2, 1 ) )
-	Loop,% receptoras.receivers.Count()
-		receiversx.push({ code : receptoras.receivers[A_index].code , server : "2" })
-	OutputDebug % "receptoras srv02 inseridas no array com sucesso."
-;
-
-;	SRV03	-	Get Receptoras
-	receptoras := json( http( "http://vdm03:8081/api/contact-id/receivers" , "Bearer " token_3, 1 ) )
-	Loop,% receptoras.receivers.Count()
-		receiversx.push({ code : receptoras.receivers[A_index].code , server : "3" })
-	OutputDebug % "receptoras srv03 inseridas no array com sucesso."
-;
-
-;	SRV04	-	Get Receptoras
-	receptoras := json( http( "http://vdm04:8081/api/contact-id/receivers" , "Bearer " token_4, 1 ) )
-	Loop,% receptoras.receivers.Count()
-		receiversx.push({ code : receptoras.receivers[A_index].code , server : "4" })
-	OutputDebug % "receptoras srv04 inseridas no array com sucesso."
-;
-
-ToolTip
-
 
 ;	Interface
 	OutputDebug % "Iniciando construção da interface."
 	Gui.Cores()
-	Gui.Font( "S10" , "Bold" )
-	Gui, Add, Edit,		x10		y10		w300	h30		v_busca		g_filtro	Section
-	Gui.Font( "cWhite" )
-	Gui, Add, Checkbox,			ys		w300	h30		v_definidos	g_filtro			, Exibir apenas câmeras já configuradas
-	Gui.Font( )
-	Gui.Font( "S10" , "Bold" )
-	Gui, Add, ListView,	x10		y50		w615	h700	v_listview				Grid	, Nome|Ip|Receptora|Conta|guid|id|Servidor|api
-		LV_ModifyCol( 1 , 175 )
+		Gui.Font( "S10" , "Bold" )
+	Gui, +DPIScale
+	Gui, Add, Edit,		x10		y10	w300					h30		v_busca					Section
+		Gui.Font( "cWhite" )
+	Gui, Add, Checkbox,	xs									h30		v_definidos	g_filtro	Section	, Exibir apenas câmeras já configuradas
+	Gui, Add, Checkbox,			ys							h30		v_run					Checked	, Abrir imagem no navegador ao gerar link
+		Gui.Font( )
+		Gui.Font( "S10" , "Bold" )
+	Gui, Add, ListView,%	"xs		w" A_ScreenWidth-20 "	h" A_ScreenHeight-200 " v_listview	Grid", Nome|Ip|Receptora|Conta|guid|id|Servidor|api|Marcae
+		LV_ModifyCol( 1 , 300 )
 		LV_ModifyCol( 2 , 100 )
 		LV_ModifyCol( 3 , 100 " integer" )
 		LV_ModifyCol( 4 , 100 " integer" )
@@ -386,13 +43,30 @@ ToolTip
 		LV_ModifyCol( 6 , 0 )
 		LV_ModifyCol( 7 , 75 )
 		LV_ModifyCol( 8 , 0 )
+		LV_ModifyCol( 9 , 0 )
 		Gosub, preenche_listview
-	Gui, Add, Button,	xm				w300	h30					g_copyUrl	Section	, Copiar URL
-	Gui, Add, Button,			ys		w300	h30		gGuiClose						, Cancelar
+	Gui, Add, Button,	xm			w400					h30					g_copyUrl	Section	, Copiar URL
+	Gui, Add, Button,			ys	w400					h30		gGuiClose						, Cancelar
 	Gui, Show, x0 y0, Cadastro de Câmeras
 return
 
+Enter::
+	NumpadEnter:
+	_filtro:
+	Gui, Submit, NoHide
+		OutputDebug % "filtro de unidade = " _definidos
+	GuiControl, Disable, _busca
+	GuiControl, Disable, _definidos
+	GuiControl, Disable, _listview
+	if ( _definidos = 1 )
+		definidos = AND [receiver] != 10001
+	Else 
+		definidos =
+	LV_Delete()
+Goto, preenche_listview
+
 preenche_listview:
+	Gui, Submit, NoHide
 	s =
 		(
 		SELECT	[name]
@@ -403,52 +77,44 @@ preenche_listview:
 			,	[id]
 			,	[server]
 			,	[api_get]
+			,	[vendormodel]
 		FROM
 			[Dguard].[dbo].[cameras]
-			%where%
+		WHERE
+			([name] like '%_busca%`% [[] BAL ] Plat`%'
+		OR
+			[name] like '%_busca%`% [[] BAL ] Carga`%')
+		%definidos%
 		ORDER BY
 			[name]
 		)
 	servers	:=	sql( s , 3 )
-	Loop,%	servers.Count()-1	{
+	Loop,%	servers.Count()-1
 		LV_Add( ""
-			,	servers[A_Index+1,1]
-			,	servers[A_Index+1,2]
-			,	servers[A_Index+1,3]	= "10001"
+			,	servers[A_Index+1, 1]
+			,	servers[A_Index+1, 2]
+			,	servers[A_Index+1, 3]	= "10001"
 										? ""
-										: servers[A_Index+1,3]	= "10000"
-																? ""
-																: servers[A_Index+1,3]
-			,	servers[A_Index+1,4] = "0000"	? "" : servers[A_Index+1,4]
-			,	servers[A_Index+1,5]
-			,	servers[A_Index+1,6]
-			,	servers[A_Index+1,7]
-			,	servers[A_Index+1,8]	)
-	}
-	GuiControl, Enable, _definidos
-	GuiControl, Enable, _busca
-	GuiControl, Enable, _listview
-	GuiControl, Focus, _busca
+										: servers[A_Index+1, 3] = "10000"
+										? ""
+										: servers[A_Index+1, 3]
+			,	servers[A_Index+1, 4]	= "0000"
+										? ""
+										: servers[A_Index+1, 4]
+			,	servers[A_Index+1, 5]
+			,	servers[A_Index+1, 6]
+			,	servers[A_Index+1, 7]
+			,	servers[A_Index+1, 8]
+			,	servers[A_Index+1, 9]	)
+	GuiControl, Enable,	_definidos
+	GuiControl, Enable,	_busca
+	GuiControl, Enable,	_listview
+	GuiControl, Focus,	_busca
 	where =
 Return
 
-_filtro:
-	Gui, Submit, NoHide
-	search_delay()
-	Gui, Submit, NoHide
-		OutputDebug % "filtro de unidade = " _definidos
-	GuiControl, Disable, _busca
-	GuiControl, Disable, _definidos
-	GuiControl, Disable, _listview
-	if ( _definidos = 1 )
-		where = WHERE ( [name] like '`%%_busca%`%' OR [ip] like '`%%_busca%`%' ) AND [receiver] != 10001
-	Else
-		where = WHERE [name] like '`%%_busca%`%' OR [ip] like '`%%_busca%`%'
-	LV_Delete()
-Goto, preenche_listview
-
 ^c::
-_copyURL:
+	_copyURL:
 	OutputDebug % "Iniciando preparação ou cópia de URL"
 	Gui, Submit, NoHide
 	listview_line			:=	LV_GetNext()
@@ -460,10 +126,11 @@ _copyURL:
 	LV_GetText( id_unidade	,	LV_GetNext() , 6 )
 	LV_GetText( server		,	LV_GetNext() , 7 )
 	LV_GetText( api			,	LV_GetNext() , 8 )
-	receptora	:=	RegExReplace( receptora, "\D")
-	conta		:=	RegExReplace( conta, "\D")
-	id_unidade	:=	RegExReplace( id_unidade, "\D")
-	server		:=	RegExReplace( server, "\D")
+	LV_GetText( marca		,	LV_GetNext() , 9 )
+	receptora	:=	RegExReplace( receptora,	"\D")
+	conta		:=	RegExReplace( conta,		"\D")
+	id_unidade	:=	RegExReplace( id_unidade,	"\D")
+	server		:=	RegExReplace( server,		"\D")
 	if (receptora = "10001"
 	||	receptora = "" )
 		Gosub, Cadastra
@@ -471,20 +138,50 @@ _copyURL:
 		Clipboard := api
 	OutputDebug % "URL Copiada com sucesso"
 	OutputDebug % "Verificando ping`n`t" ping( ip ) "`n`t" ip
+	Clipboard	:= LTrim( RTrim( Clipboard ) )
 	ToolTip, URL copiada para o Clipboard com sucesso!
-	Clipboard := LTrim( RTrim( Clipboard ) )
 	if ( ping( ip ) = 0 )
 		MsgBox A câmera que você selecionou`, não respondeu ao teste de ping. Verificar se a mesma não está indisponível.
-	Else
-		Sleep, 3000
+	Else {
+		if _run
+			Run,% "microsoft-edge:" Clipboard
+		if	(	InStr( marca,	"Dahua" )
+		&&	(	InStr( nome,	" Carga" )
+		OR		InStr( nome,	" Plataforma" ) ) ) {
+			URL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=setConfig"
+			OVERLAY	:=	url	"&VideoWidget[0].ChannelTitle.PreviewBlend=false"
+						.	"&VideoWidget[0].ChannelTitle.EncodeBlend=false"
+						.	"&VideoWidget[0].TimeTitle.PreviewBlend=true"
+						.	"&VideoWidget[0].TimeTitle.EncodeBlend=true"
+			ENCODE	:=	url	"&Encode[0].MainFormat[0].Video.Compression=H.264"
+						.	"&Encode[0].MainFormat[0].Video.BitRate=512"
+						.	"&Encode[0].MainFormat[0].Video.BitRateControl=VBR"
+						.	"&Encode[0].MainFormat[0].Video.resolution=1280x720"
+						.	"&Encode[0].MainFormat[0].Video.FPS=12"
+						.	"&Encode[0].MainFormat[0].Video.GOP=24"
+						.	"&Encode[0].MainFormat[0].Video.Quality=6"
+			CODEC	:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=Encode[0].MainFormat[0].Video.Compression"
+			http( OVERLAY )
+			codec := StrRep( http( CODEC, , 1 ),, "table.Encode[0].MainFormat[0].Video.Compression=", "`n", "`r" )
+			OutputDebug, % codec
+			If	!InStr( codec, "264" ) {
+				MsgBox, , CODEC ERRADO, Câmera com codec %codec%`, a câmera será configurada para o codec H264 e reiniciada à seguir.
+				http( ENCODE )
+				http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=reboot" )
+			}
+		}
+	}
+	Sleep, 3000
 	ToolTip
 Return
 
 cadastra:
 	erro =
+	id_unidade := LTrim( RTrim( id_unidade ) )
 	s	=
 		(
-		SELECT TOP(1) [contactId]
+		SELECT	TOP(1)
+			[contactId]
 		FROM
 			[Dguard].[dbo].[cameras]
 		WHERE
@@ -496,129 +193,45 @@ cadastra:
 		new_contact := 1
 	Else
 		new_contact := contacts[2,1] + 1
-	
-	id_unidade := LTrim( RTrim( id_unidade ) )
+
+
 	OutputDebug % "New Contact-ID = " new_contact "`n" id_unidade
 	OutputDebug % "Iniciando cadastro"
-	if ( server = 1 )	{
-		OutputDebug % "Servidor = SRV01"
-		comando = "http://SERVIDOR:8081/api/servers/`%7B%guid%`%7D/contact-id" -H "accept: application/json" -H "Authorization: bearer %token_1%" -H "Content-Type: application/json" -d "{ \"receiver\": %id_unidade%, \"account\": \"%new_contact%\", \"partition\": \"00\"}"
-		if ( InStr( erro := dguard.curl( comando , "vdm01" , "PUT" ), "contactid" ) > 0 ) {		;	adiciona o novo receiver
-			OutputDebug % "Vinculado câmera à receptora sem erros."
-			Clipboard := new_api := "http://conceitto:cjal2021@vdm0" server ":85/camera.cgi?Receiver=" id_unidade "&server=" new_contact "&camera=0&resolucao=640x480&qualidade=100"
-			u	=
-				(
-				UPDATE [Dguard].[dbo].[cameras]
-				SET
-						[receiver]		= '%id_unidade%'
-					,[contactid]	= '%new_contact%'
-					,[api_get]		= '%new_api%'
-				WHERE
-					[guid]			= '%guid%'
-				)
-			sql( u , 3 )
-			LV_Delete(	listview_line )
-			LV_Insert(	listview_line , ""
-					,	nome
-					,	ip
-					,	id_unidade
-					,	new_contact
-					,	guid
-					,	id_unidade
-					,	server
-					,	new_api	)
-
-		}
-	}
-	Else if ( server = 2 )	{
-		OutputDebug % "Servidor = SRV02"
-		comando = "http://SERVIDOR:8081/api/servers/`%7B%guid%`%7D/contact-id" -H "accept: application/json" -H "Authorization: bearer %token_2%" -H "Content-Type: application/json" -d "{ \"receiver\": %id_unidade%, \"account\": \"%new_contact%\", \"partition\": \"00\"}"
-		if ( InStr( dguard.curl( comando , "vdm02" , "PUT" ), "contactid" ) > 0 ) {		;	adiciona o novo receiver
-			OutputDebug % "Vinculado câmera à receptora sem erros"
-			Clipboard := new_api := "http://conceitto:cjal2021@vdm0" server ":85/camera.cgi?Receiver=" id_unidade "&server=" new_contact "&camera=0&resolucao=640x480&qualidade=100"
-			u	=
-				(
-				UPDATE [Dguard].[dbo].[cameras]
-				SET
-						[receiver]		= '%id_unidade%'
-					,[contactid]	= '%new_contact%'
-					,[api_get]		= '%new_api%'
-				WHERE
-					[guid]			= '%guid%'
-				)
-			sql( u , 3 )
-			LV_Delete(	listview_line )
-			LV_Insert(	listview_line , ""
-					,	nome
-					,	ip
-					,	id_unidade
-					,	new_contact
-					,	guid
-					,	id_unidade
-					,	server
-					,	new_api	)
-
-		}
-	}
-	Else if	 ( server = 3 ){
-		OutputDebug % "Servidor = SRV03"
-		comando = "http://SERVIDOR:8081/api/servers/`%7B%guid%`%7D/contact-id" -H "accept: application/json" -H "Authorization: bearer %token_3%" -H "Content-Type: application/json" -d "{ \"receiver\": %id_unidade%, \"account\": \"%new_contact%\", \"partition\": \"00\"}"
-		if ( InStr( dguard.curl( comando , "vdm03" , "PUT" ), "contactid" ) > 0 ) {		;	adiciona o novo receiver
-			OutputDebug % "Vinculado câmera à receptora sem erros"
-			Clipboard := new_api := "http://conceitto:cjal2021@vdm0" server ":85/camera.cgi?Receiver=" id_unidade "&server=" new_contact "&camera=0&resolucao=640x480&qualidade=100"
-			u	=
-				(
-				UPDATE [Dguard].[dbo].[cameras]
-				SET
-						[receiver]		= '%id_unidade%'
-					,[contactid]	= '%new_contact%'
-					,[api_get]		= '%new_api%'
-				WHERE
-					[guid]			= '%guid%'
-				)
-			sql( u , 3 )
-			LV_Delete(	listview_line )
-			LV_Insert(	listview_line , ""
-					,	nome
-					,	ip
-					,	id_unidade
-					,	new_contact
-					,	guid
-					,	id_unidade
-					,	server
-					,	new_api	)
-
-		}
-	}
-	Else	{
-		OutputDebug % "Servidor = SRV04"
-		comando = "http://SERVIDOR:8081/api/servers/`%7B%guid%`%7D/contact-id" -H "accept: application/json" -H "Authorization: bearer %token_4%" -H "Content-Type: application/json" -d "{ \"receiver\": %id_unidade%, \"account\": \"%new_contact%\", \"partition\": \"00\"}"
-		if ( InStr( dguard.curl( comando , "vdm04" , "PUT" ), "contactid" ) > 0 ) {		;	adiciona o novo receiver
-			OutputDebug % "Vinculado câmera à receptora sem erros"
-			Clipboard := new_api := "http://conceitto:cjal2021@vdm0" server ":85/camera.cgi?Receiver=" id_unidade "&server=" new_contact "&camera=0&resolucao=640x480&qualidade=100"
-			u	=
-				(
-				UPDATE [Dguard].[dbo].[cameras]
-				SET
-					[receiver]		= '%id_unidade%'
-					,[contactid]	= '%new_contact%'
-					,[api_get]		= '%new_api%'
-				WHERE
-					[guid]			= '%guid%'
-				)
-			sql( u , 3 )
-			LV_Delete(	listview_line )
-			LV_Insert(	listview_line , ""
-					,	nome
-					,	ip
-					,	id_unidade
-					,	new_contact
-					,	guid
-					,	id_unidade
-					,	server
-					,	new_api	)
-
-		}
+	OutputDebug % "Adquirindo token"
+	token_new	:=	Dguard.token( "vdm0" server )
+	bar	:= "\"""
+	comando :=	"""http://SERVIDOR:8081/api/servers/%7B" guid "%7D/contact-id"
+			.	""" -H ""accept: application/json"
+			.	""" -H ""Authorization: bearer " token_new ""
+			.	""" -H ""Content-Type: application/json"
+			.	""" -d ""{"
+			.	bar "receiver"	bar ":" id_unidade ","
+			.	bar "account"	bar ":" bar new_contact bar ","
+			.	bar "partition"	bar ":" bar "00" bar "}"""
+	if ( InStr( erro := dguard.curl( comando , "vdm0" server , "PUT" ), "contactid" ) > 0 ) {		;	adiciona o novo receiver
+		OutputDebug % "Vinculado câmera à receptora sem erros."
+		Clipboard := new_api := "http://conceitto:cjal2021@vdm0" server ":85/camera.cgi?Receiver=" id_unidade "&server=" new_contact "&camera=0&resolucao=640x480&qualidade=100"
+		u	=
+			(
+			UPDATE [Dguard].[dbo].[cameras]
+			SET
+				 [receiver]	= '%id_unidade%'
+				,[contactid]= '%new_contact%'
+				,[api_get]	= '%new_api%'
+			WHERE
+				[guid]		= '%guid%'
+			)
+		sql( u , 3 )
+		LV_Delete(	listview_line )
+		LV_Insert(	listview_line , ""
+				,	nome
+				,	ip
+				,	id_unidade
+				,	new_contact
+				,	guid
+				,	id_unidade
+				,	server
+				,	new_api	)
 	}
 	OutputDebug % "Finalizado vinculação de câmera a receptora Existente"
 Return
