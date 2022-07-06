@@ -5,9 +5,6 @@ functions_ = 1
 
 Global sql_le, sql_lq
 
-; MsgBox	%	html_encode("O código % que você enviou é inválido.`n`nSolicite um código válido com seu gestor.")
-
-
 datetime( sql=0, date="", format="" )							{
 	sql	:= RegExReplace( sql, "[^\d]+" )
 	date:= RegExReplace( date, "[^\d]+" )
