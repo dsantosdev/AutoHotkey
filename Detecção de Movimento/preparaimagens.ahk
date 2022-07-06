@@ -1,7 +1,7 @@
 ﻿File_Version=0.3.0
 Save_To_Sql=1
-
-; 28-06-2022
+FileEncoding, UTF-8
+; 04-07-2022
 
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\pc.ico
 
@@ -238,14 +238,14 @@ pre_load_foscam:
 		)
 		s	:=	sql( s, 3 )
 		foscam := {}
-	IF ( s.Count() - 1 ) > 1
+	IF( ( s.Count()-1 ) > 1 )
 		Loop,%	s.Count()-1
 			foscam[s[A_Index+1,2]]	:=	s[A_Index+1,1]
 
 	Else
 		mail.new(	"dsantos@cotrijal.com.br"
-				,	"Falha Servidor de Detecções" Substr(datetime(), 1, 10 )
-				,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta" )
+				,	"Falha Servidor de Detecções - " Substr( datetime(), 1, 10 )
+				,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta`n`t`tPreparaImagens" )
 	Sleep, 4000
 Return
 
