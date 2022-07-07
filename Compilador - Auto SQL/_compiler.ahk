@@ -18,6 +18,7 @@ Keep_Versions=2
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\listview.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\res_hack.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
 	#Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
@@ -60,9 +61,10 @@ if !file_ahk
 	FileReadLine,	how_many_verions,%	file_ahk, 3
 	If !version
 		version 	=	0.1.0
-	version_in_file	:=	StrSplit( StrRep( version,, "File_Version=" ), "." )
-	save_to_sql		:=	StrRep( save_to_sql,, "Save_To_Sql=" )
-	how_many_verions:=	StrRep( how_many_verions,, "Keep_Versions=" )
+		
+	version_in_file	:=	StrSplit( StrRep( version,,	"File_Version=" ), "." )
+	save_to_sql		:=	StrRep( save_to_sql,,		"Save_To_Sql=" )
+	how_many_verions:=	StrRep( how_many_verions,,	"Keep_Versions=" )
 
 	v	=
 		(
@@ -72,22 +74,34 @@ if !file_ahk
 			ORDER BY	[pkid] DESC
 		)
 	version_sql	:=	sql( v, 3 )
+
 	sql_pkid	:=	version_sql[2, 2]
+
 	version_sql	:=	StrSplit( version_sql[2, 1], "." )
+
 	_new_version:=	[]
-	_new_version.Push( version_in_file[1] < version_sql[1] ? version_sql[1] : version_in_file[1] )
-	_new_version.Push( version_in_file[2] < version_sql[2] ? version_sql[2] : version_in_file[2] )
-	if	( version_in_file[2] < version_sql[2] )	;	Se houver nova funcionalidade, zera o parâmetro de patchs
+	_new_version.Push(	version_in_file[1] < version_sql[1]
+					?	version_sql[1]
+					:	version_in_file[1] )
+
+	_new_version.Push(	version_in_file[2] < version_sql[2]
+					?	version_sql[2]
+					:	version_in_file[2] )
+
+	if(	version_in_file[2] > version_sql[2]
+	||	version_in_file[1] > version_sql[1] )	;	Se houver nova funcionalidade, zera o parâmetro de patchs
 		_new_version.Push( "0" )
 	Else
-		_new_version.Push( version_sql[3] = "" ? version_in_file[3] : version_sql[3]+1 )	;	Do contrário, incrementa novo patch
+		_new_version.Push(	version_sql[3] = ""
+						?	version_in_file[3] : version_sql[3]+1 )	;	Do contrário, incrementa novo patch
 	_new_version := _new_version[1] "."  _new_version[2] "."  _new_version[3]
 ;
+res_hack._Set_Version( _new_version )
 
 ;	CMD
 	ahk2exe	=	"C:\Users\dsantos\AppData\Local\Temp\AutoHotkey\Compiler\Ahk2Exe.exe"
-	in		=	/in "%file_ahk%"
-	out		=	/out "%file_exe%"
+	in	=	/in		"%file_ahk%"
+	out	=	/out	"%file_exe%"
 	; log	= 	>> "C:\users\dsantos\desktop\execuátveis\Compile_AHK.log"	;	se quiser gerar arquivo de log
 ;
 
@@ -135,5 +149,8 @@ if !file_ahk
 		FileMove,  C:\Users\dsantos\Desktop\Executáveis\%file_name%.exe,  C:\Users\dsantos\Desktop\Executáveis\%file_name% %A_YYYY%_%A_MM%_%A_DD%  %A_Hour%-%A_Min%-%A_Sec%.exe
 		FileMove,% file_exe, C:\Users\dsantos\Desktop\Executáveis\%file_name%.exe, 1
 	}
+	FileDelete, C:\Users\dsantos\AppData\Local\Temp\AutoHotkey\Compiler\AutoHotkeySC.bin
+	FileCopy,	C:\Program Files\AutoHotkey\Compiler, C:\Users\dsantos\AppData\Local\Temp\AutoHotkey\Compiler\AutoHotkeySC.bin
 ;
 ExitApp
+
