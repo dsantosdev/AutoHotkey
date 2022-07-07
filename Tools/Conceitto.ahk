@@ -19,7 +19,7 @@ Keep_Versions=2
 ;
 
 ;	Definições
-	global	debug						 = 
+	global	debug	 = 
 	Coordmode, ToolTip, Screen
 ;
 
