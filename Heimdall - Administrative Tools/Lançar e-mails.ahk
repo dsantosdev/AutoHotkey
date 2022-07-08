@@ -1,21 +1,6 @@
-﻿/*
- * * * Compile_AHK SETTINGS BEGIN * * *
-
-[AHK2EXE]
-Exe_File=C:\users\dsantos\desktop\executáveis\agenda.exe
-Created_Date=1
-Run_After="C:\Users\dsantos\Desktop\Executáveis\AHK2BD.exe"
-[VERSION]
-Set_Version_Info=1
-Company_Name=Heimdall
-Inc_File_Version=1
-Legal_Copyright=WTFL
-Product_Version=1.1.33.2
-Set_AHK_Version=1
-
-* * * Compile_AHK SETTINGS END * * *
-*/
-
+﻿File_Version=0.4.0
+Save_To_Sql=1
+Keep_Versions=2
 ;@Ahk2Exe-SetMainIcon	C:\AHK\icones\_gray\2mail.ico
 
 /*
@@ -54,16 +39,16 @@ Set_AHK_Version=1
 
 ;	Includes
 	#Persistent
-	; #Include ..\class\array.ahk
-	; #Include ..\class\cor.ahk
-	; #Include ..\class\dguard.ahk
-	#Include ..\class\functions.ahk
-	#Include ..\class\gui.ahk
-	; #Include ..\class\mail.ahk
-	; #Include ..\class\safe_data.ahk
-	; #Include ..\class\string.ahk
-	#Include ..\class\sql.ahk
-	#Include ..\class\windows.ahk
+	; #Include  C:\Users\dsantos\Desktop\AutoHotkey\class\array.ahk
+	; #Include  C:\Users\dsantos\Desktop\AutoHotkey\class\cor.ahk
+	; #Include  C:\Users\dsantos\Desktop\AutoHotkey\class\dguard.ahk
+	#Include  C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+	#Include  C:\Users\dsantos\Desktop\AutoHotkey\class\gui.ahk
+	; #Include  C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
+	; #Include  C:\Users\dsantos\Desktop\AutoHotkey\class\safe_data.ahk
+	; #Include  C:\Users\dsantos\Desktop\AutoHotkey\class\string.ahk
+	#Include  C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
+	#Include  C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
 ;	Variáveis e Arrays
@@ -85,8 +70,8 @@ Set_AHK_Version=1
 
 ;	Bloco de login
 	;	Necessita de:
-		;	#Include ..\class\functions.ahk
-		;	#Include ..\class\windows.ahk
+		;	#Include  C:\Users\dsantos\Desktop\AutoHotkey\class\functions.ahk
+		;	#Include  C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 	Login:
 		gui.Cores( "login" , "9BACC0" , "374658" )
 			Gui.Font( "login:" , "Bold" , "S10" , "cWhite" )
@@ -437,12 +422,13 @@ _add:
 			_text := StrReplace( _text , "'" , "’" )
 		if ( StrLen( user ) = 0 )
 			user := A_IPAddress1
+		_text := _text "`n`n`tE-Mail Adicionado:`n`t`t" datetime()
 		quantos_dias := _multidate = 1 ? multidatas.Count()+1 : 1
 		MsgBox,	0x1, Confirmar inserção de E-Mail,%	"`tConfirma adicionar os seguintes dados no sistema?"
 			.	"`n`nOperador:	"				op
 			.	"`nMensagem:`n---------`n`t"	_text "`n---------"
 			.	"`nInserido por:`t"				user
-			.	"`nInserido em:	"				agora
+			.	"`nInserido em:	"				datetime()
 			.	"`nCliente:`t`t"				cli
 			.	"`nAgendado para`t"				quantos_dias "`tdia(s)."
 			.	"`nAgendado para:`n`t"			dataagendado_
