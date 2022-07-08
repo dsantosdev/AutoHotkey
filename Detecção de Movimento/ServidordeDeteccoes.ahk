@@ -1,5 +1,6 @@
 File_Version=0.3.0
 Save_to_Sql=1
+FileEncoding, UTF-8
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\_gray\2motion.ico
 /*
 	BD = MotionDetection

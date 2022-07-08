@@ -6,8 +6,9 @@ FileEncoding, UTF-8
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\pc.ico
 
 ;	Includes
+
 	#Include md_libs.ahk
-	OnMessage(0x004A, "wm_read")
+	OnMessage( 0x004A, "wm_read" )
 	version := sql_version()
 	Menu, Tray, Tip ,% "Versão atual do Preparador de Imagens: " version[1] "`nCompilação: " version[2]
 ;
@@ -238,14 +239,17 @@ pre_load_foscam:
 		)
 		s	:=	sql( s, 3 )
 		foscam := {}
-	IF( ( s.Count()-1 ) > 1 )
+	If( ( s.Count()-1 ) >= 1 ) {
 		Loop,%	s.Count()-1
 			foscam[s[A_Index+1,2]]	:=	s[A_Index+1,1]
-
-	Else
+		OutputDebug, % "Entrou"
+	}
+	Else {
 		mail.new(	"dsantos@cotrijal.com.br"
 				,	"Falha Servidor de Detecções - " Substr( datetime(), 1, 10 )
 				,	"Busca SQL não retornou nenhuma câmera para montar o array de consulta`n`t`tPreparaImagens" )
+		OutputDebug, % "E-mail"
+	}
 	Sleep, 4000
 Return
 
