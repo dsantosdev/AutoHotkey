@@ -7,14 +7,13 @@ Global	inc_functions = 1
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\mail.ahk
 #Include C:\Users\dsantos\Desktop\AutoHotkey\class\sql.ahk
 
-; auto_update( software, version, script_dir, full_path ) {	;	Auto update do sistema via versão nova na base de dados
-auto_update( version, software="" ) {	;	NECESSITA TESTE - Auto update do sistema via versão nova na base de dados	
-	if Software
-		if InStr( software, ".exe" )
-			software := SubStr( software, 1, -4 )
-	Else
-		software := SubStr( A_ScriptName, 1, -4 )
 
+auto_update() {
+	global	skip_update
+	if	skip_update
+		Return
+
+	software := SubStr( A_ScriptName, 1, -4 )
 	s =
 		(
 			SELECT	TOP(1)
@@ -26,23 +25,20 @@ auto_update( version, software="" ) {	;	NECESSITA TESTE - Auto update do sistema
 			WHERE
 				[name] = '%software%'
 			ORDER BY
-				1
+				[PKID]
 			DESC 
 		)
 	sql	:=	sql( s, 3 )
 	if ( sql.count()-1 = 0 )
 		Return "Sem atualização disponível."
 
-	version_sql := StrSplit( sql[ 2, 3 ], "." )
-	version_file:= StrSplit( version, "." )
+	FileGetVersion, Version_File,% A_ScriptFullPath
+	version_sql := StrSplit( sql[2, 3], "." )
+	Version_File:= StrSplit( SubStr( Version_File, InStr( Version_File, "." )+1 ), "." )
 
 	Loop, 3	{ ;	Compara versão do executável com a base de dados
-		if (A_Index = 3)
-			sql_version := version_sql[A_Index]-1
-		Else
-			sql_version := version_sql[A_Index]
-		; OutputDebug % sql_version " " version_file[A_Index]
-		if ( sql_version > version_file[A_Index] )	{	;	se qualquer um dos campos de versão na base de dados for maior, atualiza
+	
+		if ( version_sql[A_Index] > version_file[A_Index] )	{	;	se qualquer um dos campos de versão na base de dados for maior, atualiza
 			MsgBox, 4, Atualização Disponível,% "Atualização disponível, gostaria de atualizar?"
 				IfMsgBox No
 				{
@@ -51,38 +47,45 @@ auto_update( version, software="" ) {	;	NECESSITA TESTE - Auto update do sistema
 				}
 			base64.FileDec( sql[ 2, 2 ], A_ScriptDir "\" software "_new.exe" )
 			Loop	{
-				Sleep, 1000
+				Sleep, 500
 				If fileExist( A_ScriptDir "\" software "_new.exe" )	;	se criou o novo executável, sai do loop para atualizar
 					Break
-				Else If ( A_Index > 25 ) {	;	se não criou o executável após 25 segundos, retorna falha e interrompe a atualização
+				Else If ( A_Index > 20 ) {	;	se não criou o executável após 25 segundos, retorna falha e interrompe a atualização
 					fail = 1
 					mail.new(	"dsantos@cotrijal.com.br"
 						.	,	"Falha ao atualizar o software " software
-						.	,	"Falha ao atualizar o software " software " na máquina " A_IPAddress1 ", usuário logado " A_UserName " em " datetime() )
+						.	,	"Falha ao atualizar o software " software " na máquina " A_IPAddress1 ", usuário logado " A_UserName " em " datetime() ", para a versão " sql[2, 3] )
 					Break
 				}
 			}
-			if	Skip
-				Return "Skip"
 			if	Fail	;	se não criou executável, retorna mensagem de falha 
 				Return "Falha ao criar o executável."
 			;	bloco de update
-			update_software	:=	"ToolTip, Atualizando " software	;	prepara var para execução de script de atualização assíncrono para excluir o executável antigo
-						.	"`nSleep, 2000"
-						.	"`nFileMove	,"	;	Renomeia o executável antigo
-										.	A_ScriptFullPath
-										.	"," SubStr( A_ScriptFullPath, 1 , -4 ) "_old.exe, 1`nsleep 1000"
-						.	"`nFileMove	,"	;	prepara o arquivo atualizado para executar
-										.	SubStr( A_ScriptFullPath, 1 , -4 ) "_new.exe,"
-										.	A_ScriptFullPath ", 1`nsleep 1000"
-
-						.	"`nFileDelete,"	SubStr( A_ScriptFullPath, 1 , -4 ) "_old.exe`nsleep 1000"	;	deleta o executável antigo
-						.	"`nRun, "		A_ScriptFullPath	;	executa o novo executável
-						.	"`nExitapp"	;	sai do script de update
+			update_software	:=	"ToolTip, Atualizando " software " para versão " sql[2, 3]	;	prepara var para execução de script de atualização assíncrono para excluir o executável antigo 
+							.	"`nSleep, 2000"
+							.	"`nFileDelete	,"	A_ScriptFullPath "`nsleep 1000"
+							.	"`nFileMove	,"	;	prepara o arquivo atualizado para executar
+											.	SubStr( A_ScriptFullPath, 1 , -4 ) "_new.exe,"
+											.	A_ScriptFullPath ", 1`nsleep 1000"			
+							.	"`nLoop	{"
+							.	"`n Sleep, 500"
+							.	"`n	If fileExist( """ A_ScriptDir "\" software "_new.exe"" )"
+							.	"`n		Break"
+							.	"`n	Else If ( A_Index > 20 ) {"
+							.	"`n;		fail = 1"
+							.	"`n;		mail.new(	""dsantos@cotrijal.com.br"""
+							.	"`n;			.	,	""Falha ao atualizar o software " software
+							.	"`n;			.	,	""Falha ao atualizar o software " software " na máquina " A_IPAddress1 ", usuário logado " A_UserName ", para a versão " sql[2, 3] ")"
+							.	"`n		Exitapp"
+							.	"`n	}"
+							.	"`n}"
+							.	"`nRun, "		A_ScriptFullPath	;	executa o novo executável
+							.	"`nExitapp"	;	sai do script de update
 			new_instance( update_software )	;	executa a atualização assíncrona
 			ExitApp
 		}
 	}
+	Return "Atualizado"
 }
 
 chrome_history() {	;	Bloqueia a exclusao de historico
@@ -807,7 +810,6 @@ update( comando = "" ) {
 		return 0
 	return sql_le
 }
-
 
 wm_read(wParam, lParam)	{
     StringAddress := NumGet(lParam + 2*A_PtrSize)	; Retrieves the CopyDataStruct's lpData member.

@@ -58,13 +58,14 @@ if !file_ahk
 ;	Version
 	FileReadLine,	version,%			file_ahk, 1
 	FileReadLine,	save_to_sql,%		file_ahk, 2
-	FileReadLine,	how_many_verions,%	file_ahk, 3
+	FileReadLine,	how_many_versions,%	file_ahk, 3
+	
 	If !version
 		version 	=	0.1.0
 		
 	version_in_file	:=	StrSplit( StrRep( version,,	"File_Version=" ), "." )
 	save_to_sql		:=	StrRep( save_to_sql,,		"Save_To_Sql=" )
-	how_many_verions:=	StrRep( how_many_verions,,	"Keep_Versions=" )
+	how_many_versions:=	StrRep( how_many_versions,,	"Keep_Versions=" )
 
 	v	=
 		(
@@ -112,7 +113,7 @@ res_hack._Set_Version( _new_version )
 
 	If (A_Now - time < 300
 	&&	save_to_sql	=	1	)	{	;	se o arquivo novo foi criado a menos de 5 minutos
-		If( version_sql.Count() > how_many_verions
+		If( version_sql.Count() > how_many_versions
 		&&	version_sql.Count() > 1 ) {
 			how_many_versions--
 			d =

@@ -1,7 +1,9 @@
-File_Version=0.6.0
+File_Version=0.6.2
 Save_to_SQL=1
 Keep_Versions=1
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\telegram.ico
+
+FileEncoding, UTF-8
 
 #Include	%A_ScriptDir%\configs.ahk
 	OutputDebug % "config carregado"
@@ -284,7 +286,7 @@ Return
 				FROM
 					[Dguard].[dbo].[cameras]
 				WHERE
-					%param_where% LIKE '%cam_name%`%'
+					%param_where% LIKE '`%%cam_name%`%'
 				ORDER BY
 					1
 			)
@@ -297,7 +299,7 @@ Return
 			guid		:=	cameras[2,2]
 			dguard_token:=	dguard_token( cameras[2,3], "admin", "admin" )
 			imagem		:=	dguard_get_image( guid, cameras[2,3], dguard_token )
-			SendImage( imagem, html_encode( cameras[2,1] ) "%0A%0A" datetime() )
+			SendImage( imagem,  cameras[2,1] "%0A%0A" datetime() )
 			; SendImage( imagem, html_encode( cameras[2,1] ) "%0A%0A" datetime(), "reply_to_message_id=" pic_message_id )
 			FileDelete,% imagem
 		}
@@ -322,7 +324,70 @@ Return
 	}
 
 	info() {
+		OutputDebug % "Executando info(" mtext ")`n`t" A_LineNumber
+		info		:=	StrReplace( mtext, "info " )
+		if	inline	{
+			param_where	 =	[guid]
+			info		:=	StrReplace( mtext, "info " )
+			inline		 =
+		}
 
+		s =
+			(
+				SELECT	 [nome]
+						,[matricula]
+						,[usuario]
+						,[cargo]
+						,[email]
+						,[telefone1]
+						,[telefone2]
+						,[ramal]
+						,[sexo]
+						,[c_custo]
+						,[setor]
+						,[local]
+						,[situacao]
+						,[admissao]
+				FROM
+					[ASM].[dbo].[_colaboradores] 
+				WHERE
+					[nome]		LIKE	'`%%info%`%'
+				OR	[matricula]	LIKE	'`%%info%`%'
+				OR	[usuario]	LIKE	'`%%info%`%'
+				OR	[cargo]		LIKE	'`%%info%`%'
+				OR	[telefone1]	LIKE	'`%%info%`%'
+				OR	[telefone2]	LIKE	'`%%info%`%'
+				OR	[ramal]		LIKE	'`%%info%`%'
+				OR	[c_custo]	LIKE	'`%%info%`%'
+				OR	[setor]		LIKE	'`%%info%`%'
+				OR	[local]		LIKE	'`%%info%`%'
+			)
+			Clipboard := s
+		dados := sql( s, 3 )
+		if ( dados.Count()-1 = 0 )	{
+			mensagem := html_encode("Nenhum colaborador com " info " nas informações e/ou nome encontrado, verifique a informação e solicite novamente!")
+			SendText( mensagem )
+		}
+		Else if	 ( dados.Count()-1 = 1 )	{
+			mensagem:=	"Nome: "				dados[2,1]
+					.	"%0AMatricula: "		dados[2,2]
+					.	"%0AUsuario: "			dados[2,3]
+					.	"%0ACargo: "			dados[2,4]
+					.	"%0AE-mail: "			dados[2,5]
+					.	"%0ATelefone: "			dados[2,6]
+					.	"%0ATelefone: "			dados[2,7]
+					.	"%0ARamal: "			dados[2,8]
+					.	"%0ASexo: "				dados[2,9]
+					.	"%0ACentro de Custo: "	dados[2,10]
+					.	"%0ASetor: "			dados[2,11]
+					.	"%0ALocal: "			dados[2,12]
+					.	"%0ASituacao: "			dados[2,13]
+					.	"%0AAdmissão: "			dados[2,14]
+			SendText( mensagem )
+		}
+		; Else									;	Várias câmeras
+			; Cam_list( cameras )
+		OutputDebug % "Finalizando info`n`t" A_LineNumber
 		Return
 	}
 
@@ -334,7 +399,7 @@ Return
 		cmd		:= param[1]
 		operator:= param[2]
 		Loop,% param.Count()-2
-			text .= param[A_Index+2] " "
+			text.= param[A_Index+2] " "
 		text	:= SubStr( text, 1, -1 )
 
 		s =
