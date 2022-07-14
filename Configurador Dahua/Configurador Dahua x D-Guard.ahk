@@ -28,6 +28,33 @@ Keep_Versions=2
 	is_cargo	= 1
 	dns			= 192.9.100.18
 	
+	cam_server:=[]
+	ToolTip, Carregando licenças do D-Guard
+	Loop, 4	{
+		l_index	:=	A_Index
+		s =
+			(
+				SELECT [name]
+				FROM [Dguard].[dbo].[cameras]
+				where server = %A_index%
+				and (	vendormodel like '`%dahua`%'
+				OR		vendormodel like '`%samsun`%'
+				OR		vendormodel like '`%hanw`%'
+				OR		vendormodel like '`%intel`%'
+				OR		vendormodel like '`%sony`%'
+				OR		vendormodel like '`%foscam`%'
+				OR		vendormodel is null)
+				order by vendormodel desc
+			)
+		s := sql( s, 3 )
+		dguard%A_Index% := json( dguard.licenses( "vdm0" l_index ) )
+		Loop,% dguard%l_index%.licenses.Count()
+			if( dguard%l_index%.licenses[A_index].name = "DGPIP4" )
+				cam_server[l_index] := dguard%l_index%.licenses[A_index].ipCameras - (s.Count()-1)
+		
+	}
+	ToolTip
+
 	operador := {}
 	s =
 		(
@@ -65,7 +92,7 @@ Keep_Versions=2
 	interface:
 		;	vars interface
 			Gui.Cores()
-			Loop, 6 {	;	r1 a r6 =rows | c1 a c6 = columns | w1 a w6 = widths
+			Loop, 7 {	;	r1 a r6 =rows | c1 a c6 = columns | w1 a w6 = widths
 				c%A_Index% := " x" A_index * 135 - 125 " center"
 				w%A_Index% := " w" A_index * 130 + ( A_index * 5 )
 				r%A_index% := " y" A_index * 25
@@ -76,7 +103,7 @@ Keep_Versions=2
 			cb	:=	" Checked"
 		;
 
-		Gui,	+AlwaysOnTop
+		; Gui,	+AlwaysOnTop
 		Gui,Add,CheckBox,%	r1	c1	w1		Gui.Font( "cWhite" , "Bold" )	"				vis_cargo				-Center"	,	Câmera Pesagem
 		Gui,Add,CheckBox,%	r1	c2	w1	cb										"			vcamera					-Center"	,	Configurar Câmera 
 		Gui,Add,CheckBox,%	r1	c3	w1	cb										"			vc_dguard				-Center"	,	Cadastro DGuard
@@ -95,11 +122,16 @@ Keep_Versions=2
 
 		Gui,Add,Custom,%	r5	c1	w1		Gui.Font()	"	ClassSysIPAddress32	R1			vip			hwndIPCtrl"
 		Gui,Add,Edit,%		r5	c2	w1					"									vcam_name"
-		Gui,Add,DDl,%		r5	c4	w1					" AltSubmit							vserver"							,	1|2|3|4||
+		Gui,Add,DDl,%		r5	c4	w1					" AltSubmit							vserver"							,	1||2|3|4
 		Gui,Add,DDl,%		r5	c3	w1					" 									vlocal"								,	Acerto|Administrativo|AFC|Atacado|Balança|CD Defensivos|CD Loja|CD Supermercado|Defensivos|Expodireto|Fertilizantes|Loja|Supermercado|Transportes|TRR|UBS
 
-		height	:= A_ScreenHeight- (StrReplace( r5, " y" )*2)
-		Gui,Add,Edit,%		r6	c1	w4	ro	Gui.Font( "cWhite" , "Bold" )	" h" height	"	voutput					-Center"	,	Output Debug...
+		Gui,Add,Text,%		r6	c1	w1	" 0x1000 h35"	Gui.Font( "cWhite" , "Bold" )											,%	"Licenças Servidor 1`n" cam_server[1]
+		Gui,Add,Text,%		r6	c2	w1	" 0x1000 h35"																			,%	"Licenças Servidor 2`n" cam_server[2]
+		Gui,Add,Text,%		r6	c3	w1	" 0x1000 h35"																			,%	"Licenças Servidor 3`n" cam_server[3]
+		Gui,Add,Text,%		r6	c4	w1	" 0x1000 h35"																			,%	"Licenças Servidor 4`n" cam_server[4]
+	
+		height	:= A_ScreenHeight- (StrReplace( r6, " y" )*2)
+		Gui,Add,Edit,%		r8	c1	w4	ro									" h" height	"	voutput					-Center"	,	Informações de execução...
 		
 		Gui,Add,Button,%	w4										" xm								gArray"					,	Configurar	;	Executa configuração
 		Gui,Show,%												" x-5	y0	  h" A_ScreenHeight-55								,	Dahua Config
@@ -113,15 +145,13 @@ Keep_Versions=2
 
 Array:
 	Gui.Submit()
-	debug	=
-
+	debug:=cam_model:=""
 	If ping( ip ) {
-		If	InStr( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=ChannelTitle[0].Name", , 1 ), "PTZ" )
+		If	InStr( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=getConfig&name=ChannelTitle[0].Name",, 1 ), "PTZ" )
 			is_ptz		=	1
 		Else
 			is_ptz		=	0
 		URL				:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/configManager.cgi?action=setConfig"
-		; CAM_MODEL		:=	"http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo"
 		cam_model		:=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 )
 		LANGUAGE		:=	url "&Language=English"
 		MACHINE_NAME	:=	url "&General.MachineName=" StrReplace( ip , "." , "_" )
@@ -232,24 +262,23 @@ Array:
 					:	A_Index	= 7		? http( command[A_index],,0 ) " ao " (is_cargo = 1 ? "desativar" : "ativar") " a exibição de texto sobre a imagem da câmera.`n"
 					:	A_Index	= 8		? http( command[A_index],,0 ) " ao configurar o DIRETÓRIO FTP(FTP/Motion).`n"
 					:	A_Index	= 9		? http( command[A_index],,0 ) " ao configurar o SERVIDOR FTP(172.22.0.20).`n"
-					; :	A_Index	= 10	? "Modelo de câmera " cam_model :=	SubStr( SubStr( retorno , InStr( retorno := http( "http://admin:tq8hSKWzy5A@10.2.78.59/cgi-bin/magicBox.cgi?action=getSystemInfo",,1 ), "deviceType=" )+11, 20 ), 1, InStr( retorno, "`n" )-3 ) "`n"
 					:	A_Index	= 10	? http( command[A_index],,0 ) " ao desabilitar a detecção de movimento simples.`n"
 					:	A_Index	= 11	? http( command[A_index],,0 ) " ao configurar nome de saída do arquivo em detecções de movimento.`n"
 					: ""
 			; OutputDebug % command[A_index]
-			GuiControl, , output,%  debug 
+			GuiControl, , output_info,%  debug 
 			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		}
 		if	do_reboot	{
 			do_reboot =
 			debug	.= http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=reboot" ) " ao enviar o comando para reiniciar.`n`n"
-			GuiControl, , output,% debug
+			GuiControl, , output_info,% debug
 			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		}
 		If ( c_dguard = 0) {
 			configurada .= "Câmera IP " ip " configurada.`n"
 			if	!keep_full {
-				GuiControl, , output,% configurada
+				GuiControl, , output_info,% configurada
 				SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 			}
 			Return
@@ -257,7 +286,7 @@ Array:
 	}
 	Else {
 		debug	.=	"Câmera não respondeu ao teste de ping, as configurações não foram efetuadas!!!"
-		GuiControl, , output,% debug
+		GuiControl, , output_info,% debug
 		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 	}
 
@@ -268,11 +297,13 @@ Array:
 			Return
 		}
 		debug .= "`n------------------------------------------`nIniciando cadastro de câmera no D-Guard`n------------------------------------------`nVerificando existência de câmera nos servidores...`n"
-		GuiControl, , output,% debug
+		GuiControl, , output_info,% debug
 		SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		vendor_guid	= {CA014F07-32AE-46B9-83A2-8A9B836E8120}
 		if ping( ip ) {
-			If	http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getDeviceClass") in ("SD","PTZ")
+			If( InStr( t_model := StrRep( http( "http://admin:tq8hSKWzy5A@" ip "/cgi-bin/magicBox.cgi?action=getDeviceClass" ,,1),,"class="), "PTZ" ) )
+				model_guid	= {3D8D1B92-130A-9C6A-423A-F714888A6807}
+			Else If InStr( t_model, "SD" )
 				model_guid	= {3D8D1B92-130A-9C6A-423A-F714888A6807}
 			Else
 				model_guid	= {5BA4689B-6DD0-2C27-C0F8-C6B514DC5533}
@@ -357,7 +388,7 @@ Array:
 				}
 				Else
 					debug .= "Sucesso`tToken de acesso resgatado"
-					GuiControl, , output,% debug
+					GuiControl, , output_info,% debug
 					SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		cam_place	:= StrRep( cam_name,, "|:\u007c" )
 		o_s			:= operador[ sigla ]
@@ -396,7 +427,7 @@ Array:
 				}
 				Else
 					debug .= "`nSucesso`tCâmera inserida e ativada no D-Guard"
-					GuiControl, , output,% debug
+					GuiControl, , output_info,% debug
 					SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 			
 			cam_guid:=	StrRep( cam_guid_for_group := cam_cad.server.guid,, "{:%7B", "}:%7D" )
@@ -419,7 +450,7 @@ Array:
 				}
 				Else
 					debug	.=	"`nSucesso`tDados para o sistema conceitto configurados"
-					GuiControl, , output,% debug
+					GuiControl, , output_info,% debug
 					SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 			
 		curl =  ;	Resgata GUID do grupo de usuário
@@ -454,7 +485,7 @@ Array:
 				}
 				Else
 					debug .= "`nSucesso`tCâmera liberada na coluna do operador " operator
-				GuiControl, , output,% debug
+				GuiControl, , output_info,% debug
 				SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 
 		curl =	;	Configuração de gravação de imagens
@@ -480,7 +511,7 @@ Array:
 				}
 				Else
 					debug .= "`nSucesso`tConfiguração de gravação efetuada`nSucesso`tConfiguração finalizada.`n"
-				GuiControl, , output,% debug
+				GuiControl, , output_info,% debug
 				SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 				debug =
 				GuiControl, Focus, ip
@@ -534,7 +565,7 @@ Array:
 		if !keep_full {
 			Sleep 3000
 			configurada .= "Câmera IP " ip_sql " configurada.`n"
-			GuiControl, , output,% configurada
+			GuiControl, , output_info,% configurada
 			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		}
 		; Deleta câmera, para refazer se for teste
@@ -569,11 +600,11 @@ Array:
 	keep_debug:
 		Gui.Submit()
 		if	keep_full {
-			GuiControl, , output,% debug
+			GuiControl, , output_info,% debug
 			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		}
 		Else {
-			GuiControl, , output,% configurada
+			GuiControl, , output_info,% configurada
 			SendMessage, 0x115, 7, 0, Edit13, Dahua Config
 		}
 
