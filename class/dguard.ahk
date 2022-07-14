@@ -341,6 +341,21 @@ Class	dguard {
 		return	json( Dguard.Request( url , token ) )
 	}
 
+	licenses( server="" , token="" )										{
+		server	:=	StrLen( server ) = 0	;	parâmetro de servidor não enviado
+				?	"localhost"
+				:	server
+
+		If	!Token
+			token	:=	this.token( server )
+				
+		c	:=	"GET ""http://" server ":8081/api/licenses/projects"""
+			.	" -H ""accept: application/json"""
+			.	" -H ""Authorization: bearer " token """"
+
+		return this.Curly( c )
+	}
+
 	lista_cameras_layout( server , token , layoutGuid )						{
 		;	var.servers[A_Index].CAMPO
 		/*	Usado pelos sistemas abaixo
