@@ -72,10 +72,6 @@ auto_update() {
 							.	"`n	If fileExist( """ A_ScriptDir "\" software "_new.exe"" )"
 							.	"`n		Break"
 							.	"`n	Else If ( A_Index > 20 ) {"
-							.	"`n;		fail = 1"
-							.	"`n;		mail.new(	""dsantos@cotrijal.com.br"""
-							.	"`n;			.	,	""Falha ao atualizar o software " software
-							.	"`n;			.	,	""Falha ao atualizar o software " software " na máquina " A_IPAddress1 ", usuário logado " A_UserName ", para a versão " sql[2, 3] ")"
 							.	"`n		Exitapp"
 							.	"`n	}"
 							.	"`n}"
@@ -809,6 +805,35 @@ update( comando = "" ) {
 	if ( StrLen( sql_le ) = 0 )
 		return 0
 	return sql_le
+}
+
+vw_random_pass(unidade)	{
+	if( StrLen(unidade) < 4 )
+		Loop,% 4 - StrLen(unidade)
+			unidade := "0" unidade
+	s=
+		(
+			SELECT TOP(1)
+				Cliente,
+					SUBSTRING(Evento,1,1),
+					CONCAT(SUBSTRING(evento,2,3),Substring(zona,1,1)),
+					sequencia
+				FROM
+					[IrisSQL].[dbo].[Eventos]
+				WHERE
+					(	Evento LIKE '2`%'
+					OR	Evento LIKE '4`%'
+					OR	Evento LIKE '6`%') AND
+					Cliente = '1%unidade%'
+				ORDER BY
+					4 DESC
+		)
+		s:=sql(s)
+	return	s.Count()-1 > 0
+			?	  "Senha 1 = "		s[2,3]
+				. "`nSenha 2 = "	s[2,4]
+				. "`nSenha 3 = "	s[2,5]
+			:	"Não há senha de uso único ativada neste cliente"
 }
 
 wm_read(wParam, lParam)	{
