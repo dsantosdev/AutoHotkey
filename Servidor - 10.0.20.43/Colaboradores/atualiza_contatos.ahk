@@ -1,5 +1,6 @@
 ﻿File_Version=0.1.1
 Save_To_Sql=1
+Keep_Versions=2
 ;@Ahk2Exe-SetMainIcon C:\AHK\icones\fun\mag.ico
 
 ;	Includes
@@ -20,21 +21,11 @@ Save_To_Sql=1
 	; #Include C:\Users\dsantos\Desktop\AutoHotkey\class\windows.ahk
 ;
 
-;	Variáveis
-	#SingleInstance Force
-	show_tooltip	:=	A_Args[1]
-	if ( A_UserName = "dsantos" )
-		show_tooltip = 1
-	if A_IsCompiled
-		ext	= exe
-	Else
-		ext = ahk
-;
-
 ;	Configuração
+	#NoTrayIcon
+	#SingleInstance Force
 	SetBatchLines, -1
 	CoordMode, ToolTip, Screen
-	#NoTrayIcon
 ;
 
 ;	Arrays
