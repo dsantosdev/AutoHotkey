@@ -559,7 +559,6 @@ Array:
 					,	'%cam_model%'	)
 			)
 			sql( i, 3 )
-			Clipboard := i
 		if	sql_le
 			MsgBox % sql_le "`n`n" Clipboard := sql_lq
 		if !keep_full {
