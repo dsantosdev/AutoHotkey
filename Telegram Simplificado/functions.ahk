@@ -5,6 +5,44 @@ functions_ = 1
 
 Global sql_le, sql_lq
 
+cam_list( cameras, message="" )	{
+	message := html_encode( "Selecione a Câmera" )
+	Loop,%	cameras.Count()-1	{
+		nome	:=	cameras[A_Index+1,1]
+		guid	:=	cameras[A_Index+1,2]
+		server	:=	cameras[A_Index+1,3]
+		if ( A_Index = cameras.Count()-1 )
+		
+			list	.=	"[{""text"" : """ nome """ , ""callback_data"" : """ guid """} ]"
+		Else
+			list	.=	"[{""text"" : """ nome """ , ""callback_data"" : """ guid """} ],`n"
+	}
+
+	keyb={
+		(join
+		"inline_keyboard":
+		[	%list%
+		],
+		"resize_keyboard" : true }
+		)
+	OutputDebug, % "id " message_id " reply send cam list"
+	url:=Token "/sendMessage?text=" message "&chat_id=" from_id "&reply_markup=" keyb ; "&reply_to_message_id=" message_id "&chat_id=" from_id
+	return request(url)	
+}
+
+curly( comando, assync="0" )											{
+	DetectHiddenWindows On
+	Run %ComSpec%,, Hide, pid
+	WinWait ahk_pid %pid%
+	DllCall( "AttachConsole" , "UInt" , pid )
+	WshShell	:= ComObjCreate( "Wscript.Shell" )
+	; OutputDebug % clipboard := comando
+	exec		:= WshShell.Exec(  clipboard := "cmd /c curl -X " comando )
+	DllCall( "FreeConsole" )
+	Process Close,%	pid
+	return exec.StdOut.ReadAll()
+}
+
 datetime( sql=0, date="", format="" )							{
 	sql	:= RegExReplace( sql, "[^\d]+" )
 	date:= RegExReplace( date, "[^\d]+" )
@@ -78,64 +116,39 @@ dguard_token( server, pass = "", user = "" )					{
 	return	SubStr( retorno , InStr( retorno , "userToken:" )+10 )
 }
 
-dguard_get_image( guid_da_camera, server, token_dguard = "" )	{
-		horario := A_Now
-		
-		server := StrLen( server )	= 1
-									? "vdm0" server
-									: "vdm" server
-		static req := ComObjCreate( "Msxml2.XMLHTTP" )
-		req.open(	"GET"
-				; ,	"http://vdm" server ":8081/api/servers/%7B" guid_da_camera "%7D/cameras/0/image.jpg"	;	para debug apenas, não usar!
-				,	"http://" server ":8081/api/servers/%7B" guid_da_camera "%7D/cameras/0/image.jpg"
-				,	false	)
-		req.SetRequestHeader( "Authorization", "bearer " token_dguard  )
-		req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
-		req.send()
+dguard_get_image( guid_da_camera, server, token = "" )								{	;	não está pronto
+	horario := A_Now
+	if StrLen( server ) = 1
+		server := "vdm0" server
+	comando	:=	"GET ""http://" server ":8081/api/servers/%7B" guid_da_camera "%7D/cameras/0/image.jpg"""
+			.	" -H ""accept: image/jpeg"""
+			.	" -H ""Authorization: bearer " token """"
+			.	" --output """ A_ScriptDIr "\" guid_da_camera " " horario ".jpg"""
+	curly( comando )
+	; loop {
+		; if	FileExist( A_ScriptDIr "\" guid_da_camera " " horario ".jpg" ) {
+			; Sleep, 2000
+			; break
+		; }
 
-		iStream := req.ResponseStream
-		if ( ComObjType( iStream ) = 0xD )
-			pIStream := ComObjQuery(iStream				;	def in ObjIdl.h
-								,	"{0000000c-0000-0000-C000-000000000046}"	)
-		oFile := FileOpen(	A_ScriptDIr "\" guid_da_camera " " horario ".png"
-						,	"w"	)
-		Loop {
-			VarSetCapacity( Buffer
-						,	8192 )
-			hResult := DllCall( NumGet( NumGet( pIStream + 0 ) + 3 * A_PtrSize )	; IStream::Read 
-							,	"ptr",	pIStream
-							,	"ptr",	&Buffer		;	pv [out] A pointer to the buffer which the stream data is read into.
-							,	"uint",	8192		;	cb [in] The number of bytes of data to read from the stream object.
-							,	"ptr*",	cbRead	)	;	pcbRead [out] A pointer to a ULONG variable that receives the actual number of bytes read from the stream object. 
-			oFile.RawWrite( &Buffer
-						,	cbRead )
-			OutputDebug % cbRead
-		}
-		Until ( cbRead = 0 || cbRead = "" )
-		if ( cbRead = "" )
-			Return "Fail"
-		ObjRelease( pIStream )
-		oFile.Close(  )
-		if FileExist(	A_ScriptDIr "\" guid_da_camera " " horario ".png" )	;	Just for test purpose
-			Return	A_ScriptDIr "\" guid_da_camera " " horario ".png"
-		else
-			Return "Fail"
+	; }
+	Return A_ScriptDIr "\" guid_da_camera " " horario ".jpg"
 }
 
 html_encode(str)												{
 	f:=A_FormatInteger
 	SetFormat, Integer, Hex
-	If RegExMatch(str, "^\w+:/{0,2}", pr)
-		StringTrimLeft, str, str, StrLen(pr)
-	str:=StrReplace(str, "%","%25")
+	If	RegExMatch( str, "^\w+:/{0,2}", pr )
+		StringTrimLeft, str, str, StrLen( pr )
+	str	:=	StrReplace( str, "%","%25" )
 	Loop
-		If RegExMatch(str, "i)[^\w\.~%]", char)
+		If	RegExMatch( str, "i)[^\w\.~%]", char )
 			str:=	Asc(char)="0xA"
 			?		StrReplace(str,char,"%0" SubStr(Asc(char),3,1))
 			:		StrReplace(str,char,"%" SubStr(Asc(char),3))
 		Else Break
-	if(InStr(str,"%9")>0)
-	str:=StrReplace(str,"%9","%09")
+	if( InStr( str, "%9" ) > 0 )
+		str	:=	StrReplace( str, "%9", "%09" )
 	SetFormat, Integer, %f%
 	Return, pr . str
 }
@@ -164,7 +177,48 @@ InArray(Array, SearchText, MatchWord="0")						{
 	return 0
 }
 
-Map( Array, SearchText, KeyIs="", Partial="0" )					{
+new_mail( to, subject, body, from := "", attach := "", cc* )	{
+	OutputDebug, % "sending mail"
+	if ( StrLen( from ) = 0 )
+		from := """Bot Telegram Monitoramento"" <do-not-reply@cotrijal.com.br>"
+	Else
+		from := """Bot Telegram Monitoramento"" <" from ">"
+	if cc
+		Loop,% cc.Count()
+			copia .= cc[ A_Index ] ","
+	pmsg							:= ComObjCreate( "CDO.Message" )
+	pmsg.From						:= from
+	pmsg.To							:= to
+	pmsg.CC							:= copia
+	pmsg.Subject					:= subject
+	pmsg.TextBody					:= body
+	sAttach							:= attach
+
+	fields							:= Object()
+	fields.smtpserver				:= "mail.cotrijal.com.br"
+	fields.smtpserverport			:= 587
+	fields.smtpusessl				:= false
+	fields.sendusing				:= 2
+	fields.smtpauthenticate			:= 1
+	fields.sendusername				:= "TelegramBotMonitoramento@cotrijal.com.br"
+	fields.sendpassword				:= ""
+	fields.smtpconnectiontimeout	:= 10
+	schema							:= "http://schemas.microsoft.com/cdo/configuration/"
+	pfld 							:= pmsg.Configuration.Fields
+
+	For	field, value in fields
+		pfld.Item( schema field ) := value
+	pfld.Update()
+
+
+	Loop, Parse, sAttach, |, %A_Space%%A_Tab%
+		pmsg.AddAttachment( A_LoopField )
+
+	pmsg.Send()
+	return
+}
+
+map( Array, SearchText, KeyIs="", Partial="0" )					{
 	if( StrLen( SearchText ) = 0 )
 		return 0
 	if !IsObject( Array )	{
@@ -199,7 +253,16 @@ Map( Array, SearchText, KeyIs="", Partial="0" )					{
 						: list
 }
 
-Request(url)													{
+phone( number )													{
+	; Msgbox	%	subStr( number, 3, 1 ) "`n" number
+	if(	SubStr( number, 3, 1 ) != "9"
+	&&	SubStr( number, 3, 1 ) != "8" )
+		Return "0 ( " SubStr( number, 1, 2 ) " ) " SubStr( number, 3, 4 ) "-" SubStr( number, 7 )
+	Else
+		Return "0 ( " SubStr( number, 1, 3 ) " ) " SubStr( number, 4, 4 ) "-" SubStr( number, 8 )
+}
+
+request(url)													{
 	req	:=	ComObjCreate( "WinHttp.WinHttpRequest.5.1" )
 	req.open( "GET", url, false )
 	req.SetRequestHeader( "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" )
@@ -218,7 +281,28 @@ Request(url)													{
 	return	req.responseText
 }
 
-StrReplaceN(Haystack,Needle,Replacement="",Instance=1)			{
+strrep( haystack , separator = ":" , needles* )	{
+	/*
+		texto :=	"Nome da câmera alterado dê:[n]'a'[n][t]para:[n]'b'[n]"
+		MsgBox %  StrRep( texto , , "[n]:%0A", "[t]:%09" ) parametros
+	*/
+	for i, v in needles
+	{
+		if ( InStr( v , separator ) > 0 )	{
+			SearchText	:= SubStr( v, 1 , InStr( v , separator )-1 )	
+			ReplaceText := SubStr( v,InStr( v , separator )+1 )
+		}
+		Else	{
+			SearchText	:=	v
+			ReplaceText	:=	""
+		}
+		haystack := StrReplace( haystack, SearchText , ReplaceText )
+	}
+	Return haystack
+
+}
+
+strreplacen(Haystack,Needle,Replacement="",Instance=1)			{
 	If !(Instance:=0 | Instance)	{
 		StringReplace, Haystack, Haystack, %Needle%, %Replacement%, A
 		Return Haystack
@@ -234,91 +318,189 @@ StrReplaceN(Haystack,Needle,Replacement="",Instance=1)			{
 }
 
 sql(query,tipo=1,d="")											{
-	if(instr(query,"UPDATE")>0 and instr(query,"WHERE")=0)	{
-		MsgBox, Você está tentando executar um UPDATE sem definir WHERE`, deseja realmente continuar? Isso alterará TODOS os dados da tabela.
+	ListLines, Off
+	;	ADOSQL modified
+	if ( instr( query, "UPDATE" ) > 0 && instr( query, "WHERE" ) = 0
+		&&	update_in_query = 0 )	{
+			clipboard := query
+		MsgBox,4 , ,% "Você está tentando executar um UPDATE sem definir WHERE`, deseja realmente continuar? Isso alterará TODOS os dados da tabela`n." SubStr( query, InStr(query, "update")-10, instr(query, "update")+20 )
 		IfMsgBox,	No
 			return
+		Else
+			clipboard := query
 		}
-	tipo=Driver={SQL Server};Server=srvvdm-bd\ASM;Uid=ahk;Pwd=139565Sa
-	coer:="", txtout:=0, rd:="`n", cd:="CSV", str:=tipo
-	If !(oCon:=ComObjCreate("ADODB.Connection"))
-		Return "", ComObjError(1), ErrorLevel:="Error"
-		, sql_LE:="Fatal Error: ADODB is not available."
-	oCon.ConnectionTimeout:=9
-	oCon.CursorLocation:=3
-	oCon.CommandTimeout:=1800
+
+	if ( tipo = 1 )
+		tipo=Driver={SQL Server};Server=srvvdm-bd\iris10db;Uid=ahk;Pwd=139565Sa
+	else if ( tipo = 2 )
+		tipo=Driver={Oracle in ora_moni};dbq=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oraprod)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=prod)));Uid=asm;Pwd=cot2020asm
+	else if ( tipo = 3 )
+		tipo=Driver={SQL Server};Server=srvvdm-bd\ASM;Uid=ahk;Pwd=139565Sa
+	else {
+		MsgBox Tipo de conexão indefinido.
+		return
+	}
+
+	if !InStr( query, "[ASM].[ASM]." )
+		if ( tipo = 1 )
+			query := StrReplace( query, "[ASM].[dbo]", "[ASM].[ASM].[dbo]", , -1 )
+	coer := "", txtout := 0, rd := "`n", cd := "CSV", str := tipo
+	If ( 9 < oTbl := 9 + InStr( ";" str, ";RowDelim=" ) )	{
+		rd := SubStr( str, oTbl, 0 - oTbl + oRow := InStr( str ";", ";", 0, oTbl ) )
+		str := SubStr( str, 1, oTbl - 11 ) SubStr( str, oRow )
+		txtout := 1
+		}
+	If ( 9 < oTbl := 9 + InStr( ";" str, ";ColDelim=" ) )	{
+		cd := SubStr( str, oTbl, 0 - oTbl + oRow := InStr( str ";", ";", 0, oTbl ) )
+		str := SubStr( str, 1, oTbl - 11 ) SubStr( str, oRow )
+		txtout := 1
+		}
+	ComObjError( 0 )
+	If !( oCon := ComObjCreate( "ADODB.Connection" ) )
+		Return "", ComObjError( 1 ), ErrorLevel := "Error"
+		, sql_le := "Fatal Error: ADODB is not available."
+	oCon.ConnectionTimeout := 9
+	oCon.CursorLocation := 3
+	oCon.CommandTimeout := 1800
 	oCon.Open(str)
-	If !(coer:=A_LastError)
-		oRec:=oCon.execute(sql_lq:=query)
-	If !(coer:=A_LastError)	{
-		o3DA:=[]
-		While IsObject(oRec)
-			If !oRec.State
-				oRec:=oRec.NextRecordset()
+	If !( coer := A_LastError )
+		oRec := oCon.execute( sql_lq := query )
+	If !( coer := A_LastError )	{
+		o3DA := []
+		While IsObject( oRec )
+			If !oRec.State 
+				oRec := oRec.NextRecordset()
 			Else	{
-				oFld:=oRec.Fields
-				o3DA.Insert(oTbl:=[])
-				oTbl.Insert(oRow:=[])
-				Loop % cols:=oFld.Count	{	;	Headers
-					; MsgBox, %	oFld.Item(A_Index-1).Name
-					oRow[A_Index]:=oFld.Item(A_Index-1).Name
-					}
-				While !oRec.EOF	{
-					oTbl.Insert(oRow:=[])
-					oRow.SetCapacity(cols)
-					Loop % cols	{	;	Values
-						; MsgBox	%	oFld.Item(A_Index-1).Value	
-						oRow[A_Index]:=oFld.Item(A_Index-1).Value	
-						}
+				oFld := oRec.Fields
+				o3DA.Insert( oTbl := [] )
+				oTbl.Insert( oRow := [] )
+				Loop % cols := oFld.Count
+					oRow[ A_Index ] := oFld.Item( A_Index - 1 ).Name
+				While !oRec.EOF
+				{
+					oTbl.Insert( oRow := [] )
+					oRow.SetCapacity( cols )
+					Loop % cols
+						oRow[ A_Index ] := oFld.Item( A_Index - 1 ).Value	
 					oRec.MoveNext()
 					}
-				oRec:=oRec.NextRecordset()
+				oRec := oRec.NextRecordset()
 				}
-		If(txtout)	{
-			query:="x"
+		If (txtout)	{
+			query := "x"
 			Loop % o3DA.Count()	{
-				query.=rd rd
-				oTbl:=o3DA[A_Index]
+				query .= rd rd
+				oTbl := o3DA[ A_Index ]
 				Loop % oTbl.Count()	{
-					oRow:=oTbl[A_Index]
+					oRow := oTbl[ A_Index ]
 					Loop % oRow.Count()
-						If(cd="CSV")	{
-							str:=oRow[A_Index]
+						If ( cd = "CSV" )	{
+							str := oRow[ A_Index ]
 							StringReplace, str, str, ", "", A
-							If !ErrorLevel || InStr(str, ",") || InStr(str, rd)
-								str:="""" str """"
-							query.=(A_Index=1?rd:",") str
+							If !ErrorLevel || InStr( str, "," ) || InStr( str, rd )
+								str := """" str """"
+							query .= ( A_Index = 1 ? rd : "," ) str
 							}
 						Else
-							query.=(A_Index=1?rd:cd) oRow[A_Index]
+							query .= ( A_Index = 1 ? rd : cd ) oRow[ A_Index ]
 					}
 				}
-			query:=SubStr(query,2+3*StrLen(rd))
+			query := SubStr( query, 2 + 3 * StrLen( rd ) )
 			}
 		}
 	Else	{
-		oErr:=oCon.Errors
-		query:="x"
+		oErr := oCon.Errors
+		query := "x"
 		Loop % oErr.Count	{
-			oFld:=oErr.Item(A_Index-1)
-			str:=oFld.Description
-			query.="`n`n" SubStr(str,1+InStr(str,"]",0,2+InStr(str,"][",0,0)))
+			oFld := oErr.Item( A_Index - 1 )
+			str := oFld.Description
+			query .= "`n`n" SubStr( str, 1 + InStr( str, "]", 0, 2 + InStr( str, "][", 0, 0 ) ) )
 				. "`n   Number: " oFld.Number
 				. ", NativeError: " oFld.NativeError
 				. ", Source: " oFld.Source
 				. ", SQLState: " oFld.SQLState
 			}
-		sql_le:=SubStr(query,4)
-		query:=""
-		txtout:=1
+		sql_le := SubStr( query, 4 )
+		query := ""
+		txtout := 1
 		}
 	oCon.Close()
 	ComObjError( 0 )
-	ErrorLevel:=coer
-	if(StrLen(sql_le)>0 and StrLen(d)>0)
+	ErrorLevel := coer
+	if (	StrLen( sql_le ) > 0
+		&&	StrLen( d ) > 0
+		&&	d <> "o" )
 		MsgBox % sql_le "`n" sql_lq
-	Return txtout?query:o3DA.Count()=1?o3DA[1]:o3DA
+	if (	d	= "o"
+			&&	StrLen(sql_le) > 0 )
+		OutputDebug % "Error:`n`t"	sql_le "`nQuery`n`t" clipboard:=sql_lq
+	ListLines, On
+	Return txtout
+				?	query
+				:	o3DA.MaxIndex() =	1
+									?	o3DA[1]
+									:	o3DA
 }
+
+randompass(unidade="")											{
+	FileEncoding, UTF-8
+	if !unidade
+		unidade := SubStr(mtext, InStr( mtext, A_Space )+1)
+	if( StrLen(unidade) < 4 )
+		Loop,% 4 - StrLen(unidade)
+			unidade := "0" unidade
+	s=
+		(
+			SELECT TOP(3)
+				Cliente,
+					SUBSTRING(Evento,1,1),
+					CONCAT(SUBSTRING(evento,2,3),Substring(zona,1,1)),
+					sequencia
+				FROM
+					[IrisSQL].[dbo].[Eventos]
+				WHERE
+					(	Evento LIKE '2`%'
+					OR	Evento LIKE '4`%'
+					OR	Evento LIKE '6`%') AND
+					Cliente = '1%unidade%'
+				ORDER BY
+					4 DESC
+		)
+		s	:=	sql(s)
+	mensagem := s.Count()-1 > 0
+				?	  "Senha 1 = "		s[2,3]
+					. "`nSenha 2 = "	s[3,3]
+					. "`nSenha 3 = "	s[4,3]
+				:	"Não há senha de uso único ativada neste cliente"
+	new_mail( "dsantos@cotrijal.com.br", "Senha de uso unico Solicitada", "Cliente do Iris:`n`t" s[2,1]"`n`n" mensagem "`n`nSolicitadas por:`n`t" first_name "`nTelegram ID:`n`t" from_id,,,"alberto@cotrijal.com.br", "arsilva@cotrijal.com.br", "ddiel@cotrijal.com.br", "egraff@cotrijal.com.br" )
+	SendText( html_encode( mensagem ) )
+	return	
+}
+
+user_list( dados, message="" )	{
+	message := html_encode( "Selecione o colaborador" )
+	Loop,%	dados.Count()-1	{
+		nome	:=	dados[A_Index+1,1]
+		pkid	:=	dados[A_Index+1,15]
+		if ( A_Index = dados.Count()-1 )
+		
+			list	.=	"[{""text"" : """ nome """ , ""callback_data"" : """ pkid """} ]"
+		Else
+			list	.=	"[{""text"" : """ nome """ , ""callback_data"" : """ pkid """} ],`n"
+	}
+
+	keyb={
+		(join
+		"inline_keyboard":
+		[	%list%
+		],
+		"resize_keyboard" : true }
+		)
+	OutputDebug, % "id " message_id " reply send user list"
+	url:=Token "/sendMessage?text=" message "&chat_id=" from_id "&reply_markup=" keyb ; "&reply_to_message_id=" message_id "&chat_id=" from_id
+	return request(url)	
+}
+
 
 ;	BLOCO DE PREPARAÇÃO DE IMAGEM PARA ENVIO
 	RequestFormData( url_str, objParam )	{								; Upload multipart/form-data
