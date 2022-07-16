@@ -8,31 +8,6 @@ GetNewMessages( offset = "" )					{
 	return request( token "/getupdates?offset=" offset )
 }
 
-Cam_list( cameras, message="" )	{
-	message := html_encode( "Selecione a Câmera" )
-	Loop,%	cameras.Count()-1	{
-		nome	:=	cameras[A_Index+1,1]
-		guid	:=	cameras[A_Index+1,2]
-		server	:=	cameras[A_Index+1,3]
-		if ( A_Index = cameras.Count()-1 )
-		
-			list	.=	"[{""text"" : """ nome """ , ""callback_data"" : """ guid """} ]"
-		Else
-			list	.=	"[{""text"" : """ nome """ , ""callback_data"" : """ guid """} ],`n"
-	}
-
-	keyb={
-		(join
-		"inline_keyboard":
-		[	%list%
-		],
-		"resize_keyboard" : true }
-		)
-	OutputDebug, % "id " message_id " reply send cam list"
-	url:=Token "/sendMessage?text=" message "&chat_id=" from_id "&reply_markup=" keyb ; "&reply_to_message_id=" message_id "&chat_id=" from_id
-	return request(url)	
-}
-
 DeleteMessage( HowMany=1, minusMessageId=0 )	{
 	msgid	:=	minusMessageId	> 0
 								? message_id - minusMessageId
@@ -44,8 +19,11 @@ DeleteMessage( HowMany=1, minusMessageId=0 )	{
 	}
 }
 
-RemoveMessage( HowMany=1 )	{
-	msgid	:= message_id
+RemoveMessage( HowMany=1, msgid="" )	{
+	if	!msgid
+		msgid	:= message_id
+	Else
+		msgid	:= msgid+1
 	Loop,%	HowMany	{
 		url	:=	token "/deleteMessage?chat_id=" from_id "&message_id=" msgid := msgid-1
 		OutputDebug % "removido: " msgid
@@ -89,6 +67,7 @@ SendText( text, replyMarkup="", parseMode="", params* )	{
 	}
 	Else
 		url	:=	token "/sendmessage?chat_id=" from_ID "&text=" text "&reply_markup=" replyMarkup "&parse_mode=" parseMode
+		Clipboard:=url
 	return Request( url )
 }
 
